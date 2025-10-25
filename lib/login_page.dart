@@ -5,6 +5,9 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(context) {
-    return Text("Hello World");
+    return Text(
+      "Hello World",
+      style: TextStyle(color: Colors.red),
+    );
   }
 }
