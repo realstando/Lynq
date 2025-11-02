@@ -70,11 +70,15 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
               fontSize: 25,
             ),
           ),
+          SizedBox(height: 20),
           Expanded(
-            child: ListView.builder(
-              itemCount: announcements.length,
-              itemBuilder: (context, index) =>
-                  AnnouncementFormat(announcement: announcements[index]),
+            child: Container(
+              color: Color(0xFFE3F2FD),
+              child: ListView.builder(
+                itemCount: announcements.length,
+                itemBuilder: (context, index) =>
+                    AnnouncementFormat(announcement: announcements[index]),
+              ),
             ),
           ),
           SizedBox(height: 20),

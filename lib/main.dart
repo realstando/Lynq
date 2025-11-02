@@ -3,6 +3,8 @@ import 'package:coding_prog/login/signup_page.dart';
 import 'package:flutter/material.dart';
 import 'package:coding_prog/login/login_page.dart';
 import 'package:coding_prog/Competive_Events/events_page.dart';
+import 'package:coding_prog/Annoucements/announcements_page.dart';
+import 'package:coding_prog/Resources/resource_page.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
