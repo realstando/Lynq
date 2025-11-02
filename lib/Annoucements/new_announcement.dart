@@ -15,6 +15,7 @@ class _NewAnnouncementState extends State<NewAnnouncement> {
   final _titleController = TextEditingController();
   final _informationController = TextEditingController();
 
+  @override
   void dispose() {
     _titleController.dispose();
     _informationController.dispose();
@@ -53,6 +54,7 @@ class _NewAnnouncementState extends State<NewAnnouncement> {
     widget.addAnnouncement(announcement);
   }
 
+  @override
   Widget build(context) {
     return (Scaffold(
       appBar: AppBar(

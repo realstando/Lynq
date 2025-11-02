@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:coding_prog/Annoucements/announcement.dart';
 
 class AnnouncementFormat extends StatelessWidget {
-  AnnouncementFormat({required this.announcement, super.key});
+  const AnnouncementFormat({required this.announcement, super.key});
   final Announcement announcement;
 
+  @override
   Widget build(context) {
     return Column(
       children: [
