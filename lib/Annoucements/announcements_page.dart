@@ -6,6 +6,7 @@ import 'package:coding_prog/Annoucements/announcement.dart';
 class AnnouncementsPage extends StatefulWidget {
   const AnnouncementsPage({super.key});
 
+  @override
   State<AnnouncementsPage> createState() {
     return _AnnouncementsPageState();
   }
