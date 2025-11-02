@@ -14,6 +14,7 @@ class ResourceFormat extends StatelessWidget {
     }
   }
 
+  @override
   Widget build(context) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 12),

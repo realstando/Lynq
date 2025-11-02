@@ -40,7 +40,7 @@ class _CalendarPageState extends State<CalendarPage> {
       body: Column(
         children: [
           // Top section - FIXED HEIGHT
-          Container(
+          SizedBox(
             height: _topHeight,
             child: SingleChildScrollView(
               // Allow scrolling if content too big

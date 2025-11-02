@@ -62,8 +62,10 @@ class _SignupPageState extends State<SignupPage> {
                 final password = _password.text;
                 try {
                   final userCredential = FirebaseAuth.instance
-                    .createUserWithEmailAndPassword(
-                        email: email, password: password);
+                      .createUserWithEmailAndPassword(
+                        email: email,
+                        password: password,
+                      );
                   _email.clear();
                   _password.clear();
                   Navigator.of(context).pushNamedAndRemoveUntil(
@@ -73,9 +75,7 @@ class _SignupPageState extends State<SignupPage> {
                 } on FirebaseAuthException catch (e) {
                   if (e.code == 'weak-password') {
                   } else if (e.code == 'email-already-in-use') {
-                  } else if (e.code == 'invalid-email') {
-                  } 
-                } catch (e) {
+                  } else if (e.code == 'invalid-email') {}
                 }
               },
               child: const Text('Register'),
@@ -88,7 +88,7 @@ class _SignupPageState extends State<SignupPage> {
                 );
               },
               child: const Text('Already registered? Login here.'),
-            )
+            ),
           ],
         ),
       ),
