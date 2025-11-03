@@ -3,6 +3,8 @@ import 'package:coding_prog/Resources/resource_format.dart';
 import 'package:coding_prog/Resources/resource.dart';
 
 class ResourcePage extends StatelessWidget {
+  ResourcePage({super.key});
+
   final List<Resource> resources = [
     Resource(
       title: "Competitive Events",

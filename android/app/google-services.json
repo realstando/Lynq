@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "98975695485",
+    "project_id": "lynq-a91d1",
+    "storage_bucket": "lynq-a91d1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:98975695485:android:7913dc65c7f6b9ad08e714",
+        "android_client_info": {
+          "package_name": "com.example.expense_tracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDhajBVtOMYyPgTG2CLPBuFASozt8mZ01I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
