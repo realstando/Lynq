@@ -85,5 +85,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'lynq-a91d1.firebasestorage.app',
     measurementId: 'G-HCBGJ625QQ',
   );
-
 }
