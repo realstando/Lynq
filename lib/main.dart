@@ -1,5 +1,6 @@
 import 'package:coding_prog/Annoucements/announcements_page.dart';
 import 'package:coding_prog/login/signup_page.dart';
+import 'package:coding_prog/profile/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:coding_prog/login/login_page.dart';
 import 'package:coding_prog/Competive_Events/events_page.dart';
@@ -24,7 +25,7 @@ class MyApp extends StatelessWidget {
       title: 'LYNQ',
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        body: LoginPage(),
+        body: ProfilePage(),
         backgroundColor: Colors.white,
       ),
       routes: {
@@ -32,6 +33,7 @@ class MyApp extends StatelessWidget {
       '/signup/': (context) => const SignupPage(),
       '/announcements/': (context) => const AnnouncementsPage(),
       '/events/': (context) => const EventsPage(),
+      '/profile/': (context) => const ProfilePage(),
       }
     );
   }
