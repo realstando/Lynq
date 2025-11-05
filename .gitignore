@@ -18,6 +18,16 @@ migrate_working_dir/
 *.iws
 .idea/
 
+# Build outputs
+**/android/app/build/
+**/ios/build/
+**/build/
+
+# Generated files
+**/*.jar
+**/*.bin
+**/generated/
+
 # The .vscode folder contains launch configuration and tasks you configure in
 # VS Code which you may wish to be included in version control, so this line
 # is commented out by default.
