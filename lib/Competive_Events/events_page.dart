@@ -523,11 +523,11 @@ class _EventsPageState extends State<EventsPage> {
   Color _getCategoryColor(EventCategory category) {
     switch (category) {
       case EventCategory.objective:
-        return const Color(0xFF6366F1);
+        return const Color(0xFF003B7A); // FBLA Navy Blue
       case EventCategory.presentation:
-        return const Color(0xFF8B5CF6);
+        return const Color(0xFF0066B3); // FBLA Medium Blue
       case EventCategory.roleplay:
-        return const Color(0xFFEC4899);
+        return const Color(0xFF4A90E2); // FBLA Light Blue
     }
   }
 
@@ -543,16 +543,17 @@ class _EventsPageState extends State<EventsPage> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: const Text(
           "FBLA Competitive Events",
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 20,
+            color: Colors.white,
           ),
         ),
-        backgroundColor: const Color(0xFF4F46E5),
+        backgroundColor: const Color(0xFF003B7A), // FBLA Navy Blue
         elevation: 0,
         centerTitle: false,
       ),
@@ -565,8 +566,8 @@ class _EventsPageState extends State<EventsPage> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color(0xFF4F46E5),
-                  Color(0xFFF9FAFB),
+                  Color(0xFF003B7A), // FBLA Navy Blue
+                  Color(0xFFF8F9FA),
                 ],
                 stops: [0.0, 0.3],
               ),
@@ -632,11 +633,13 @@ class _EventsPageState extends State<EventsPage> {
                           });
                         },
                         backgroundColor: Colors.white,
-                        selectedColor: const Color(0xFF4F46E5).withOpacity(0.2),
-                        checkmarkColor: const Color(0xFF4F46E5),
+                        selectedColor: const Color(
+                          0xFF003B7A,
+                        ).withOpacity(0.15),
+                        checkmarkColor: const Color(0xFF003B7A),
                         labelStyle: TextStyle(
                           color: _selectedCategory == null
-                              ? const Color(0xFF4F46E5)
+                              ? const Color(0xFF003B7A)
                               : const Color(0xFF6B7280),
                           fontWeight: _selectedCategory == null
                               ? FontWeight.bold
