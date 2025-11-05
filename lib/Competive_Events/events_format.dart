@@ -16,47 +16,126 @@ class EventsFormat extends StatelessWidget {
     }
   }
 
+  Color _getCategoryColor() {
+    switch (event.category) {
+      case EventCategory.objective:
+        return const Color(0xFF6366F1); // Indigo
+      case EventCategory.presentation:
+        return const Color(0xFF8B5CF6); // Purple
+      case EventCategory.roleplay:
+        return const Color(0xFFEC4899); // Pink
+    }
+  }
+
+  IconData _getCategoryIcon() {
+    switch (event.category) {
+      case EventCategory.objective:
+        return Icons.quiz_outlined;
+      case EventCategory.presentation:
+        return Icons.present_to_all_outlined;
+      case EventCategory.roleplay:
+        return Icons.theater_comedy_outlined;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: _openLink,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 45, 40, 192),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: const Color.fromARGB(255, 45, 40, 192),
-              child: Text(
-                event.category.name[0].toUpperCase(),
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Color.fromARGB(255, 255, 255, 255),
-                ),
-              ),
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: InkWell(
+        onTap: _openLink,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white,
+                _getCategoryColor().withOpacity(0.05),
+              ],
             ),
-            const SizedBox(width: 12),
-
-            Expanded(
-              child: Text(
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  // Category Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _getCategoryColor().withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: _getCategoryColor().withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _getCategoryIcon(),
+                          size: 16,
+                          color: _getCategoryColor(),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          event.category.name.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: _getCategoryColor(),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  // Link Icon
+                  Icon(
+                    Icons.open_in_new,
+                    color: Colors.grey.shade400,
+                    size: 20,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              // Title
+              Text(
                 event.title,
                 style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1F2937),
+                  height: 1.3,
                 ),
               ),
-            ),
-
-            const Icon(
-              Icons.check_box,
-              color: Color.fromARGB(255, 45, 40, 192),
-            ),
-          ],
+              const SizedBox(height: 8),
+              // Description
+              Text(
+                event.description,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade700,
+                  height: 1.5,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -291,7 +291,7 @@ class _EventsPageState extends State<EventsPage> {
       title: "Introduction to FBLA",
       category: EventCategory.objective,
       description:
-          "Learn about FBLA’s mission, structure, and opportunities for involvement.",
+          "Learn about FBLA's mission, structure, and opportunities for involvement.",
       link: "https://www.fbla.org/high-school/competitive-events/",
     ),
     CompetitiveEvent(
@@ -520,6 +520,17 @@ class _EventsPageState extends State<EventsPage> {
     ),
   ];
 
+  Color _getCategoryColor(EventCategory category) {
+    switch (category) {
+      case EventCategory.objective:
+        return const Color(0xFF6366F1);
+      case EventCategory.presentation:
+        return const Color(0xFF8B5CF6);
+      case EventCategory.roleplay:
+        return const Color(0xFFEC4899);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final filteredEvents = allEvents.where((event) {
@@ -532,56 +543,199 @@ class _EventsPageState extends State<EventsPage> {
     }).toList();
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF9FAFB),
       appBar: AppBar(
-        title: const Text("FBLA Competitive Events"),
-        backgroundColor: const Color.fromARGB(255, 50, 39, 176),
+        title: const Text(
+          "FBLA Competitive Events",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+        backgroundColor: const Color(0xFF4F46E5),
+        elevation: 0,
+        centerTitle: false,
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: const InputDecoration(
-                hintText: "Search for an event...",
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
+          // Header with gradient
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFF4F46E5),
+                  Color(0xFFF9FAFB),
+                ],
+                stops: [0.0, 0.3],
               ),
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
-              },
+            ),
+            child: Column(
+              children: [
+                // Search Bar
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: "Search events...",
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: Color(0xFF6B7280),
+                      ),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, size: 20),
+                              onPressed: () {
+                                setState(() {
+                                  _searchController.clear();
+                                  _searchQuery = '';
+                                });
+                              },
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value;
+                      });
+                    },
+                  ),
+                ),
+
+                // Category Filter Chips
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: Row(
+                    children: [
+                      FilterChip(
+                        label: const Text('All Events'),
+                        selected: _selectedCategory == null,
+                        onSelected: (selected) {
+                          setState(() {
+                            _selectedCategory = null;
+                          });
+                        },
+                        backgroundColor: Colors.white,
+                        selectedColor: const Color(0xFF4F46E5).withOpacity(0.2),
+                        checkmarkColor: const Color(0xFF4F46E5),
+                        labelStyle: TextStyle(
+                          color: _selectedCategory == null
+                              ? const Color(0xFF4F46E5)
+                              : const Color(0xFF6B7280),
+                          fontWeight: _selectedCategory == null
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ...EventCategory.values.map((category) {
+                        final isSelected = _selectedCategory == category;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: FilterChip(
+                            label: Text(category.name.toUpperCase()),
+                            selected: isSelected,
+                            onSelected: (selected) {
+                              setState(() {
+                                _selectedCategory = selected ? category : null;
+                              });
+                            },
+                            backgroundColor: Colors.white,
+                            selectedColor: _getCategoryColor(
+                              category,
+                            ).withOpacity(0.2),
+                            checkmarkColor: _getCategoryColor(category),
+                            labelStyle: TextStyle(
+                              color: isSelected
+                                  ? _getCategoryColor(category)
+                                  : const Color(0xFF6B7280),
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              fontSize: 12,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
 
+          // Results count
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: DropdownButton<EventCategory>(
-              value: _selectedCategory,
-              hint: const Text("Filter by category"),
-              isExpanded: true,
-              items: EventCategory.values.map((category) {
-                return DropdownMenuItem<EventCategory>(
-                  value: category,
-                  child: Text(category.name.toUpperCase()),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedCategory = value;
-                });
-              },
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                Text(
+                  '${filteredEvents.length} event${filteredEvents.length != 1 ? 's' : ''} found',
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
 
+          // Events List
           Expanded(
-            child: ListView.builder(
-              itemCount: filteredEvents.length,
-              itemBuilder: (context, index) {
-                return EventsFormat(event: filteredEvents[index]);
-              },
-            ),
+            child: filteredEvents.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.search_off,
+                          size: 64,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No events found',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey.shade600,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Try adjusting your search or filters',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    itemCount: filteredEvents.length,
+                    itemBuilder: (context, index) {
+                      return EventsFormat(event: filteredEvents[index]);
+                    },
+                  ),
           ),
         ],
       ),
