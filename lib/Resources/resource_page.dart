@@ -18,15 +18,38 @@ class ResourcePage extends StatelessWidget {
     ),
   ];
 
-  const ResourcePage({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ListView.builder(
-        itemCount: resources.length,
-        itemBuilder: (context, index) =>
-            ResourceFormat(resource: resources[index]),
+      body: Column(
+        children: [
+          SizedBox(height: 60),
+          Text(
+            "FBLA Resources",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 32,
+              letterSpacing: 0.5,
+              color: Colors.grey[900],
+            ),
+          ),
+          SizedBox(height: 16),
+          Container(
+            width: 350,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.blue[700],
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: resources.length,
+              itemBuilder: (context, index) =>
+                  ResourceFormat(resource: resources[index]),
+            ),
+          ),
+        ],
       ),
     );
   }

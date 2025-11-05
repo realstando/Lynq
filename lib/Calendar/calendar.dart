@@ -3,10 +3,9 @@ import 'package:intl/intl.dart';
 final formatter = DateFormat.yMd();
 
 class Calendar {
-  Calendar(this.event, this.title, this.date, this.location);
+  Calendar(this.event, this.date, this.location);
 
   final String event;
-  final String title;
   final DateTime date;
   final String location;
 

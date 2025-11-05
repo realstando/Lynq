@@ -1,4 +1,4 @@
-# expense_tracker
+# Lynq
 
 A new Flutter project.
 
