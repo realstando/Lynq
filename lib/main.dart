@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
       title: 'LYNQ',
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        body: AnnouncementsPage(),
+        body: EventsPage(),
         backgroundColor: Colors.white,
       ),
       routes: {
