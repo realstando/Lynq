@@ -1,18 +1,20 @@
+import 'package:coding_prog/Calendar/new_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'calendar.dart';
-import 'calendar_card.dart';
+import '../calendar.dart';
+import '../calendar_card.dart';
+import 'package:coding_prog/Calendar/new_calendar.dart';
 
-class CalendarPage extends StatefulWidget {
-  const CalendarPage({super.key});
+class AdminCalendarPage extends StatefulWidget {
+  const AdminCalendarPage({super.key});
 
   @override
-  State<CalendarPage> createState() {
-    return _CalendarPageState();
+  State<AdminCalendarPage> createState() {
+    return _AdminCalendarPageState();
   }
 }
 
-class _CalendarPageState extends State<CalendarPage> {
+class _AdminCalendarPageState extends State<AdminCalendarPage> {
   DateTime focused = DateTime.now();
   DateTime? selected;
   double _topHeight = 620.0;
@@ -21,15 +23,92 @@ class _CalendarPageState extends State<CalendarPage> {
   final List<Calendar> calendars = [
     Calendar(
       "Washington SBLC",
-      DateTime.utc(2025, 4, 26),
+      DateTime.utc(2026, 4, 26),
       "Bellevue Washington",
     ),
     Calendar(
       "Anaheim NLC",
-      DateTime.utc(2025, 6, 26),
+      DateTime.utc(2026, 6, 26),
       "Anaheim California",
     ),
   ];
+
+  List<Calendar> get _filteredCalendars {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    switch (_filterMode) {
+      case 'upcoming':
+        // Show next 5 events OR (if there are more than 5 events) show events in the next month
+        final oneMonthFromNow = DateTime(now.year, now.month + 1, now.day);
+
+        // Get all future events
+        final futureEvents = calendars.where((calendar) {
+          final eventDate = DateTime(
+            calendar.date.year,
+            calendar.date.month,
+            calendar.date.day,
+          );
+          return eventDate.isAfter(today.subtract(Duration(days: 1)));
+        }).toList();
+
+        // Sort by date (earliest first)
+        futureEvents.sort((a, b) => a.date.compareTo(b.date));
+
+        // If 5 or fewer events total, show them all
+        if (futureEvents.length <= 5) {
+          return futureEvents;
+        }
+
+        // If more than 5 events, show only events in the next month
+        return futureEvents.where((calendar) {
+          final eventDate = DateTime(
+            calendar.date.year,
+            calendar.date.month,
+            calendar.date.day,
+          );
+          return eventDate.isBefore(oneMonthFromNow.add(Duration(days: 1)));
+        }).toList();
+
+      case 'today':
+        // Show only today's events
+        return calendars.where((calendar) {
+          final eventDate = DateTime(
+            calendar.date.year,
+            calendar.date.month,
+            calendar.date.day,
+          );
+          return isSameDay(eventDate, today);
+        }).toList();
+
+      case 'selected':
+        // Show events for selected date
+        if (selected == null) {
+          return [];
+        }
+        return calendars.where((calendar) {
+          return isSameDay(calendar.date, selected);
+        }).toList();
+
+      default: // 'all'
+        return calendars;
+    }
+  }
+
+  void _openAddResourceOverlay() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => NewCalendar(addCalendar: _onAddCalendar),
+      ),
+    );
+  }
+
+  void _onAddCalendar(Calendar calendar) {
+    setState(() {
+      calendars.insert(0, calendar);
+    });
+    Navigator.pop(context);
+  }
 
   @override
   Widget build(context) {
@@ -37,6 +116,60 @@ class _CalendarPageState extends State<CalendarPage> {
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(bottom: 20, right: 8),
+        child: Container(
+          height: 56,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF003B7E), Color(0xFF002856)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Color(0xFF003B7E).withOpacity(0.4),
+                blurRadius: 12,
+                offset: Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                _openAddResourceOverlay();
+                print("Button tapped!");
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.add_circle_outline,
+                      color: Color(0xFFE8B44C),
+                      size: 24,
+                    ),
+                    SizedBox(width: 12),
+                    Text(
+                      "New Event",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
       body: Column(
         children: [
           // Top section - FIXED HEIGHT
@@ -299,7 +432,7 @@ class _CalendarPageState extends State<CalendarPage> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            "${calendars.length}",
+                            "${_filteredCalendars.length}",
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -313,7 +446,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
                   // Events List
                   Expanded(
-                    child: calendars.isEmpty
+                    child: _filteredCalendars.isEmpty
                         ? Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -336,9 +469,9 @@ class _CalendarPageState extends State<CalendarPage> {
                           )
                         : ListView.builder(
                             padding: EdgeInsets.symmetric(horizontal: 16),
-                            itemCount: calendars.length,
+                            itemCount: _filteredCalendars.length,
                             itemBuilder: (context, index) =>
-                                CalendarCard(calendars[index]),
+                                CalendarCard(_filteredCalendars[index]),
                           ),
                   ),
                 ],

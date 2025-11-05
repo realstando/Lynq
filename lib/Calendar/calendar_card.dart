@@ -1,109 +1,199 @@
 import 'package:flutter/material.dart';
-import 'calendar.dart';
+import 'package:coding_prog/Calendar/calendar.dart';
 
 class CalendarCard extends StatelessWidget {
   const CalendarCard(this.calendar, {super.key});
 
   final Calendar calendar;
 
+  String _formatDate(DateTime date) {
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+
   @override
   Widget build(context) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      padding: EdgeInsets.all(24),
+      margin: EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Color(0xFFFFCECE),
-        borderRadius: BorderRadius.circular(35),
+        gradient: LinearGradient(
+          colors: [Colors.white, Colors.grey[50]!],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Color(0xFFE8B44C).withOpacity(0.3),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: Offset(0, 4),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 8,
+            offset: Offset(0, 3),
           ),
         ],
       ),
-      child: Stack(
-        children: [
-          // Star decoration in top-right
-          Positioned(
-            top: -5,
-            right: -5,
-            child: Icon(
-              Icons.star,
-              color: Color(0xFFFFB84D),
-              size: 45,
-            ),
-          ),
-
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: IntrinsicHeight(
+          // Added this
+          child: Stack(
             children: [
-              // Badge
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  calendar.event,
-                  style: TextStyle(
-                    color: Color(0xFF000000),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-
-              // Title
-              Text(
-                calendar.title,
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 12),
-
-              // Date and Location row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Date
-                  Text(
-                    'Date: ${calendar.date.month}/${calendar.date.day}/${calendar.date.year}',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 16,
+              // Left colored stripe
+              Positioned(
+                left: 0,
+                top: 0,
+                bottom: 0,
+                child: Container(
+                  width: 6,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF003B7E), Color(0xFF002856)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
                     ),
                   ),
+                ),
+              ),
 
-                  // Location with icon
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.location_on,
-                        color: Colors.black,
-                        size: 24,
-                      ),
-                      SizedBox(width: 4),
-                      Text(
-                        calendar.location,
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
+              Padding(
+                padding: EdgeInsets.all(13), // Reduced from 14
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Date Box
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF003B7E), Color(0xFF002856)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0xFF003B7E).withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ],
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            calendar.date.day.toString(),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 26,
+                              fontWeight: FontWeight.w700,
+                              height: 1,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            _formatDate(
+                              calendar.date,
+                            ).split(' ')[0].toUpperCase(),
+                            style: TextStyle(
+                              color: Color(0xFFE8B44C),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1,
+                              height: 1,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(width: 13), // Reduced from 14
+                    // Event Details
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Event Type Badge
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 2, // Reduced from 3
+                            ),
+                            // ... rest stays the same
+                          ),
+
+                          SizedBox(height: 5), // Reduced from 6
+                          // Event Title (same)
+                          Text(
+                            calendar.event,
+                            style: TextStyle(
+                              color: Color(0xFF003B7E),
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              height: 1.2,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+
+                          SizedBox(height: 5), // Reduced from 6
+                          // Location (same)
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.location_on_outlined,
+                                color: Color(0xFFE8B44C),
+                                size: 16,
+                              ),
+                              SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  calendar.location,
+                                  style: TextStyle(
+                                    color: Colors.grey[700],
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Chevron/Arrow (same)
+                    Icon(
+                      Icons.chevron_right,
+                      color: Color(0xFF003B7E).withOpacity(0.3),
+                      size: 26,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

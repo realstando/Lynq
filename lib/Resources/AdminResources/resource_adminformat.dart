@@ -2,15 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:coding_prog/Resources/resource.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class ResourceFormat extends StatelessWidget {
-  const ResourceFormat({required this.resource, super.key});
+class AdminResourceFormat extends StatelessWidget {
+  const AdminResourceFormat({
+    required this.resource,
+    required this.onDelete,
+    super.key,
+  });
 
   final Resource resource;
+  final VoidCallback onDelete;
 
   Future<void> _launchURL() async {
     String urlToLaunch = resource.link;
 
-    // Add https:// if no scheme is present
     if (!urlToLaunch.startsWith('http://') &&
         !urlToLaunch.startsWith('https://') &&
         !urlToLaunch.contains('://')) {
@@ -202,7 +206,7 @@ class ResourceFormat extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         child: Column(
           children: [
-            // Header section with glass morphism effect
+            // Header section with delete button
             Container(
               padding: EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -277,35 +281,28 @@ class ResourceFormat extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // Star badge
-                  Container(
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.amber,
-                        width: 2,
-                      ),
+                  // Delete button
+                  IconButton(
+                    onPressed: onDelete,
+                    icon: Icon(
+                      Icons.delete_outline,
+                      color: Colors.red[300],
+                      size: 26,
                     ),
-                    child: Icon(
-                      Icons.star,
-                      color: Colors.amber,
-                      size: 20,
-                    ),
+                    tooltip: 'Delete Resource',
                   ),
                 ],
               ),
             ),
 
-            // Body content with sophisticated styling
+            // Body content
             Container(
               width: MediaQuery.of(context).size.width,
               padding: EdgeInsets.all(25),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Body text with better typography
+                  // Body text
                   Container(
                     padding: EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -330,11 +327,10 @@ class ResourceFormat extends StatelessWidget {
                   ),
                   SizedBox(height: 25),
 
-                  // Sophisticated hyperlink button
+                  // View Resource button
                   Center(
                     child: GestureDetector(
-                      onTap: () =>
-                          _showLinkDialog(context), // Changed this line
+                      onTap: () => _showLinkDialog(context),
                       child: Container(
                         padding: EdgeInsets.symmetric(
                           horizontal: 28,
