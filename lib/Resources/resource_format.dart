@@ -10,7 +10,6 @@ class ResourceFormat extends StatelessWidget {
   Future<void> _launchURL() async {
     String urlToLaunch = resource.link;
 
-    // Add https:// if no scheme is present
     if (!urlToLaunch.startsWith('http://') &&
         !urlToLaunch.startsWith('https://') &&
         !urlToLaunch.contains('://')) {
@@ -34,28 +33,26 @@ class ResourceFormat extends StatelessWidget {
           title: Row(
             children: [
               Container(
-                padding: EdgeInsets.all(8),
-                decoration: BoxDecoration(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Color(0xFF003B7E), Color(0xFF002856)],
+                    colors: [Color(0xFF22C55E), Color(0xFF166534)],
                   ),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.language_rounded,
-                  color: Color(0xFFE8B44C),
+                  color: Color(0xFFFFC93C),
                   size: 24,
                 ),
               ),
-              SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  "Open Resource",
-                  style: TextStyle(
-                    color: Color(0xFF003B7E),
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+              const SizedBox(width: 12),
+              const Text(
+                "Open Resource",
+                style: TextStyle(
+                  color: Color(0xFF166534),
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
@@ -72,9 +69,9 @@ class ResourceFormat extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               Container(
-                padding: EdgeInsets.all(12),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.grey[100],
                   borderRadius: BorderRadius.circular(8),
@@ -82,17 +79,13 @@ class ResourceFormat extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.link,
-                      color: Color(0xFF003B7E),
-                      size: 18,
-                    ),
-                    SizedBox(width: 8),
+                    const Icon(Icons.link, color: Color(0xFF22C55E), size: 18),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         resource.link,
-                        style: TextStyle(
-                          color: Color(0xFF003B7E),
+                        style: const TextStyle(
+                          color: Color(0xFF166534),
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
                         ),
@@ -103,7 +96,7 @@ class ResourceFormat extends StatelessWidget {
                   ],
                 ),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               Text(
                 "This will open in your browser.",
                 style: TextStyle(
@@ -116,24 +109,17 @@ class ResourceFormat extends StatelessWidget {
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(ctx);
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.grey[600],
-              ),
-              child: Text(
+              onPressed: () => Navigator.pop(ctx),
+              style: TextButton.styleFrom(foregroundColor: Colors.grey[600]),
+              child: const Text(
                 "Cancel",
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                ),
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
               ),
             ),
             Container(
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF003B7E), Color(0xFF002856)],
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF22C55E), Color(0xFF166534)],
                 ),
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -144,9 +130,12 @@ class ResourceFormat extends StatelessWidget {
                 },
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
@@ -170,236 +159,154 @@ class ResourceFormat extends StatelessWidget {
 
   @override
   Widget build(context) {
+    const Color primaryGreen = Color(0xFF22C55E);
+    const Color deepGreen = Color(0xFF166534);
+    const Color gold = Color(0xFFFFC93C);
+
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Color(0xFF5FFBAE),
-            Color(0xFF8FFF9E),
-            Color(0xFFB0FFD1),
-          ],
+        borderRadius: BorderRadius.circular(18),
+        gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
+          colors: [Colors.white, Color(0xFFF0FFF4)],
         ),
-        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: primaryGreen.withOpacity(0.25), width: 1.2),
         boxShadow: [
           BoxShadow(
-            color: Color(0xFF4DD9A5).withOpacity(0.4),
-            blurRadius: 20,
-            offset: Offset(0, 10),
-            spreadRadius: -5,
-          ),
-          BoxShadow(
-            color: Colors.white.withOpacity(0.8),
-            blurRadius: 15,
-            offset: Offset(-5, -5),
-            spreadRadius: -10,
+            color: primaryGreen.withOpacity(0.15),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header section with glass morphism effect
-            Container(
-              padding: EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Color(0xFF0A2E7F),
-                    Color(0xFF1345B6),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+            // Header row
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [primaryGreen, deepGreen],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: primaryGreen.withOpacity(0.4),
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.auto_stories_rounded,
+                    color: Colors.white,
+                    size: 26,
+                  ),
                 ),
-              ),
-              child: Row(
-                children: [
-                  // Icon with gradient background
-                  Container(
-                    padding: EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.amber.shade400,
-                          Colors.amber.shade600,
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.amber.withOpacity(0.5),
-                          blurRadius: 8,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
+                const SizedBox(width: 15),
+                Expanded(
+                  child: Text(
+                    resource.title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 18,
+                      color: Color(0xFF0F172A),
                     ),
-                    child: Icon(
-                      Icons.auto_stories_rounded,
-                      color: Colors.white,
-                      size: 28,
-                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(width: 15),
-                  // Title
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          resource.title,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Container(
-                              height: 2,
-                              width: 30,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Colors.amber,
-                                    Colors.orange,
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Star badge
-                  Container(
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.amber,
-                        width: 2,
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.star,
-                      color: Colors.amber,
-                      size: 20,
-                    ),
-                  ),
-                ],
+                ),
+                Icon(Icons.star_rounded, color: gold, size: 26),
+              ],
+            ),
+
+            const SizedBox(height: 14),
+
+            // Divider line
+            Container(
+              height: 2,
+              width: 60,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFFFFD54F), Color(0xFFFFB300)],
+                ),
+                borderRadius: BorderRadius.all(Radius.circular(4)),
               ),
             ),
 
-            // Body content with sophisticated styling
-            Container(
-              width: MediaQuery.of(context).size.width,
-              padding: EdgeInsets.all(25),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Body text with better typography
-                  Container(
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.7),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.5),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Text(
-                      resource.body,
-                      style: TextStyle(
-                        color: Color(0xFF1A1A1A),
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                        height: 1.6,
-                        letterSpacing: 0.2,
-                      ),
-                      textAlign: TextAlign.left,
-                    ),
-                  ),
-                  SizedBox(height: 25),
+            const SizedBox(height: 14),
 
-                  // Sophisticated hyperlink button
-                  Center(
-                    child: GestureDetector(
-                      onTap: () =>
-                          _showLinkDialog(context), // Changed this line
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 28,
-                          vertical: 14,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Color(0xFF0A2E7F),
-                              Color(0xFF1345B6),
-                            ],
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                          ),
-                          borderRadius: BorderRadius.circular(30),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Color(0xFF0A2E7F).withOpacity(0.5),
-                              blurRadius: 15,
-                              offset: Offset(0, 6),
-                            ),
-                            BoxShadow(
-                              color: Colors.white.withOpacity(0.5),
-                              blurRadius: 8,
-                              offset: Offset(-2, -2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.language_rounded,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                            SizedBox(width: 12),
-                            Text(
-                              'View Resource',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                            SizedBox(width: 12),
-                            Container(
-                              padding: EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.arrow_forward_rounded,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ),
-                          ],
+            // Body text
+            Text(
+              resource.body,
+              style: TextStyle(
+                fontSize: 14.5,
+                color: Colors.grey[800],
+                height: 1.55,
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Link button
+            Center(
+              child: GestureDetector(
+                onTap: () => _showLinkDialog(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 28,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [primaryGreen, deepGreen],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: primaryGreen.withOpacity(0.35),
+                        blurRadius: 12,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.language_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                      SizedBox(width: 10),
+                      Text(
+                        'View Resource',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15.5,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.3,
                         ),
                       ),
-                    ),
+                      SizedBox(width: 8),
+                      Icon(
+                        Icons.arrow_forward_rounded,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ],

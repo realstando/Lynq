@@ -1,18 +1,30 @@
+import 'package:coding_prog/Calendar/new_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'calendar.dart';
 import 'calendar_card.dart';
+import 'package:coding_prog/Calendar/new_calendar.dart';
+import 'package:coding_prog/NavigationBar/drawer_page.dart';
 
 class CalendarPage extends StatefulWidget {
-  const CalendarPage({super.key});
+  const CalendarPage({
+    super.key,
+    required this.onNavigate,
+    required this.calendars,
+    required this.onAddCalendar,
+  });
+  final void Function(int) onNavigate;
+  final List<Calendar> calendars;
+  final void Function(Calendar) onAddCalendar;
 
   @override
   State<CalendarPage> createState() {
-    return _CalendarPageState();
+    return CalendarPageState();
   }
 }
 
-class _CalendarPageState extends State<CalendarPage> {
+class CalendarPageState extends State<CalendarPage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   DateTime focused = DateTime.now();
   DateTime? selected;
   double _topHeight = 620.0;
@@ -21,15 +33,85 @@ class _CalendarPageState extends State<CalendarPage> {
   final List<Calendar> calendars = [
     Calendar(
       "Washington SBLC",
-      DateTime.utc(2025, 4, 26),
+      DateTime.utc(2026, 4, 26),
       "Bellevue Washington",
     ),
     Calendar(
       "Anaheim NLC",
-      DateTime.utc(2025, 6, 26),
+      DateTime.utc(2026, 6, 26),
       "Anaheim California",
     ),
   ];
+
+  List<Calendar> get _filteredCalendars {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    switch (_filterMode) {
+      case 'upcoming':
+        final oneMonthFromNow = DateTime(now.year, now.month + 1, now.day);
+
+        final futureEvents = calendars.where((calendar) {
+          final eventDate = DateTime(
+            calendar.date.year,
+            calendar.date.month,
+            calendar.date.day,
+          );
+          return eventDate.isAfter(today.subtract(Duration(days: 1)));
+        }).toList();
+
+        futureEvents.sort((a, b) => a.date.compareTo(b.date));
+
+        if (futureEvents.length <= 5) {
+          return futureEvents;
+        }
+
+        return futureEvents.where((calendar) {
+          final eventDate = DateTime(
+            calendar.date.year,
+            calendar.date.month,
+            calendar.date.day,
+          );
+          return eventDate.isBefore(oneMonthFromNow.add(Duration(days: 1)));
+        }).toList();
+
+      case 'today':
+        return calendars.where((calendar) {
+          final eventDate = DateTime(
+            calendar.date.year,
+            calendar.date.month,
+            calendar.date.day,
+          );
+          return isSameDay(eventDate, today);
+        }).toList();
+
+      case 'selected':
+        if (selected == null) {
+          return [];
+        }
+        return calendars.where((calendar) {
+          return isSameDay(calendar.date, selected);
+        }).toList();
+
+      default: // 'all'
+        return calendars;
+    }
+  }
+
+  void _openAddResourceOverlay() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => NewCalendar(addCalendar: _onAddCalendar),
+      ),
+    );
+  }
+
+  void _onAddCalendar(Calendar calendar) {
+    setState(() {
+      calendars.insert(0, calendar);
+    });
+    Navigator.pop(context);
+  }
 
   @override
   Widget build(context) {
@@ -37,13 +119,19 @@ class _CalendarPageState extends State<CalendarPage> {
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
+      key: _scaffoldKey,
+      drawer: DrawerPage(
+        icon: Icons.campaign_rounded,
+        name: 'Calendar',
+        color: const Color(0xFFF4AB19), // Deep blue
+        onNavigate: widget.onNavigate,
+      ),
+
       body: Column(
         children: [
-          // Top section - FIXED HEIGHT
-          SizedBox(
+          Container(
             height: _topHeight,
             child: SingleChildScrollView(
-              physics: ClampingScrollPhysics(),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -60,15 +148,45 @@ class _CalendarPageState extends State<CalendarPage> {
                     child: Column(
                       children: [
                         SizedBox(height: 40),
-                        Text(
-                          "FBLA Calendar",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 28,
-                            color: Colors.white,
-                            letterSpacing: 0.5,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              // Menu Icon (left)
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.menu_rounded,
+                                  size: 28,
+                                  color: Colors.white,
+                                ),
+                                onPressed: () {
+                                  _scaffoldKey.currentState?.openDrawer();
+                                },
+                              ),
+                              // Title (centered)
+                              Expanded(
+                                child: Center(
+                                  child: Text(
+                                    "FBLA Calendar",
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 28,
+                                      color: Colors.white,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              // Spacer for symmetry (right side)
+                              const SizedBox(
+                                width: 48,
+                              ), // same width as icon for visual balance
+                            ],
                           ),
                         ),
+
                         SizedBox(height: 12),
                         Container(
                           width: 80,
@@ -210,12 +328,12 @@ class _CalendarPageState extends State<CalendarPage> {
             onPanUpdate: (details) {
               setState(() {
                 _topHeight += details.delta.dy;
-                _topHeight = _topHeight.clamp(200.0, screenHeight - 150.0);
+                _topHeight = _topHeight.clamp(200.0, screenHeight - 270.0);
               });
             },
             child: Container(
               width: double.infinity,
-              height: 40,
+              height: 38,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [Color(0xFFE8B44C), Color(0xFFD4A035)],
@@ -299,7 +417,7 @@ class _CalendarPageState extends State<CalendarPage> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            "${calendars.length}",
+                            "${_filteredCalendars.length}",
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -313,7 +431,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
                   // Events List
                   Expanded(
-                    child: calendars.isEmpty
+                    child: _filteredCalendars.isEmpty
                         ? Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -336,9 +454,9 @@ class _CalendarPageState extends State<CalendarPage> {
                           )
                         : ListView.builder(
                             padding: EdgeInsets.symmetric(horizontal: 16),
-                            itemCount: calendars.length,
+                            itemCount: _filteredCalendars.length,
                             itemBuilder: (context, index) =>
-                                CalendarCard(calendars[index]),
+                                CalendarCard(_filteredCalendars[index]),
                           ),
                   ),
                 ],
