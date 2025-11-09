@@ -17,7 +17,6 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
 
-    final String profileImage = 'https://via.placeholder.com/150';
     final String name = 'Ryan Wang';
     final String school = 'Stanford University';
     final List<String> events = [
@@ -79,7 +78,15 @@ class _ProfilePageState extends State<ProfilePage> {
                   children: [
                     CircleAvatar(
                       radius: 50,
-                      backgroundImage: NetworkImage(profileImage),
+                      backgroundColor: Colors.blueAccent,
+                      child: Text(
+                        _getInitials(name),
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Text(
@@ -142,6 +149,18 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
+
+  String _getInitials(String name) {
+  List<String> nameParts = name.split(' ');
+  String initials = '';
+  for (var part in nameParts) {
+    if (part.isNotEmpty) {
+      initials += part[0].toUpperCase();
+    }
+  }
+  return initials;
+}
+
 
 }
 
