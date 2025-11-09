@@ -2,5 +2,6 @@
     "java.project.sourcePaths": [
         "lib"
     ],
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "cmake.sourceDirectory": "C:/Users/jings/Desktop/CodingProg/Lynq/windows"
 }

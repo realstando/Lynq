@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:coding_prog/profile/profile_page.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final String name;
   final Color color;
   final GlobalKey<ScaffoldState> scaffoldKey;
+  final VoidCallback? onProfileTap;
 
   CustomAppBar({
     super.key,
     required this.name,
     required this.color,
     required this.scaffoldKey,
+    this.onProfileTap,
   });
 
   @override
@@ -55,11 +58,20 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.more_vert),
-          onPressed: () {
-            // Handle more options
-          },
+          icon: const Icon(Icons.account_circle, size: 40),
+          tooltip: 'Profile',
+          onPressed:
+              onProfileTap ??
+              () {
+                // Default navigation to profile if no callback provided
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const ProfilePage(),
+                  ),
+                );
+              },
         ),
+        const SizedBox(width: 8),
       ],
     );
   }
