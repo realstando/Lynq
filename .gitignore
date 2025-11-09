@@ -18,6 +18,16 @@ migrate_working_dir/
 *.iws
 .idea/
 
+# Build outputs
+**/android/app/build/
+**/ios/build/
+**/build/
+
+# Generated files
+**/*.jar
+**/*.bin
+**/generated/
+
 # Build files
 build/
 android/app/build/
