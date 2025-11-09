@@ -70,6 +70,7 @@ class _EventsPageState extends State<EventsPage> {
         onNavigate: widget.onNavigate,
       ),
       appBar: CustomAppBar(
+        onNavigate: widget.onNavigate,
         name: 'Competitive Events',
         color: _getThemeColor(300),
         scaffoldKey: _scaffoldKey,

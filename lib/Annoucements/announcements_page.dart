@@ -71,6 +71,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
         onNavigate: widget.onNavigate,
       ),
       appBar: CustomAppBar(
+        onNavigate: widget.onNavigate,
         name: 'Announcements',
         color: const Color(0xFF1E3A8A),
         scaffoldKey: _scaffoldKey,

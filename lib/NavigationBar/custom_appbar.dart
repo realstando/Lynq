@@ -7,12 +7,14 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Color color;
   final GlobalKey<ScaffoldState> scaffoldKey;
   final VoidCallback? onProfileTap;
+  final void Function(int) onNavigate;
 
   CustomAppBar({
     super.key,
     required this.name,
     required this.color,
     required this.scaffoldKey,
+    required this.onNavigate,
     this.onProfileTap,
   });
 
@@ -63,12 +65,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           onPressed:
               onProfileTap ??
               () {
-                // Default navigation to profile if no callback provided
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const ProfilePage(),
-                  ),
-                );
+                onNavigate(5); // Navigate to profile page
               },
         ),
         const SizedBox(width: 8),
