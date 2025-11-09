@@ -1,4 +1,5 @@
 import 'package:coding_prog/Annoucements/announcements_page.dart';
+import 'package:coding_prog/Homepage/home_page.dart';
 import 'package:coding_prog/login/signup_page.dart';
 import 'package:coding_prog/profile/profile_page.dart';
 import 'package:flutter/material.dart';
@@ -11,13 +12,17 @@ import 'package:coding_prog/Resources/AdminResources/resources_adminpage.dart';
 import 'package:coding_prog/Calendar/calendar_page.dart';
 import 'package:coding_prog/Calendar/AdminCalendar/calendar_adminpage.dart';
 import 'package:coding_prog/Resources/resource_page.dart';
+import 'package:coding_prog/Homepage/admin_home_page.dart';
+import 'package:coding_prog/Calendar/calendar_page.dart';
+import 'package:coding_prog/Annoucements/announcement.dart';
+import 'package:coding_prog/Calendar/calendar.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -28,17 +33,194 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'LYNQ',
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: EventsPage(),
-        backgroundColor: Colors.white,
-      ),
+      home: const MainScaffold(),
       routes: {
-      '/login/': (context) => const LoginPage(),
-      '/signup/': (context) => const SignupPage(),
-      '/announcements/': (context) => const AnnouncementsPage(),
-      '/events/': (context) => const EventsPage(),
-      '/profile/': (context) => const ProfilePage(),
-      }
+        '/login/': (context) => const LoginPage(),
+        '/signup/': (context) => const SignupPage(),
+      },
+    );
+  }
+}
+
+class MainScaffold extends StatefulWidget {
+  const MainScaffold({super.key});
+
+  @override
+  State<MainScaffold> createState() => _MainScaffoldState();
+}
+
+class _MainScaffoldState extends State<MainScaffold> {
+  int _selectedIndex = 0;
+
+  late final List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      HomePage(
+        onNavigate: _navigateBar,
+        announcements: _announcements,
+        calendars: _calendars,
+      ),
+      AnnouncementsPage(
+        onNavigate: _navigateBar,
+        announcements: _announcements,
+        onAddAnnouncement: _addAnnouncement,
+      ),
+      EventsPage(
+        onNavigate: _navigateBar,
+      ),
+      CalendarPage(
+        onNavigate: _navigateBar,
+        calendars: _calendars,
+        onAddCalendar: _addCalendar,
+      ),
+      ResourcePage(onNavigate: _navigateBar),
+      ProfilePage(),
+      // Hidden 5th page - drawer only
+    ];
+  }
+
+  void _navigateBar(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  void _addAnnouncement(Announcement announcement) {
+    setState(() {
+      _announcements.insert(0, announcement);
+    });
+  }
+
+  void _addCalendar(Calendar calendar) {
+    setState(() {
+      _calendars.insert(0, calendar);
+    });
+  }
+
+  final List<Announcement> _announcements = [
+    Announcement(
+      initial: "WA",
+      name: "Washington FBLA",
+      title: "Time Change for Network Design",
+      date: DateTime(2025, 4, 25, 13, 21),
+      content:
+          "Hey students! There will be a time change for the roleplay event Network Design due to scheduling conflicts. Thanks for understanding!",
+    ),
+    Announcement(
+      initial: "GA",
+      name: "Georgia FBLA",
+      title: "Time Change for MIS",
+      date: DateTime(2025, 4, 25, 13, 21),
+      content:
+          "Hey students! There will be a time change for the roleplay event MIS due to scheduling conflicts. Thanks for understanding!",
+    ),
+  ];
+
+  final List<Calendar> _calendars = [
+    Calendar(
+      "Washington SBLC",
+      DateTime.utc(2026, 4, 26),
+      "Bellevue Washington",
+    ),
+    Calendar(
+      "Anaheim NLC",
+      DateTime.utc(2026, 6, 26),
+      "Anaheim California",
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _pages[_selectedIndex],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 24,
+              offset: const Offset(0, -4),
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: NavigationBar(
+            selectedIndex: _selectedIndex > 3
+                ? 0
+                : _selectedIndex, // Clamp to 0-3
+            onDestinationSelected: _navigateBar,
+            backgroundColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            indicatorColor: const Color(0xFF0A2E7F),
+            indicatorShape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            height: 65,
+            elevation: 0,
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+            animationDuration: const Duration(milliseconds: 400),
+            destinations: [
+              NavigationDestination(
+                icon: Icon(
+                  Icons.home_outlined,
+                  size: 24,
+                  color: Colors.grey[600],
+                ),
+                selectedIcon: const Icon(
+                  Icons.home_rounded,
+                  size: 26,
+                  color: Colors.white,
+                ),
+                label: 'Home',
+              ),
+              NavigationDestination(
+                icon: Icon(
+                  Icons.campaign_outlined,
+                  size: 24,
+                  color: Colors.grey[600],
+                ),
+                selectedIcon: const Icon(
+                  Icons.campaign_rounded,
+                  size: 26,
+                  color: Colors.white,
+                ),
+                label: 'Announcements',
+              ),
+              NavigationDestination(
+                icon: Icon(
+                  Icons.event_outlined,
+                  size: 24,
+                  color: Colors.grey[600],
+                ),
+                selectedIcon: const Icon(
+                  Icons.event_rounded,
+                  size: 26,
+                  color: Colors.white,
+                ),
+                label: 'Events',
+              ),
+              NavigationDestination(
+                icon: Icon(
+                  Icons.menu_book_outlined,
+                  size: 24,
+                  color: Colors.grey[600],
+                ),
+                selectedIcon: const Icon(
+                  Icons.calendar_month,
+                  size: 26,
+                  color: Colors.white,
+                ),
+                label: 'Calendar',
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

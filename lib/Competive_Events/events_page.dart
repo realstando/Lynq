@@ -1,15 +1,21 @@
+import 'package:coding_prog/Competive_Events/event_filterchip.dart';
 import 'package:flutter/material.dart';
 import 'package:coding_prog/Competive_Events/events.dart';
 import 'package:coding_prog/Competive_Events/events_format.dart';
+import 'package:coding_prog/NavigationBar/drawer_page.dart';
+import 'package:coding_prog/NavigationBar/custom_appbar.dart';
 
 class EventsPage extends StatefulWidget {
-  const EventsPage({super.key});
+  const EventsPage({super.key, required this.onNavigate});
+  final void Function(int) onNavigate;
 
   @override
   State<EventsPage> createState() => _EventsPageState();
 }
 
 class _EventsPageState extends State<EventsPage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   EventCategory? _selectedCategory;
@@ -520,15 +526,16 @@ class _EventsPageState extends State<EventsPage> {
     ),
   ];
 
-  Color _getCategoryColor(EventCategory category) {
-    switch (category) {
-      case EventCategory.objective:
-        return const Color(0xFF003B7A); // FBLA Navy Blue
-      case EventCategory.presentation:
-        return const Color(0xFF0066B3); // FBLA Medium Blue
-      case EventCategory.roleplay:
-        return const Color(0xFF4A90E2); // FBLA Light Blue
+  Color _getThemeColor(int shade) {
+    if (_selectedCategory == EventCategory.objective) {
+      return Colors.blue[shade]!;
+    } else if (_selectedCategory == EventCategory.roleplay) {
+      return Colors.pink[shade]!;
+    } else if (_selectedCategory == EventCategory.presentation) {
+      return Colors.purple[shade]!;
     }
+    // Default when no category selected
+    return Colors.grey[shade]!;
   }
 
   @override
@@ -543,139 +550,199 @@ class _EventsPageState extends State<EventsPage> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(
-        title: const Text(
-          "FBLA Competitive Events",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: const Color(0xFF003B7A), // FBLA Navy Blue
-        elevation: 0,
-        centerTitle: false,
+      backgroundColor: _selectedCategory == null
+          ? const Color(0xFFF5F5F5)
+          : _selectedCategory == EventCategory.objective
+          ? Colors.blue[50]
+          : _selectedCategory == EventCategory.roleplay
+          ? const Color(0xFFFFF0F5)
+          : Colors.purple[50],
+      key: _scaffoldKey,
+      drawer: DrawerPage(
+        icon: Icons.menu_book_rounded,
+        name: 'Competitive Events',
+        color: Color(0xFF5C0A7F),
+        onNavigate: widget.onNavigate,
+      ),
+      appBar: CustomAppBar(
+        name: 'Competitive Events',
+        color: _getThemeColor(300),
+        scaffoldKey: _scaffoldKey,
       ),
       body: Column(
         children: [
           // Header with gradient
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFF003B7A), // FBLA Navy Blue
-                  Color(0xFFF8F9FA),
+                  _getThemeColor(300),
+                  _getThemeColor(200),
                 ],
-                stops: [0.0, 0.3],
               ),
             ),
             child: Column(
               children: [
-                // Search Bar
+                // Title and subtitle
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: "Search events...",
-                      prefixIcon: const Icon(
-                        Icons.search,
-                        color: Color(0xFF6B7280),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Search for Events',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      suffixIcon: _searchQuery.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear, size: 20),
-                              onPressed: () {
-                                setState(() {
-                                  _searchController.clear();
-                                  _searchQuery = '';
-                                });
-                              },
-                            )
-                          : null,
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
+                      const SizedBox(height: 4),
+                      Text(
+                        'Explore 73 FBLA events to showcase your skills',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 14,
+                        ),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                    ),
-                    onChanged: (value) {
-                      setState(() {
-                        _searchQuery = value;
-                      });
-                    },
+                    ],
                   ),
                 ),
 
-                // Category Filter Chips
+                // Search Bar
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _getThemeColor(300).withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: "Search events...",
+                        hintStyle: TextStyle(
+                          color: Colors.black,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: _getThemeColor(300),
+                        ),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: Icon(
+                                  Icons.clear,
+                                  size: 20,
+                                  color: _getThemeColor(300),
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _searchController.clear();
+                                    _searchQuery = '';
+                                  });
+                                },
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _searchQuery = value;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+
+                // Category Filter Chips with counts
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
-                    vertical: 8,
+                    vertical: 12,
                   ),
                   child: Row(
                     children: [
-                      FilterChip(
-                        label: const Text('All Events'),
-                        selected: _selectedCategory == null,
-                        onSelected: (selected) {
+                      CustomFilterChip(
+                        label: 'All Events',
+                        count: 73,
+                        isSelected: _selectedCategory == null,
+                        color: Colors.grey[600]!,
+                        icon: Icons.apps,
+                        onTap: () {
                           setState(() {
                             _selectedCategory = null;
                           });
                         },
-                        backgroundColor: Colors.white,
-                        selectedColor: const Color(
-                          0xFF003B7A,
-                        ).withOpacity(0.15),
-                        checkmarkColor: const Color(0xFF003B7A),
-                        labelStyle: TextStyle(
-                          color: _selectedCategory == null
-                              ? const Color(0xFF003B7A)
-                              : const Color(0xFF6B7280),
-                          fontWeight: _selectedCategory == null
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                        ),
                       ),
                       const SizedBox(width: 8),
-                      ...EventCategory.values.map((category) {
-                        final isSelected = _selectedCategory == category;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: FilterChip(
-                            label: Text(category.name.toUpperCase()),
-                            selected: isSelected,
-                            onSelected: (selected) {
-                              setState(() {
-                                _selectedCategory = selected ? category : null;
-                              });
-                            },
-                            backgroundColor: Colors.white,
-                            selectedColor: _getCategoryColor(
-                              category,
-                            ).withOpacity(0.2),
-                            checkmarkColor: _getCategoryColor(category),
-                            labelStyle: TextStyle(
-                              color: isSelected
-                                  ? _getCategoryColor(category)
-                                  : const Color(0xFF6B7280),
-                              fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              fontSize: 12,
-                            ),
-                          ),
-                        );
-                      }).toList(),
+                      CustomFilterChip(
+                        label: 'OBJECTIVE',
+                        count: 31,
+                        isSelected:
+                            _selectedCategory == EventCategory.objective,
+                        color: Colors.blue[400]!,
+                        icon: Icons.quiz_outlined,
+                        onTap: () {
+                          setState(() {
+                            _selectedCategory =
+                                _selectedCategory == EventCategory.objective
+                                ? null
+                                : EventCategory.objective;
+                          });
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      CustomFilterChip(
+                        label: 'ROLEPLAY',
+                        count: 12,
+                        isSelected: _selectedCategory == EventCategory.roleplay,
+                        color: Colors.pink[400]!,
+                        icon: Icons.groups_outlined,
+                        onTap: () {
+                          setState(() {
+                            _selectedCategory =
+                                _selectedCategory == EventCategory.roleplay
+                                ? null
+                                : EventCategory.roleplay;
+                          });
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      CustomFilterChip(
+                        label: 'PRESENTATION',
+                        count: 31,
+                        isSelected:
+                            _selectedCategory == EventCategory.presentation,
+                        color: Colors.purple[400]!,
+                        icon: Icons.present_to_all_outlined,
+                        onTap: () {
+                          setState(() {
+                            _selectedCategory =
+                                _selectedCategory == EventCategory.presentation
+                                ? null
+                                : EventCategory.presentation;
+                          });
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -691,7 +758,7 @@ class _EventsPageState extends State<EventsPage> {
                 Text(
                   '${filteredEvents.length} event${filteredEvents.length != 1 ? 's' : ''} found',
                   style: TextStyle(
-                    color: Colors.grey.shade600,
+                    color: _getThemeColor(400),
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -710,14 +777,14 @@ class _EventsPageState extends State<EventsPage> {
                         Icon(
                           Icons.search_off,
                           size: 64,
-                          color: Colors.grey.shade400,
+                          color: _getThemeColor(200),
                         ),
                         const SizedBox(height: 16),
                         Text(
                           'No events found',
                           style: TextStyle(
                             fontSize: 18,
-                            color: Colors.grey.shade600,
+                            color: _getThemeColor(400),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -726,7 +793,7 @@ class _EventsPageState extends State<EventsPage> {
                           'Try adjusting your search or filters',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.grey.shade500,
+                            color: _getThemeColor(300),
                           ),
                         ),
                       ],

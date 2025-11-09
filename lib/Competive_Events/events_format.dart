@@ -16,14 +16,15 @@ class EventsFormat extends StatelessWidget {
     }
   }
 
+  // Enhanced category color palette (more saturation and contrast)
   Color _getCategoryColor() {
     switch (event.category) {
       case EventCategory.objective:
-        return const Color(0xFF6366F1); // Indigo
+        return const Color(0xFF2563EB); // Vibrant royal blue
       case EventCategory.presentation:
-        return const Color(0xFF8B5CF6); // Purple
+        return const Color(0xFF7C3AED); // Deep purple
       case EventCategory.roleplay:
-        return const Color(0xFFEC4899); // Pink
+        return const Color(0xFFE11D48); // Bold pink-red
     }
   }
 
@@ -40,101 +41,146 @@ class EventsFormat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: InkWell(
-        onTap: _openLink,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white,
-                _getCategoryColor().withOpacity(0.05),
-              ],
-            ),
+    final categoryColor = _getCategoryColor();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white,
+            categoryColor.withOpacity(0.06),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: categoryColor.withOpacity(0.15),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  // Category Badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _getCategoryColor().withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: _getCategoryColor().withOpacity(0.3),
-                        width: 1,
+        ],
+        border: Border.all(
+          color: categoryColor.withOpacity(0.25),
+          width: 1.2,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          splashColor: categoryColor.withOpacity(0.08),
+          highlightColor: Colors.transparent,
+          onTap: _openLink,
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header: category badge + link icon
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            categoryColor.withOpacity(0.85),
+                            categoryColor.withOpacity(0.6),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(50),
+                        boxShadow: [
+                          BoxShadow(
+                            color: categoryColor.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            _getCategoryIcon(),
+                            size: 16,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            event.category.name.toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _getCategoryIcon(),
-                          size: 16,
-                          color: _getCategoryColor(),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          event.category.name.toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: _getCategoryColor(),
-                            letterSpacing: 0.5,
-                          ),
-                        ),
+                    const Spacer(),
+                    Icon(
+                      Icons.open_in_new_rounded,
+                      color: categoryColor.withOpacity(0.6),
+                      size: 20,
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 14),
+
+                // Event Title
+                Text(
+                  event.title,
+                  style: const TextStyle(
+                    fontSize: 19,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0F172A),
+                    height: 1.3,
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                // Decorative divider
+                Container(
+                  height: 2,
+                  width: 60,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        categoryColor.withOpacity(0.9),
+                        categoryColor.withOpacity(0.3),
                       ],
                     ),
+                    borderRadius: BorderRadius.circular(4),
                   ),
-                  const Spacer(),
-                  // Link Icon
-                  Icon(
-                    Icons.open_in_new,
-                    color: Colors.grey.shade400,
-                    size: 20,
+                ),
+
+                const SizedBox(height: 10),
+
+                // Description
+                Text(
+                  event.description,
+                  style: TextStyle(
+                    fontSize: 14.5,
+                    color: Colors.grey[800],
+                    height: 1.55,
                   ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              // Title
-              Text(
-                event.title,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1F2937),
-                  height: 1.3,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              const SizedBox(height: 8),
-              // Description
-              Text(
-                event.description,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade700,
-                  height: 1.5,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

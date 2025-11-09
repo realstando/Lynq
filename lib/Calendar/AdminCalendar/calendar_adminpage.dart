@@ -343,7 +343,7 @@ class _AdminCalendarPageState extends State<AdminCalendarPage> {
             onPanUpdate: (details) {
               setState(() {
                 _topHeight += details.delta.dy;
-                _topHeight = _topHeight.clamp(200.0, screenHeight - 150.0);
+                _topHeight = _topHeight.clamp(200.0, screenHeight - 250.0);
               });
             },
             child: Container(

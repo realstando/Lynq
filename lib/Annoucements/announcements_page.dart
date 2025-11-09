@@ -2,17 +2,46 @@ import 'package:coding_prog/Annoucements/new_announcement.dart';
 import 'package:flutter/material.dart';
 import 'package:coding_prog/Annoucements/announcement_format.dart';
 import 'package:coding_prog/Annoucements/announcement.dart';
+import 'package:coding_prog/NavigationBar/custom_appbar.dart';
+import 'package:coding_prog/NavigationBar/drawer_page.dart';
 
 class AnnouncementsPage extends StatefulWidget {
-  const AnnouncementsPage({super.key});
+  const AnnouncementsPage({
+    super.key,
+    required this.onNavigate,
+    required this.announcements,
+    required this.onAddAnnouncement,
+  });
+  final void Function(int) onNavigate;
+  final List<Announcement> announcements;
+  final void Function(Announcement) onAddAnnouncement;
 
   @override
-  State<AnnouncementsPage> createState() {
-    return _AnnouncementsPageState();
-  }
+  State<AnnouncementsPage> createState() => _AnnouncementsPageState();
 }
 
 class _AnnouncementsPageState extends State<AnnouncementsPage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  final List<Announcement> announcements = [
+    Announcement(
+      initial: "WA",
+      name: "Washington FBLA",
+      title: "Time Change for Network Design",
+      content:
+          "Hey students! There will be a time change for the roleplay event Network Design due to scheduling conflicts. Thanks for understanding!",
+      date: DateTime.now(),
+    ),
+    Announcement(
+      initial: "GA",
+      name: "Georgia FBLA",
+      title: "Regional Meeting Reminder",
+      content:
+          "Don’t forget: our regional leadership meeting is tomorrow at 10 AM. Check your emails for the Zoom link.",
+      date: DateTime.now(),
+    ),
+  ];
+
   void _openAddAnnouncementOverlay() {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -29,110 +58,107 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
     Navigator.pop(context);
   }
 
-  final List<Announcement> announcements = [
-    Announcement(
-      initial: "WA",
-      name: "Washington FBLA",
-      title: "Time Change for Network Design ",
-      content:
-          "Hey students! There will be a time change for the roleplay event Network Design as a result of the xyz. Thanks!",
-      date: DateTime.now(),
-    ),
-    Announcement(
-      initial: "Naur",
-      name: "Georgia FBLA",
-      title: "I HATE PUSHKAL ",
-      content: "Hey students! Let us kill pushkal now!",
-      date: DateTime.now(),
-    ),
-  ];
-
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      floatingActionButton: Padding(
-        padding: EdgeInsets.only(bottom: 20, right: 8),
-        child: Container(
-          height: 58,
-          decoration: BoxDecoration(
-            color: Color(0xFFE8B44C),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Color(0xFFE8B44C).withOpacity(0.3),
-                blurRadius: 12,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: _openAddAnnouncementOverlay,
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.edit_note, color: Color(0xFF003B7E), size: 26),
-                    SizedBox(width: 10),
-                    Text(
-                      "New Post",
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 0, 0, 0),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+      key: _scaffoldKey,
+      drawer: DrawerPage(
+        icon: Icons.campaign_rounded,
+        name: 'Announcements',
+        color: const Color(0xFF1E3A8A), // Deep blue
+        onNavigate: widget.onNavigate,
+      ),
+      appBar: CustomAppBar(
+        name: 'Announcements',
+        color: const Color(0xFF1E3A8A),
+        scaffoldKey: _scaffoldKey,
+      ),
+      backgroundColor: const Color(0xFFF7F9FC),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _openAddAnnouncementOverlay,
+        backgroundColor: const Color(0xFF2563EB), // Clean medium blue
+        icon: const Icon(Icons.edit_note, color: Colors.white),
+        label: const Text(
+          "New Announcement",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 15,
           ),
         ),
+        elevation: 6,
       ),
       body: Column(
         children: [
-          SizedBox(height: 60),
-          Text(
-            "Announcements",
-            style: TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.bold,
-              fontSize: 32,
-              letterSpacing: 0.5,
-            ),
-          ),
-          SizedBox(height: 16),
+          // Header banner
           Container(
-            width: 100,
-            height: 4,
+            width: double.infinity,
+            margin: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
             decoration: BoxDecoration(
-              color: Colors.black,
-              borderRadius: BorderRadius.circular(2),
+              color: const Color(0xFF1E40AF),
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF1E40AF).withOpacity(0.25),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Latest Announcements",
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 17,
+                  ),
+                ),
+                Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  padding: const EdgeInsets.all(10),
+                  child: Text(
+                    announcements.length.toString(),
+                    style: const TextStyle(
+                      color: Color(0xFF1E3A8A),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          SizedBox(height: 24),
+
+          // List of announcements
           Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Color(0xFFE8F0FF),
-                    Color(0xFFD6E4FF),
-                  ],
-                ),
-              ),
-              child: ListView.builder(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                itemCount: announcements.length,
-                itemBuilder: (context, index) =>
-                    AnnouncementFormat(announcement: announcements[index]),
-              ),
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              itemCount: announcements.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 14),
+              itemBuilder: (context, index) {
+                final announcement = announcements[index];
+                return Card(
+                  elevation: 1.5,
+                  shadowColor: Colors.grey.shade200,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  color: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: AnnouncementFormat(announcement: announcement),
+                  ),
+                );
+              },
             ),
           ),
         ],
