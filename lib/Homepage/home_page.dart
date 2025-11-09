@@ -66,6 +66,7 @@ class _HomePageState extends State<HomePage> {
         onNavigate: widget.onNavigate,
       ),
       appBar: CustomAppBar(
+        onNavigate: widget.onNavigate,
         name: 'Home Page',
         color: Colors.black,
         scaffoldKey: _scaffoldKey,

@@ -2,17 +2,21 @@ import 'package:coding_prog/profile/profile_formats.dart';
 import 'package:coding_prog/profile/profile_lists.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:coding_prog/NavigationBar/drawer_page.dart';
 
 enum MenuAction { logout }
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key});
+  const ProfilePage({super.key, required this.onNavigate});
+  final void Function(int) onNavigate;
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   // FBLA Official Colors
   static const fblaNavy = Color(0xFF0A2E7F);
   static const fblaGold = Color(0xFFF4AB19);
@@ -40,7 +44,13 @@ class _ProfilePageState extends State<ProfilePage> {
     ];
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      key: _scaffoldKey,
+      drawer: DrawerPage(
+        icon: Icons.campaign_rounded,
+        name: 'Profile',
+        color: const Color(0xFF0A2E7F),
+        onNavigate: widget.onNavigate,
+      ),
       appBar: AppBar(
         title: const Text(
           'Profile',

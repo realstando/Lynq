@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'LYNQ',
       debugShowCheckedModeBanner: false,
-      home: const AdminPage(),
+      home: const MainScaffold(),
       routes: {
         '/login/': (context) => const LoginPage(),
         '/signup/': (context) => const SignupPage(),
@@ -78,7 +78,9 @@ class _MainScaffoldState extends State<MainScaffold> {
         onAddCalendar: _addCalendar,
       ),
       ResourcePage(onNavigate: _navigateBar),
-      ProfilePage(),
+      ProfilePage(
+        onNavigate: _navigateBar,
+      ),
       // Hidden 5th page - drawer only
     ];
   }

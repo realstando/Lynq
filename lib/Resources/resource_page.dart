@@ -34,6 +34,7 @@ class ResourcePage extends StatelessWidget {
         onNavigate: onNavigate,
       ),
       appBar: CustomAppBar(
+        onNavigate: onNavigate,
         name: 'FBLA Resources',
         color: Colors.green[700]!,
         scaffoldKey: _scaffoldKey,
