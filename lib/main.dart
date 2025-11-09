@@ -1,5 +1,6 @@
 import 'package:coding_prog/Annoucements/announcements_page.dart';
 import 'package:coding_prog/Homepage/home_page.dart';
+import 'package:coding_prog/admin/admin_page.dart';
 import 'package:coding_prog/login/signup_page.dart';
 import 'package:coding_prog/profile/profile_page.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +34,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'LYNQ',
       debugShowCheckedModeBanner: false,
-      home: const MainScaffold(),
+      home: const AdminPage(),
       routes: {
         '/login/': (context) => const LoginPage(),
         '/signup/': (context) => const SignupPage(),
