@@ -27,8 +27,8 @@ class _HomePageState extends State<HomePage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   // FBLA Official Colors
-  static const fblaNavy = Color(0xFF003B5C);
-  static const fblaGold = Color(0xFFF7B52C);
+  static const fblaNavy = Color(0xFF0A2E7F);
+  static const fblaGold = Color(0xFFF4AB19);
   static const fblaLightGold = Color(0xFFFFF4E0);
 
   final String userName = "Sarah Johnson";
@@ -124,11 +124,14 @@ class _HomePageState extends State<HomePage> {
                     ),
                     // FBLA logo
                     Container(
-                      height: 56,
-                      width: 56,
+                      height: 80,
+                      width: 80,
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [fblaGold, Color(0xFFFFD666)],
+                        gradient: LinearGradient(
+                          colors: [
+                            fblaGold.withValues(alpha: 0.4),
+                            Color(0xFFFFD666).withValues(alpha: 0.4),
+                          ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -142,14 +145,8 @@ class _HomePageState extends State<HomePage> {
                         ],
                       ),
                       child: const Center(
-                        child: Text(
-                          "FBLA",
-                          style: TextStyle(
-                            color: fblaNavy,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 14,
-                            letterSpacing: 0.5,
-                          ),
+                        child: Image(
+                          image: AssetImage('assets/Lynq_Logo.png'),
                         ),
                       ),
                     ),
@@ -193,16 +190,16 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   children: [
-                    _buildSectionHeader("Events This Month", () {
+                    _buildSectionHeader("Activities This Month", () {
                       widget.onNavigate(3);
                     }),
                     const SizedBox(height: 14),
                     if (monthEvents.isEmpty)
-                      _buildEmptyState("No events this month")
+                      _buildEmptyState("No activities this month")
                     else
                       ...monthEvents.map((e) => CalendarCard(e)).toList(),
                     const SizedBox(height: 14),
-                    _buildSecondaryButton("View All Events", Icons.event, () {
+                    _buildSecondaryButton("View Calendar", Icons.event, () {
                       widget.onNavigate(3);
                     }),
                   ],
