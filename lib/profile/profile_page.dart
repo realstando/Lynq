@@ -1,3 +1,4 @@
+import 'package:coding_prog/globals.dart' as globals;
 import 'package:coding_prog/profile/profile_formats.dart';
 import 'package:coding_prog/profile/profile_lists.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -24,7 +25,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final String name = 'Ryan Wang';
+    final String name = globals.currentUserName ?? 'Member';
     final String school = 'Stanford University';
     final List<String> events = [
       'FLC',
@@ -73,10 +74,12 @@ class _ProfilePageState extends State<ProfilePage> {
                   if (shouldLogout) {
                     await FirebaseAuth.instance.signOut();
                     // ignore: use_build_context_synchronously
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      '/login/',
-                      (route) => false,
-                    );
+                    if (mounted) {
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                        '/login/',
+                        (route) => false,
+                      );
+                    }
                   }
               }
             },

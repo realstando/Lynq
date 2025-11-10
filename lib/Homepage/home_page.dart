@@ -1,3 +1,4 @@
+import 'package:coding_prog/globals.dart' as globals;
 import 'package:flutter/material.dart';
 import 'package:coding_prog/NavigationBar/drawer_page.dart';
 import 'package:coding_prog/NavigationBar/custom_appbar.dart';
@@ -31,7 +32,7 @@ class _HomePageState extends State<HomePage> {
   static const fblaGold = Color(0xFFF4AB19);
   static const fblaLightGold = Color(0xFFFFF4E0);
 
-  final String userName = "Sarah Johnson";
+  final String userName = globals.currentUserName ?? "Member";
 
   // Get the first 3 announcements (in order they appear in the list)
   List<Announcement> get recentAnnouncements {

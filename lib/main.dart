@@ -1,9 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:coding_prog/Annoucements/announcements_page.dart';
 import 'package:coding_prog/Groups/admin_group_page.dart';
 import 'package:coding_prog/Homepage/home_page.dart';
 import 'package:coding_prog/admin/admin_page.dart';
 import 'package:coding_prog/login/signup_page.dart';
 import 'package:coding_prog/profile/profile_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:coding_prog/login/login_page.dart';
 import 'package:coding_prog/Competive_Events/events_page.dart';
@@ -21,6 +23,7 @@ import 'package:coding_prog/Calendar/calendar.dart';
 import 'package:coding_prog/Groups/group_page.dart';
 import 'package:coding_prog/Groups/group.dart';
 import 'package:coding_prog/Groups/admin_group_page.dart';
+import 'globals.dart' as globals;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,11 +41,36 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'LYNQ',
       debugShowCheckedModeBanner: false,
-      home: const MainScaffold(),
+      home: const AuthWrapper(),
       routes: {
         '/login/': (context) => const LoginPage(),
         '/signup/': (context) => const SignupPage(),
         '/home/': (context) => const MainScaffold(),
+      },
+    );
+  }
+}
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        // While checking auth state
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        // User is logged in
+        if (snapshot.hasData) {
+          return const MainScaffold();
+        }
+
+        // User is not logged in
+        return const LoginPage();
       },
     );
   }
@@ -57,6 +85,7 @@ class MainScaffold extends StatefulWidget {
 
 class _MainScaffoldState extends State<MainScaffold> {
   int _selectedIndex = 0;
+  bool isLoading = false;
 
   late final List<Widget> _pages;
 
@@ -88,6 +117,36 @@ class _MainScaffoldState extends State<MainScaffold> {
       ),
       GroupPage(onNavigate: _navigateBar),
     ];
+    _fetchUserRole();
+  }
+
+  Future<void> _fetchUserRole() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    globals.currentUserName = FirebaseAuth.instance.currentUser?.displayName ?? "Member";
+    globals.currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+    print("User Name: ${globals.currentUserName}  hi");
+    if (uid != null) {
+      final studentDoc = await FirebaseFirestore.instance.collection('students').doc(uid).get();
+      if (studentDoc.exists) {
+        setState(() {
+          globals.currentUserRole = 'student';
+          isLoading = false;
+        });
+        return;
+      }
+      final advisorDoc = await FirebaseFirestore.instance.collection('advisors').doc(uid).get();
+      if (advisorDoc.exists) {
+        setState(() {
+          globals.currentUserRole = 'advisor';
+          isLoading = false;
+        });
+        return;
+      }
+    } else {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   void _navigateBar(int index) {
@@ -142,6 +201,11 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return Scaffold(
       body: _pages[_selectedIndex],
       bottomNavigationBar: Container(
