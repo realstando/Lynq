@@ -164,6 +164,7 @@ class CalendarPageState extends State<CalendarPage> {
                                   _scaffoldKey.currentState?.openDrawer();
                                 },
                               ),
+                              SizedBox(width: 10),
                               // Title (centered)
                               Expanded(
                                 child: Center(
@@ -180,8 +181,16 @@ class CalendarPageState extends State<CalendarPage> {
                               ),
 
                               // Spacer for symmetry (right side)
-                              const SizedBox(
-                                width: 48,
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.account_circle,
+                                  size: 40,
+                                ),
+                                color: Colors.white,
+                                tooltip: 'Profile',
+                                onPressed: (() {
+                                  widget.onNavigate(5);
+                                }),
                               ), // same width as icon for visual balance
                             ],
                           ),
@@ -189,7 +198,7 @@ class CalendarPageState extends State<CalendarPage> {
 
                         SizedBox(height: 12),
                         Container(
-                          width: 80,
+                          width: 200,
                           height: 3,
                           decoration: BoxDecoration(
                             color: Color(0xFFE8B44C),

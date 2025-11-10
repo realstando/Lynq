@@ -26,6 +26,7 @@ class ResourcePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       key: _scaffoldKey,
       drawer: DrawerPage(
         icon: Icons.menu_book_rounded,
@@ -34,6 +35,7 @@ class ResourcePage extends StatelessWidget {
         onNavigate: onNavigate,
       ),
       appBar: CustomAppBar(
+        onNavigate: onNavigate,
         name: 'FBLA Resources',
         color: Colors.green[700]!,
         scaffoldKey: _scaffoldKey,

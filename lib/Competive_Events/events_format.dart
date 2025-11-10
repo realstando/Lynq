@@ -7,6 +7,18 @@ class EventsFormat extends StatelessWidget {
 
   const EventsFormat({super.key, required this.event});
 
+  // Enhanced FBLA-inspired color palette with better visibility
+  static const fblaNavyDark = Color(0xFF0B1F3F);
+  static const fblaNavyMid = Color(0xFF1A3A6B);
+  static const fblaNavyLight = Color(0xFF2E5B9E);
+  static const fblaBrightBlue = Color(0xFF4A7BC8);
+  static const fblaSkyBlue = Color(0xFF6B9FE8);
+
+  static const fblaGold = Color(0xFFD4921F); // Rich orange-gold
+  static const fblaLightGold = Color(0xFFE8AD3F); // Warmer light gold
+  static const fblaPaleGold = Color(0xFFF5C866); // Soft peachy gold
+  static const fblaAmber = Color(0xFFB87A15); // Deep amber
+
   void _openLink() async {
     final Uri url = Uri.parse(event.link);
     if (await canLaunchUrl(url)) {
@@ -16,15 +28,25 @@ class EventsFormat extends StatelessWidget {
     }
   }
 
-  // Enhanced category color palette (more saturation and contrast)
   Color _getCategoryColor() {
     switch (event.category) {
       case EventCategory.objective:
-        return const Color(0xFF2563EB); // Vibrant royal blue
+        return fblaNavyDark;
       case EventCategory.presentation:
-        return const Color(0xFF7C3AED); // Deep purple
+        return fblaBrightBlue;
       case EventCategory.roleplay:
-        return const Color(0xFFE11D48); // Bold pink-red
+        return fblaGold;
+    }
+  }
+
+  Color _getCategoryAccentColor() {
+    switch (event.category) {
+      case EventCategory.objective:
+        return fblaNavyMid;
+      case EventCategory.presentation:
+        return fblaSkyBlue;
+      case EventCategory.roleplay:
+        return fblaLightGold;
     }
   }
 
@@ -42,6 +64,8 @@ class EventsFormat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final categoryColor = _getCategoryColor();
+    final accentColor = _getCategoryAccentColor();
+    final isGoldCategory = event.category == EventCategory.roleplay;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
@@ -52,19 +76,25 @@ class EventsFormat extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [
             Colors.white,
-            categoryColor.withOpacity(0.06),
+            categoryColor.withOpacity(0.04),
+            accentColor.withOpacity(0.08),
           ],
         ),
         boxShadow: [
           BoxShadow(
-            color: categoryColor.withOpacity(0.15),
-            blurRadius: 12,
-            offset: const Offset(0, 5),
+            color: categoryColor.withOpacity(0.18),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+          BoxShadow(
+            color: accentColor.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
         border: Border.all(
-          color: categoryColor.withOpacity(0.25),
-          width: 1.2,
+          color: categoryColor.withOpacity(0.3),
+          width: 1.3,
         ),
       ),
       child: Material(
@@ -72,8 +102,8 @@ class EventsFormat extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         child: InkWell(
           borderRadius: BorderRadius.circular(18),
-          splashColor: categoryColor.withOpacity(0.08),
-          highlightColor: Colors.transparent,
+          splashColor: categoryColor.withOpacity(0.1),
+          highlightColor: accentColor.withOpacity(0.05),
           onTap: _openLink,
           child: Padding(
             padding: const EdgeInsets.all(18),
@@ -86,13 +116,14 @@ class EventsFormat extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
-                        vertical: 5,
+                        vertical: 6,
                       ),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
+                            categoryColor,
+                            accentColor,
                             categoryColor.withOpacity(0.85),
-                            categoryColor.withOpacity(0.6),
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -100,9 +131,9 @@ class EventsFormat extends StatelessWidget {
                         borderRadius: BorderRadius.circular(50),
                         boxShadow: [
                           BoxShadow(
-                            color: categoryColor.withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
+                            color: categoryColor.withOpacity(0.35),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
@@ -112,15 +143,17 @@ class EventsFormat extends StatelessWidget {
                           Icon(
                             _getCategoryIcon(),
                             size: 16,
-                            color: Colors.white,
+                            color: isGoldCategory ? fblaNavyDark : Colors.white,
                           ),
                           const SizedBox(width: 6),
                           Text(
                             event.category.name.toUpperCase(),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: isGoldCategory
+                                  ? fblaNavyDark
+                                  : Colors.white,
                               letterSpacing: 0.8,
                             ),
                           ),
@@ -128,10 +161,17 @@ class EventsFormat extends StatelessWidget {
                       ),
                     ),
                     const Spacer(),
-                    Icon(
-                      Icons.open_in_new_rounded,
-                      color: categoryColor.withOpacity(0.6),
-                      size: 20,
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: categoryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.open_in_new_rounded,
+                        color: categoryColor.withOpacity(0.7),
+                        size: 20,
+                      ),
                     ),
                   ],
                 ),
@@ -141,28 +181,36 @@ class EventsFormat extends StatelessWidget {
                 // Event Title
                 Text(
                   event.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 19,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F172A),
+                    color: fblaNavyDark,
                     height: 1.3,
                   ),
                 ),
 
                 const SizedBox(height: 8),
 
-                // Decorative divider
+                // Decorative divider with gradient
                 Container(
-                  height: 2,
-                  width: 60,
+                  height: 3,
+                  width: 70,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        categoryColor.withOpacity(0.9),
-                        categoryColor.withOpacity(0.3),
+                        categoryColor,
+                        accentColor,
+                        categoryColor.withOpacity(0.2),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(4),
+                    boxShadow: [
+                      BoxShadow(
+                        color: categoryColor.withOpacity(0.3),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
                   ),
                 ),
 

@@ -123,6 +123,15 @@ class DrawerPage extends StatelessWidget {
                     },
                     color: color,
                   ),
+                  DrawerItem(
+                    icon: Icons.menu_book_rounded,
+                    title: 'Groups',
+                    onTap: () {
+                      Navigator.pop(context);
+                      onNavigate(6);
+                    },
+                    color: color,
+                  ),
                 ],
               ),
             ),
