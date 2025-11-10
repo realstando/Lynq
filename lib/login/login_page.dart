@@ -64,7 +64,7 @@ class _LoginPageState extends State<LoginPage> {
                         password: password,
                       );
                   Navigator.of(context).pushNamedAndRemoveUntil(
-                    '/announcements/',
+                    '/home/',
                     (routes) => false,
                   );
                 } on FirebaseAuthException catch (e) {

@@ -34,10 +34,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'LYNQ',
       debugShowCheckedModeBanner: false,
-      home: const AdminPage(),
+      home: const LoginPage(),
       routes: {
         '/login/': (context) => const LoginPage(),
         '/signup/': (context) => const SignupPage(),
+        '/home/': (context) => const MainScaffold(),
       },
     );
   }
