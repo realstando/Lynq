@@ -12,6 +12,7 @@ class DrawerItem extends StatelessWidget {
   IconData icon;
   String title;
   VoidCallback onTap;
+  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
