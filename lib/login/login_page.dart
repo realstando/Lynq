@@ -87,7 +87,7 @@ class _LoginPageState extends State<LoginPage> {
 
       if (mounted) {
         Navigator.of(context).pushNamedAndRemoveUntil(
-          '/announcements/',
+          '/home/',
           (routes) => false,
         );
       }
