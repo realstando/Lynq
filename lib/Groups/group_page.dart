@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:coding_prog/NavigationBar/custom_appbar.dart';
 import 'package:coding_prog/NavigationBar/drawer_page.dart';
@@ -156,8 +158,15 @@ class _GroupPageState extends State<GroupPage> {
                       _joinCode = code;
                       // TODO: Search for group and add to joinedGroups if found
                     });
-                    print('Join code: $code');
                     Navigator.of(context).pop();
+
+                    try {
+                      FirebaseFirestore.instance
+                          .collection('students').doc(FirebaseAuth.instance.currentUser!.uid)
+                          .collection('groups').doc(code)
+                          .set({});
+                    } catch (_) {
+                    }
 
                     // Show success message
                     ScaffoldMessenger.of(context).showSnackBar(

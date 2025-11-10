@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:coding_prog/Groups/group.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class NewGroup extends StatefulWidget {
   NewGroup({required this.addGroup, super.key});
@@ -140,6 +142,16 @@ class _NewGroupState extends State<NewGroup> {
         actions: [
           ElevatedButton(
             onPressed: () {
+              try {
+                FirebaseFirestore.instance
+                    .collection('groups').doc(newGroup.code)
+                    .set({
+                      'name': newGroup.name,
+                      'advisor': FirebaseAuth.instance.currentUser!.displayName,
+                      'email': FirebaseAuth.instance.currentUser!.email,
+                    });
+              } catch (_) {
+              }
               Navigator.of(dialogContext).pop(); // Close dialog
               widget.addGroup(newGroup);
               Navigator.of(context).pop(); // Add the group

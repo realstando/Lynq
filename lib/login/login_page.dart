@@ -17,7 +17,6 @@ class _LoginPageState extends State<LoginPage> {
   bool _obscure = true;
 
   static const fblaNavy = Color(0xFF0A2E7F);
-  static const fblaGold = Color(0xFFF4AB19);
 
   @override
   void dispose() {

@@ -19,7 +19,6 @@ class _SignupPageState extends State<SignupPage> {
   bool _obscure = true;
 
   static const fblaNavy = Color(0xFF0A2E7F);
-  static const fblaGold = Color(0xFFF4AB19);
 
   @override
   void dispose() {
@@ -70,6 +69,7 @@ class _SignupPageState extends State<SignupPage> {
       if (isStudent) {
         final user = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(email: email, password: password);
+        await user.user!.updateDisplayName("$fName $lName");
         await FirebaseFirestore.instance
             .collection('students')
             .doc(user.user!.uid)

@@ -86,7 +86,7 @@ class _MainScaffoldState extends State<MainScaffold> {
       ProfilePage(
         onNavigate: _navigateBar,
       ),
-      AdminGroupPage(onNavigate: _navigateBar),
+      GroupPage(onNavigate: _navigateBar),
     ];
   }
 
