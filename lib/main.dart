@@ -1,4 +1,5 @@
 import 'package:coding_prog/Annoucements/announcements_page.dart';
+import 'package:coding_prog/Groups/admin_group_page.dart';
 import 'package:coding_prog/Homepage/home_page.dart';
 import 'package:coding_prog/admin/admin_page.dart';
 import 'package:coding_prog/login/signup_page.dart';
@@ -17,6 +18,9 @@ import 'package:coding_prog/Homepage/admin_home_page.dart';
 import 'package:coding_prog/Calendar/calendar_page.dart';
 import 'package:coding_prog/Annoucements/announcement.dart';
 import 'package:coding_prog/Calendar/calendar.dart';
+import 'package:coding_prog/Groups/group_page.dart';
+import 'package:coding_prog/Groups/group.dart';
+import 'package:coding_prog/Groups/admin_group_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -81,7 +85,7 @@ class _MainScaffoldState extends State<MainScaffold> {
       ProfilePage(
         onNavigate: _navigateBar,
       ),
-      // Hidden 5th page - drawer only
+      AdminGroupPage(onNavigate: _navigateBar),
     ];
   }
 
