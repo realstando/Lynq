@@ -67,7 +67,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
       drawer: DrawerPage(
         icon: Icons.campaign_rounded,
         name: 'Announcements',
-        color: const Color(0xFF1E3A8A), // Deep blue
+        color: const Color(0xFF0A2E7F), // Deep blue
         onNavigate: widget.onNavigate,
       ),
       appBar: CustomAppBar(
@@ -79,7 +79,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
       backgroundColor: const Color(0xFFF7F9FC),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openAddAnnouncementOverlay,
-        backgroundColor: const Color(0xFF2563EB), // Clean medium blue
+        backgroundColor: const Color(0xFF0A2E7F), // Clean medium blue
         icon: const Icon(Icons.edit_note, color: Colors.white),
         label: const Text(
           "New Announcement",
@@ -99,11 +99,11 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
             margin: const EdgeInsets.fromLTRB(16, 20, 16, 12),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E40AF),
+              color: const Color(0xFF0A2E7F),
               borderRadius: BorderRadius.circular(18),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF1E40AF).withOpacity(0.25),
+                  color: const Color(0xFF0A2E7F).withOpacity(0.25),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -129,7 +129,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
                   child: Text(
                     announcements.length.toString(),
                     style: const TextStyle(
-                      color: Color(0xFF1E3A8A),
+                      color: Color(0xFF0A2E7F),
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
                     ),

@@ -1,6 +1,7 @@
 import 'package:coding_prog/Annoucements/announcements_page.dart';
 import 'package:coding_prog/Groups/admin_group_page.dart';
 import 'package:coding_prog/Homepage/home_page.dart';
+import 'package:coding_prog/SocialMedia/instagram_page.dart';
 import 'package:coding_prog/admin/admin_page.dart';
 import 'package:coding_prog/login/signup_page.dart';
 import 'package:coding_prog/profile/profile_page.dart';
@@ -86,7 +87,8 @@ class _MainScaffoldState extends State<MainScaffold> {
       ProfilePage(
         onNavigate: _navigateBar,
       ),
-      AdminGroupPage(onNavigate: _navigateBar),
+      GroupPage(onNavigate: _navigateBar),
+      InstagramHomePage(onNavigate: _navigateBar),
     ];
   }
 

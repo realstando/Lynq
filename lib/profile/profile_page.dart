@@ -44,6 +44,7 @@ class _ProfilePageState extends State<ProfilePage> {
     ];
 
     return Scaffold(
+      backgroundColor: Colors.white,
       key: _scaffoldKey,
       drawer: DrawerPage(
         icon: Icons.campaign_rounded,

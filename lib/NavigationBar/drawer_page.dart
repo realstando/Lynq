@@ -124,11 +124,20 @@ class DrawerPage extends StatelessWidget {
                     color: color,
                   ),
                   DrawerItem(
-                    icon: Icons.menu_book_rounded,
+                    icon: Icons.people_alt_rounded,
                     title: 'Groups',
                     onTap: () {
                       Navigator.pop(context);
                       onNavigate(6);
+                    },
+                    color: color,
+                  ),
+                  DrawerItem(
+                    icon: Icons.mobile_friendly_rounded,
+                    title: 'Instagram',
+                    onTap: () {
+                      Navigator.pop(context);
+                      onNavigate(7);
                     },
                     color: color,
                   ),
