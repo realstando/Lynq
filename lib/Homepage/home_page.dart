@@ -128,14 +128,7 @@ class _HomePageState extends State<HomePage> {
                       height: 80,
                       width: 80,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            fblaGold.withValues(alpha: 0.4),
-                            Color(0xFFFFD666).withValues(alpha: 0.4),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
