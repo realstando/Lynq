@@ -1,6 +1,7 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:coding_prog/Annoucements/announcements_page.dart';
-import 'package:coding_prog/Groups/admin_group_page.dart';
 import 'package:coding_prog/Homepage/home_page.dart';
 import 'package:coding_prog/admin/admin_page.dart';
 import 'package:coding_prog/login/signup_page.dart';
@@ -21,8 +22,6 @@ import 'package:coding_prog/Calendar/calendar_page.dart';
 import 'package:coding_prog/Annoucements/announcement.dart';
 import 'package:coding_prog/Calendar/calendar.dart';
 import 'package:coding_prog/Groups/group_page.dart';
-import 'package:coding_prog/Groups/group.dart';
-import 'package:coding_prog/Groups/admin_group_page.dart';
 import 'globals.dart' as globals;
 
 void main() async {
@@ -85,68 +84,57 @@ class MainScaffold extends StatefulWidget {
 
 class _MainScaffoldState extends State<MainScaffold> {
   int _selectedIndex = 0;
-  bool isLoading = false;
+  bool isLoading = true;
 
-  late final List<Widget> _pages;
+  StreamSubscription? _userGroupsSub;
+  final Map<String, StreamSubscription> _groupListeners = {};
+
+  List<Widget> get _pages => [
+    HomePage(
+      onNavigate: _navigateBar,
+      announcements: _announcements,
+      calendars: _calendars,
+    ),
+    AnnouncementsPage(
+      onNavigate: _navigateBar,
+      announcements: _announcements,
+      onAddAnnouncement: _addAnnouncement,
+    ),
+    EventsPage(
+      onNavigate: _navigateBar,
+    ),
+    CalendarPage(
+      onNavigate: _navigateBar,
+      calendars: _calendars,
+      onAddCalendar: _addCalendar,
+    ),
+    ResourcePage(onNavigate: _navigateBar),
+    ProfilePage(
+      onNavigate: _navigateBar,
+    ),
+    GroupPage(onNavigate: _navigateBar),
+  ];
+
 
   @override
   void initState() {
     super.initState();
-    _pages = [
-      HomePage(
-        onNavigate: _navigateBar,
-        announcements: _announcements,
-        calendars: _calendars,
-      ),
-      AnnouncementsPage(
-        onNavigate: _navigateBar,
-        announcements: _announcements,
-        onAddAnnouncement: _addAnnouncement,
-      ),
-      EventsPage(
-        onNavigate: _navigateBar,
-      ),
-      CalendarPage(
-        onNavigate: _navigateBar,
-        calendars: _calendars,
-        onAddCalendar: _addCalendar,
-      ),
-      ResourcePage(onNavigate: _navigateBar),
-      ProfilePage(
-        onNavigate: _navigateBar,
-      ),
-      GroupPage(onNavigate: _navigateBar),
-    ];
-    _fetchUserRole();
-  }
-
-  Future<void> _fetchUserRole() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    globals.currentUserName = FirebaseAuth.instance.currentUser?.displayName ?? "Member";
-    globals.currentUserEmail = FirebaseAuth.instance.currentUser?.email;
-    print("User Name: ${globals.currentUserName}  hi");
-    if (uid != null) {
-      final studentDoc = await FirebaseFirestore.instance.collection('students').doc(uid).get();
-      if (studentDoc.exists) {
-        setState(() {
-          globals.currentUserRole = 'student';
-          isLoading = false;
-        });
-        return;
-      }
-      final advisorDoc = await FirebaseFirestore.instance.collection('advisors').doc(uid).get();
-      if (advisorDoc.exists) {
-        setState(() {
-          globals.currentUserRole = 'advisor';
-          isLoading = false;
-        });
-        return;
-      }
-    } else {
+    
+    // Wrap in try-catch to prevent crashes
+    try {
+      _fetchUser();
+    } catch (e) {
+      print('Error in initState: $e');
       setState(() {
         isLoading = false;
       });
     }
+  }
+
+  @override
+  void dispose() {
+    stopListeningToUserGroups();
+    super.dispose();
   }
 
   void _navigateBar(int index) {
@@ -294,5 +282,181 @@ class _MainScaffoldState extends State<MainScaffold> {
         ),
       ),
     );
+  }
+
+  Future<void> _fetchUser() async {
+    try {
+      setState(() {
+        isLoading = true;
+      });
+
+      // Initialize user data
+      globals.currentUID = FirebaseAuth.instance.currentUser?.uid;
+      globals.currentUserName = FirebaseAuth.instance.currentUser?.displayName ?? '';
+      globals.currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+      globals.groups = []; // Initialize groups list
+
+      // Set default name if empty
+      if (globals.currentUserName == null || globals.currentUserName!.isEmpty) {
+        globals.currentUserName = 'User';
+      }
+      // Fetch user role from Firestore
+      await _fetchUserRole();
+
+      // Special case for admin email
+      if (globals.currentUserEmail == "rryanwwang@gmail.com") {
+        globals.currentUserRole = 'advisors';
+      }
+
+      print('User Name: ${globals.currentUserName}');
+      print('User Role: ${globals.currentUserRole}');
+      print('User UID: ${globals.currentUID}');
+
+      // Only listen to groups if user role and UID are set
+      if (globals.currentUserRole != null && globals.currentUID != null) {
+        _listenToUserGroups();
+      } else {
+        print('ERROR: User role or UID is null - cannot listen to groups');
+      }
+
+      print('Groups initialized: ${globals.groups}');
+    } catch (e) {
+      print('Error in _fetchUser: $e');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _fetchUserRole() async {
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) {
+        print('ERROR: UID is null in _fetchUserRole');
+        return;
+      }
+
+      final studentDoc = await FirebaseFirestore.instance
+          .collection('students')
+          .doc(uid)
+          .get();
+
+      if (studentDoc.exists) {
+        globals.currentUserRole = 'students';
+        return;
+      }
+
+      final advisorDoc = await FirebaseFirestore.instance
+          .collection('advisors')
+          .doc(uid)
+          .get();
+
+      if (advisorDoc.exists) {
+        globals.currentUserRole = 'advisors';
+        globals.isAdmin = true;
+        return;
+      }
+
+      print('WARNING: User not found in students or advisors collection');
+    } catch (e) {
+      print('Error in _fetchUserRole: $e');
+    }
+  }
+
+  void _listenToUserGroups() {
+    stopListeningToUserGroups();
+
+    final firestore = FirebaseFirestore.instance;
+
+    // Ensure globals.groups is initialized
+    globals.groups ??= [];
+
+    _userGroupsSub = firestore
+        .collection(globals.currentUserRole!)
+        .doc(globals.currentUID)
+        .collection('groups')
+        .snapshots()
+        .listen(
+          (userGroupsSnapshot) {
+            try {
+              final groupCodes = userGroupsSnapshot.docs.map((d) => d.id).toSet();
+
+              // Remove listeners for groups the user left
+              _groupListeners.keys
+                  .where((code) => !groupCodes.contains(code))
+                  .toList()
+                  .forEach((code) {
+                _groupListeners.remove(code)?.cancel();
+                setState(() {
+                  globals.groups?.removeWhere((g) => g['code'] == code);
+                });
+              });
+
+              // Add listeners for new groups
+              for (final code in groupCodes.where((c) => !_groupListeners.containsKey(c))) {
+                _groupListeners[code] = firestore
+                    .collection('groups')
+                    .doc(code)
+                    .snapshots()
+                    .listen(
+                      (groupDoc) {
+                        try {
+                          _updateGroupData(code, groupDoc.data());
+                        } catch (e) {
+                          print('Error updating group $code: $e');
+                        }
+                      },
+                      onError: (error) {
+                        print('Error listening to group $code: $error');
+                      },
+                      cancelOnError: false,
+                    );
+              }
+            } catch (e) {
+              print('Error processing user groups: $e');
+            }
+          },
+          onError: (error) {
+            print('Error listening to user groups: $error');
+            setState(() {
+              isLoading = false;
+            });
+          },
+          cancelOnError: false,
+        );
+  }
+
+  void _updateGroupData(String code, Map<String, dynamic>? groupData) {
+    if (groupData != null) {
+      setState(() {
+        groupData['code'] = code;
+
+        globals.groups ??= [];
+
+        final existingIndex = globals.groups!.indexWhere((g) => g['code'] == code);
+        if (existingIndex != -1) {
+          globals.groups![existingIndex] = groupData;
+        } else {
+          globals.groups!.add(groupData);
+        }
+      });
+
+      print('Updated group: $code');
+    } else {
+      setState(() {
+        globals.groups?.removeWhere((g) => g['code'] == code);
+      });
+      print('Group $code deleted');
+    }
+  }
+
+  void stopListeningToUserGroups() {
+    _userGroupsSub?.cancel();
+    _userGroupsSub = null;
+    for (var sub in _groupListeners.values) {
+      sub.cancel();
+    }
+    _groupListeners.clear();
   }
 }

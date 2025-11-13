@@ -10,7 +10,7 @@ class AdminPage extends StatelessWidget {
     final CollectionReference signupRef =
         FirebaseFirestore.instance.collection('signup_advisors');
     final CollectionReference approvedRef =
-        FirebaseFirestore.instance.collection('approved_advisors');
+        FirebaseFirestore.instance.collection('advisors');
 
     return Scaffold(
       appBar: AppBar(

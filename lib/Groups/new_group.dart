@@ -1,11 +1,12 @@
+import 'dart:math';
+
+import 'package:coding_prog/globals.dart' as globals;
 import 'package:flutter/material.dart';
-import 'package:coding_prog/Groups/group.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class NewGroup extends StatefulWidget {
-  NewGroup({required this.addGroup, super.key});
-  final void Function(Group) addGroup;
+  NewGroup(void setState, {super.key});
   @override
   State<NewGroup> createState() => _NewGroupState();
 }
@@ -41,7 +42,7 @@ class _NewGroupState extends State<NewGroup> {
       return;
     }
 
-    final newGroup = Group(name: title);
+    final code = _generateAlphanumericCode();
 
     // Show success dialog with join code
     showDialog(
@@ -75,7 +76,7 @@ class _NewGroupState extends State<NewGroup> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              newGroup.name,
+              title,
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -103,7 +104,7 @@ class _NewGroupState extends State<NewGroup> {
                   ),
                   SizedBox(height: 12),
                   Text(
-                    newGroup.code,
+                    code,
                     style: TextStyle(
                       fontSize: 36,
                       fontWeight: FontWeight.bold,
@@ -141,19 +142,21 @@ class _NewGroupState extends State<NewGroup> {
         ),
         actions: [
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               try {
-                FirebaseFirestore.instance
-                    .collection('groups').doc(newGroup.code)
+                await FirebaseFirestore.instance
+                    .collection('groups').doc(code)
                     .set({
-                      'name': newGroup.name,
+                      'name': title,
                       'advisor': FirebaseAuth.instance.currentUser!.displayName,
                       'email': FirebaseAuth.instance.currentUser!.email,
                     });
+                await FirebaseFirestore.instance
+                    .collection('advisors').doc(globals.currentUID)
+                    .collection('groups').doc(code).set({});
               } catch (_) {
               }
               Navigator.of(dialogContext).pop(); // Close dialog
-              widget.addGroup(newGroup);
               Navigator.of(context).pop(); // Add the group
             },
             style: ElevatedButton.styleFrom(
@@ -360,4 +363,17 @@ class _NewGroupState extends State<NewGroup> {
     _titleController.dispose();
     super.dispose();
   }
+
+  static String _generateAlphanumericCode({int length = 6}) {
+    const chars =
+        'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Excludes confusing chars
+    final random = Random();
+
+    return List.generate(
+      length,
+      (index) => chars[random.nextInt(chars.length)],
+    ).join();
+  }
+  
 }
+
