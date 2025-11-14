@@ -106,10 +106,13 @@ class _MainScaffoldState extends State<MainScaffold> {
       SocialMediaHub(onNavigate: _navigateBar),
       InstagramHomePage(onNavigate: _navigateBar),
       YouTubeScreen(onNavigate: _navigateBar),
+      AdminPage(onNavigate: _navigateBar)
     ];
 
     if (globals.isAdmin == true) {
-      pages.insert(10, AdminPage(onNavigate: _navigateBar)); // Adds admin page
+      setState(() {
+        pages.insert(10, AdminPage(onNavigate: _navigateBar)); // Adds admin page
+      });
     }
 
     return pages;
