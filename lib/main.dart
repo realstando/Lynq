@@ -296,6 +296,9 @@ class _MainScaffoldState extends State<MainScaffold> {
       if (globals.currentUserEmail == "rryanwwang@gmail.com") {
         globals.currentUserRole = 'advisors';
       }
+      if (globals.currentUserEmail == "rryanwwang@gmail.com" || globals.currentUserEmail == "gordon.zhang090321@gmail.com") {
+        globals.isAdmin = true;
+      }
 
       print('User Name: ${globals.currentUserName}');
       print('User Role: ${globals.currentUserRole}');
@@ -343,7 +346,6 @@ class _MainScaffoldState extends State<MainScaffold> {
 
       if (advisorDoc.exists) {
         globals.currentUserRole = 'advisors';
-        globals.isAdmin = true;
         return;
       }
 
@@ -564,6 +566,10 @@ class _MainScaffoldState extends State<MainScaffold> {
     for (var sub in _announcementListeners.values) {
       sub.cancel();
     }
-    _announcementListeners.clear();
+    _calendarListeners.clear();
+    for (var sub in _calendarListeners.values) {
+      sub.cancel();
+    }
+    _calendarListeners.clear();
   }
 }
