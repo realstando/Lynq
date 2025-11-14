@@ -1,13 +1,14 @@
+import 'package:coding_prog/SocialMedia/social_media_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:coding_prog/SocialMedia/post_page.dart';
+import 'package:coding_prog/SocialMedia/Instagram/post_page.dart';
 import 'package:coding_prog/NavigationBar/custom_appbar.dart';
 import 'package:coding_prog/NavigationBar/drawer_page.dart';
 
 class InstagramHomePage extends StatefulWidget {
-  InstagramHomePage({super.key, required this.onNavigate});
+  const InstagramHomePage({super.key, required this.onNavigate});
   final void Function(int) onNavigate;
   @override
   _InstagramHomePageState createState() => _InstagramHomePageState();
@@ -99,7 +100,7 @@ class _InstagramHomePageState extends State<InstagramHomePage> {
         color: const Color(0xFFDD2A7B),
         onNavigate: widget.onNavigate,
       ),
-      appBar: CustomAppBar(
+      appBar: SocialMediaAppbar(
         onNavigate: widget.onNavigate,
         name: 'Instagram Page',
         color: const Color(0xFFDD2A7B),
