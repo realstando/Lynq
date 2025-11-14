@@ -11,10 +11,9 @@ class AnnouncementsPage extends StatefulWidget {
   const AnnouncementsPage({
     super.key,
     required this.onNavigate,
-    required this.onAddAnnouncement,
   });
   final void Function(int) onNavigate;
-  final void Function(Announcement) onAddAnnouncement;
+  // final void Function(Announcement) onAddAnnouncement;
 
   @override
   State<AnnouncementsPage> createState() => _AnnouncementsPageState();
@@ -47,9 +46,12 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) =>
-            NewAnnouncement(addAnnouncement: _onAddAnnouncement),
-      ),
-    );
+            NewAnnouncement(() {
+            setState(() {});
+            Navigator.pop(context);
+          }),
+        ),
+      );
   }
 
   void _onAddAnnouncement(Announcement announcement) {

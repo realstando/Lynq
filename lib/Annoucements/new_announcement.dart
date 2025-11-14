@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:coding_prog/globals.dart' as globals;
 import 'package:flutter/material.dart';
-import 'package:coding_prog/Annoucements/announcement.dart';
+// import 'package:coding_prog/Annoucements/announcement.dart';
 
 class NewAnnouncement extends StatefulWidget {
-  const NewAnnouncement({required this.addAnnouncement, super.key});
-  final void Function(Announcement announcement) addAnnouncement;
+  const NewAnnouncement(Null Function() param0, {super.key});
+  // final void Function(Announcement announcement) addAnnouncement;
 
   @override
   State<NewAnnouncement> createState() {
@@ -100,15 +100,6 @@ class _NewAnnouncementState extends State<NewAnnouncement> {
       });
     } catch (_) {
     }
-
-    Announcement announcement = Announcement(
-      content: _informationController.text.trim(),
-      title: _titleController.text.trim(),
-      initial: "WA",
-      name: "Washington SBLC",
-      date: DateTime.now(),
-    );
-    widget.addAnnouncement(announcement);
   }
 
   @override

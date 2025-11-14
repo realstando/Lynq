@@ -161,7 +161,7 @@ class AnnouncementFormat extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    _formattedDate(announcement['date'].toDate()),
+                    DateFormat.yMd().format((announcement['date'].toDate())),
                     style: TextStyle(
                       color: primaryBlue.withOpacity(0.7),
                       fontSize: 14,
@@ -175,10 +175,5 @@ class AnnouncementFormat extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _formattedDate (DateTime date) {
-    var formatter1 = DateFormat.yMd();
-    return formatter1.format(date);
   }
 }

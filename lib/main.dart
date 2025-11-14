@@ -88,25 +88,21 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   StreamSubscription? _userSubs;
   final Map<String, StreamSubscription> _groupListeners = {};
-  final Map<String, StreamSubscription> _announcementListeners = {}; 
+  final Map<String, StreamSubscription> _announcementListeners = {};
+  final Map<String, StreamSubscription> _calendarListeners = {}; 
 
   List<Widget> get _pages => [
     HomePage(
       onNavigate: _navigateBar,
-      announcements: _announcements,
-      calendars: _calendars,
     ),
     AnnouncementsPage(
       onNavigate: _navigateBar,
-      onAddAnnouncement: _addAnnouncement,
     ),
     EventsPage(
       onNavigate: _navigateBar,
     ),
     CalendarPage(
       onNavigate: _navigateBar,
-      calendars: _calendars,
-      onAddCalendar: _addCalendar,
     ),
     ResourcePage(onNavigate: _navigateBar),
     ProfilePage(
@@ -114,7 +110,6 @@ class _MainScaffoldState extends State<MainScaffold> {
     ),
     GroupPage(onNavigate: _navigateBar),
   ];
-
 
   @override
   void initState() {
@@ -149,12 +144,6 @@ class _MainScaffoldState extends State<MainScaffold> {
     });
   }
 
-  void _addCalendar(Calendar calendar) {
-    setState(() {
-      _calendars.insert(0, calendar);
-    });
-  }
-
   final List<Announcement> _announcements = [
     Announcement(
       initial: "WA",
@@ -174,18 +163,18 @@ class _MainScaffoldState extends State<MainScaffold> {
     ),
   ];
 
-  final List<Calendar> _calendars = [
-    Calendar(
-      "Washington SBLC",
-      DateTime.utc(2026, 4, 26),
-      "Bellevue Washington",
-    ),
-    Calendar(
-      "Anaheim NLC",
-      DateTime.utc(2026, 6, 26),
-      "Anaheim California",
-    ),
-  ];
+  // final List<Calendar> _calendars = [
+  //   Calendar(
+  //     "Washington SBLC",
+  //     DateTime.utc(2026, 4, 26),
+  //     "Bellevue Washington",
+  //   ),
+  //   Calendar(
+  //     "Anaheim NLC",
+  //     DateTime.utc(2026, 6, 26),
+  //     "Anaheim California",
+  //   ),
+  // ];
 
   @override
   Widget build(BuildContext context) {
@@ -389,9 +378,11 @@ class _MainScaffoldState extends State<MainScaffold> {
                   .forEach((code) {
                 _groupListeners.remove(code)?.cancel();
                 _announcementListeners.remove(code)?.cancel();
+                _calendarListeners.remove(code)?.cancel();
                 setState(() {
                   globals.groups?.removeWhere((g) => g['code'] == code);
                   globals.announcements?.removeWhere((a) => a['code'] == code);
+                  globals.calendar?.removeWhere((a) => a['code'] == code);
                 });
               });
 
@@ -433,7 +424,25 @@ class _MainScaffoldState extends State<MainScaffold> {
                       },
                       cancelOnError: false,
                     );
-
+                _calendarListeners[code] = firestore
+                    .collection('groups')
+                    .doc(code)
+                    .collection('calendar')
+                    .orderBy('date', descending: true) // Most recent first
+                    .snapshots()
+                    .listen(
+                      (calendarSnapshot) {
+                        try {
+                          _updateGroupCalendar(code, calendarSnapshot);
+                        } catch (e) {
+                          print('Error updating calendar for group $code: $e');
+                        }
+                      },
+                      onError: (error) {
+                        print('Error listening to calendar for group $code: $error');
+                      },
+                      cancelOnError: false,
+                    );
               }
             } catch (e) {
               print('Error processing user groups: $e');
@@ -509,6 +518,41 @@ class _MainScaffoldState extends State<MainScaffold> {
     print('Updated ${announcementsSnapshot.docs.length} announcements for group $code');
   }
 
+  void _updateGroupCalendar(String code, QuerySnapshot calendarSnapshot) {
+    setState(() {
+      globals.calendar ??= [];
+
+      // Remove old calendar for this group
+      globals.calendar!.removeWhere((a) => a['code'] == code);
+
+      // Find the group to get its name
+      final group = globals.groups?.firstWhere(
+        (g) => g['code'] == code,
+        orElse: () => {'name': 'Unknown Group'},
+      );
+      final name = group?['name']?.toString() ?? 'Unknown Group';
+      print('Group name for $code: $name');
+
+      // Add new calendar for this group
+      for (var doc in calendarSnapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id; // Store document ID
+        data['code'] = code; // Store which group this is from
+        data['name'] = name;
+
+        globals.calendar!.add(data);
+      }
+
+      // Sort all calendar by date (most recent first)
+      globals.calendar!.sort((a, b) {
+        final aDate = (a['date'] as Timestamp?)?.toDate() ?? DateTime(1970);
+        final bDate = (b['date'] as Timestamp?)?.toDate() ?? DateTime(1970);
+        return bDate.compareTo(aDate);
+      });
+    });
+
+    print('Updated ${calendarSnapshot.docs.length} calendar for group $code');
+  }
 
   void stopListeningToUserData() {
     _userSubs?.cancel();
