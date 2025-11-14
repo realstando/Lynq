@@ -144,30 +144,24 @@ class _MainScaffoldState extends State<MainScaffold> {
     });
   }
 
-  void _addAnnouncement(Announcement announcement) {
-    setState(() {
-      _announcements.insert(0, announcement);
-    });
-  }
-
-  final List<Announcement> _announcements = [
-    Announcement(
-      initial: "WA",
-      name: "Washington FBLA",
-      title: "Time Change for Network Design",
-      date: DateTime(2025, 4, 25, 13, 21),
-      content:
-          "Hey students! There will be a time change for the roleplay event Network Design due to scheduling conflicts. Thanks for understanding!",
-    ),
-    Announcement(
-      initial: "GA",
-      name: "Georgia FBLA",
-      title: "Time Change for MIS",
-      date: DateTime(2025, 4, 25, 13, 21),
-      content:
-          "Hey students! There will be a time change for the roleplay event MIS due to scheduling conflicts. Thanks for understanding!",
-    ),
-  ];
+  // final List<Announcement> _announcements = [
+  //   Announcement(
+  //     initial: "WA",
+  //     name: "Washington FBLA",
+  //     title: "Time Change for Network Design",
+  //     date: DateTime(2025, 4, 25, 13, 21),
+  //     content:
+  //         "Hey students! There will be a time change for the roleplay event Network Design due to scheduling conflicts. Thanks for understanding!",
+  //   ),
+  //   Announcement(
+  //     initial: "GA",
+  //     name: "Georgia FBLA",
+  //     title: "Time Change for MIS",
+  //     date: DateTime(2025, 4, 25, 13, 21),
+  //     content:
+  //         "Hey students! There will be a time change for the roleplay event MIS due to scheduling conflicts. Thanks for understanding!",
+  //   ),
+  // ];
 
   // final List<Calendar> _calendars = [
   //   Calendar(
