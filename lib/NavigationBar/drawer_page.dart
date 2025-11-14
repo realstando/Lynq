@@ -1,3 +1,4 @@
+import 'package:coding_prog/globals.dart' as globals;
 import 'package:flutter/material.dart';
 import 'package:coding_prog/NavigationBar/drawer_item.dart';
 
@@ -141,6 +142,16 @@ class DrawerPage extends StatelessWidget {
                     },
                     color: color,
                   ),
+                  if (globals.isAdmin!)
+                    DrawerItem(
+                      icon: Icons.lock_rounded,
+                      title: 'Admin',
+                      onTap: () {
+                        Navigator.pop(context);
+                        onNavigate(7);
+                      },
+                      color: color,
+                    ),
                 ],
               ),
             ),
