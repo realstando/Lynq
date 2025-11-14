@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:coding_prog/Groups/group.dart';
 
 class GroupFormat extends StatelessWidget {
-  final Group group;
+  final Map<String, dynamic> group;
 
   // FBLA Colors
   static const Color fblaBlue = Color.fromARGB(255, 1, 26, 167);
@@ -61,7 +60,7 @@ class GroupFormat extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        group.name,
+                        group['name'],
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -85,7 +84,7 @@ class GroupFormat extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            group.code,
+                            group['code'],
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -102,7 +101,7 @@ class GroupFormat extends StatelessWidget {
                 // Copy Button
                 IconButton(
                   onPressed: () {
-                    Clipboard.setData(ClipboardData(text: group.code));
+                    Clipboard.setData(ClipboardData(text: group['code']));
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Row(
@@ -113,7 +112,7 @@ class GroupFormat extends StatelessWidget {
                               size: 20,
                             ),
                             SizedBox(width: 12),
-                            Text('Code copied: ${group.code}'),
+                            Text('Code copied: ${group['code']}'),
                           ],
                         ),
                         backgroundColor: Colors.green,

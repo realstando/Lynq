@@ -1,7 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:coding_prog/Groups/new_group.dart';
+import 'package:coding_prog/globals.dart' as globals;
+import 'package:coding_prog/globals.dart' as global;
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:coding_prog/NavigationBar/custom_appbar.dart';
 import 'package:coding_prog/NavigationBar/drawer_page.dart';
-import 'package:coding_prog/Groups/group.dart';
 import 'package:coding_prog/Groups/group_format.dart';
 
 class GroupPage extends StatefulWidget {
@@ -17,7 +21,7 @@ class GroupPage extends StatefulWidget {
 class _GroupPageState extends State<GroupPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController _joinCodeController = TextEditingController();
-  String _joinCode = "";
+  final bool _isAdvisor = globals.currentUserRole == 'advisors';
   String? _errorMessage;
 
   // FBLA Colors
@@ -25,11 +29,20 @@ class _GroupPageState extends State<GroupPage> {
   static const Color fblaDarkBlue = Color(0xFF1D52BC);
   static const Color fblaGold = Color(0xFFF4AB19);
 
-  // User's joined groups
-  List<Group> joinedGroups = [
-    Group(name: "North Creek FBLA"),
-    Group(name: "Washington FBLA"),
-  ];
+  void _addGroup() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => NewGroup(
+          () {
+            if (mounted) {
+              setState(() {});
+            }
+          },
+        ),
+      ),
+    );
+  }
+
 
   void showJoinDialog() {
     _joinCodeController.clear();
@@ -135,8 +148,11 @@ class _GroupPageState extends State<GroupPage> {
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     String code = _joinCodeController.text.trim().toUpperCase();
+                    final groupDoc = await FirebaseFirestore.instance.collection('groups').doc(code).get();
+                    final studentDoc = await FirebaseFirestore.instance.collection('students').doc(globals.currentUID)
+                                            .collection('groups').doc(code).get();
 
                     if (code.isEmpty) {
                       setDialogState(() {
@@ -152,11 +168,24 @@ class _GroupPageState extends State<GroupPage> {
                       return;
                     }
 
-                    setState(() {
-                      _joinCode = code;
-                      // TODO: Search for group and add to joinedGroups if found
-                    });
-                    print('Join code: $code');
+                    if (!groupDoc.exists) {
+                      setDialogState(() {
+                        _errorMessage = 'Not a valid join code';
+                      });
+                      return;
+                    }
+                    
+                    if (studentDoc.exists) {
+                      setDialogState(() {
+                        _errorMessage = 'Already joined this group';
+                      });
+                      return;
+                    } else {
+                      await FirebaseFirestore.instance
+                          .collection('students').doc(globals.currentUID)
+                          .collection('groups').doc(code).set({});
+                    }
+
                     Navigator.of(context).pop();
 
                     // Show success message
@@ -166,7 +195,7 @@ class _GroupPageState extends State<GroupPage> {
                           children: [
                             Icon(Icons.check_circle, color: Colors.white),
                             SizedBox(width: 12),
-                            Text('Searching for group with code: $code'),
+                            Text('Found group with code: $code'),
                           ],
                         ),
                         backgroundColor: Colors.green,
@@ -201,6 +230,22 @@ class _GroupPageState extends State<GroupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: _isAdvisor
+          ? FloatingActionButton.extended(
+              onPressed: _addGroup,
+              backgroundColor: fblaBlue,
+              icon: const Icon(Icons.add, color: Colors.white),
+              label: const Text(
+                "New Group",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
+              elevation: 6,
+            )
+          : null,
       backgroundColor: Colors.grey[50],
       key: _scaffoldKey,
       drawer: Drawer(
@@ -251,7 +296,7 @@ class _GroupPageState extends State<GroupPage> {
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 40),
                     child: Text(
-                      'Connect with your chapter and compete together',
+                      _isAdvisor ? 'Connect with your chapter and compete together' : 'Manage your chapters and connect with members',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 16,
@@ -309,7 +354,7 @@ class _GroupPageState extends State<GroupPage> {
                           ),
                           SizedBox(height: 12),
                           Text(
-                            'Enter a 6-character join code to connect with your FBLA chapter',
+                            'Enter a 6-character join code to connect with your FBLA chapters',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 16,
@@ -354,25 +399,50 @@ class _GroupPageState extends State<GroupPage> {
 
                   SizedBox(height: 32),
 
-                  // My Groups Section
+                  // Your Groups Section Header
                   Row(
                     children: [
-                      Icon(Icons.folder_special, color: fblaBlue, size: 28),
+                      Icon(
+                        _isAdvisor ? Icons.admin_panel_settings : Icons.folder_special,
+                        color: fblaBlue,
+                        size: 28,
+                      ),
                       SizedBox(width: 12),
                       Text(
-                        'My Groups',
+                        'Your Groups',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: fblaDarkBlue,
                         ),
                       ),
+                      if (_isAdvisor) ...[
+                        SizedBox(width: 8),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: fblaGold.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Admin',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: fblaDarkBlue,
+                            ),
+                          ),
+                        ),
+                      ]
                     ],
                   ),
                   SizedBox(height: 16),
 
                   // Groups List
-                  joinedGroups.isEmpty
+                  global.groups!.isEmpty
                       ? Container(
                           padding: EdgeInsets.all(40),
                           decoration: BoxDecoration(
@@ -404,7 +474,7 @@ class _GroupPageState extends State<GroupPage> {
                               ),
                               SizedBox(height: 8),
                               Text(
-                                'Enter a join code above to join your first group',
+                                _isAdvisor ? 'Create your first group to get started' : 'Enter a join code above to join your first group',
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.grey[500],
@@ -414,8 +484,11 @@ class _GroupPageState extends State<GroupPage> {
                           ),
                         )
                       : Column(
-                          children: joinedGroups.map((group) {
-                            return GroupFormat(group);
+                          children: global.groups!.map((group) {
+                            return Padding(
+                              padding: EdgeInsets.only(bottom: 12),
+                              child: GroupFormat(group),
+                            );
                           }).toList(),
                         ),
 
@@ -427,8 +500,8 @@ class _GroupPageState extends State<GroupPage> {
                       Expanded(
                         child: _buildInfoCard(
                           icon: Icons.school,
-                          title: 'Your Chapter',
-                          description: 'Join your school\'s FBLA chapter',
+                          title: _isAdvisor ? 'Chapter' : 'Your Chapter',
+                          description: _isAdvisor ? 'Manage school groups' : 'Join your school\'s FBLA chapter',
                           color: fblaBlue,
                         ),
                       ),
@@ -436,8 +509,8 @@ class _GroupPageState extends State<GroupPage> {
                       Expanded(
                         child: _buildInfoCard(
                           icon: Icons.location_on,
-                          title: 'State Level',
-                          description: 'Connect with state chapters',
+                          title: _isAdvisor ? 'State' : 'State Level',
+                          description: _isAdvisor ? 'State-level groups' : 'Connect with state chapters',
                           color: fblaDarkBlue,
                         ),
                       ),
@@ -446,7 +519,7 @@ class _GroupPageState extends State<GroupPage> {
 
                   SizedBox(height: 16),
 
-                  // Benefits Section
+                  // Admin Benefits Section
                   Container(
                     padding: EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -459,10 +532,14 @@ class _GroupPageState extends State<GroupPage> {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.star, color: fblaGold, size: 24),
+                            Icon(
+                              _isAdvisor ? Icons.admin_panel_settings : Icons.star,
+                              color: fblaGold,
+                              size: 24,
+                            ),
                             SizedBox(width: 8),
                             Text(
-                              'Why Join Groups?',
+                              _isAdvisor ? 'Advisor Features' : 'Why join groups?',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -472,10 +549,17 @@ class _GroupPageState extends State<GroupPage> {
                           ],
                         ),
                         SizedBox(height: 16),
-                        _buildBenefitItem('Track your competition progress'),
-                        _buildBenefitItem('Connect with chapter members'),
-                        _buildBenefitItem('Access exclusive resources'),
-                        _buildBenefitItem('Stay updated on events'),
+                        if (_isAdvisor) ...[
+                          _buildBenefitItem('Create and manage groups'),
+                          _buildBenefitItem('Generate join codes'),
+                          _buildBenefitItem('Track member participation'),
+                          _buildBenefitItem('Monitor competition progress'),
+                        ] else ...[
+                          _buildBenefitItem('Track your competition progress'),
+                          _buildBenefitItem('Connect with chapter members'),
+                          _buildBenefitItem('Access exclusive resources'),
+                          _buildBenefitItem('Stay updated on events'),
+                        ]
                       ],
                     ),
                   ),

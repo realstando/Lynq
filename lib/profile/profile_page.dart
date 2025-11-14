@@ -1,8 +1,11 @@
+import 'package:coding_prog/globals.dart' as globals;
+import 'package:coding_prog/globals.dart' as global;
 import 'package:coding_prog/profile/profile_formats.dart';
 import 'package:coding_prog/profile/profile_lists.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:coding_prog/NavigationBar/drawer_page.dart';
+import 'package:intl/intl.dart';
 
 enum MenuAction { logout }
 
@@ -24,24 +27,24 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final String name = 'Ryan Wang';
-    final String school = 'Stanford University';
+    final String name = globals.currentUserName ?? 'Member';
+    final String email = globals.currentUserEmail ?? 'Member';
+    // final String school = 'Stanford University';
     final List<String> events = [
-      'FLC',
-      'NCCC',
-      'Event Deadline',
+      'MAD',
+      'Test',
     ];
-    final List<ProfileEvents> activities = [
-      ProfileEvents(
-        eventDate: DateTime(2025, 11, 8, 9),
-        eventName: 'Team Stand-up',
-      ),
-      ProfileEvents(eventDate: DateTime(2025, 11, 22, 7), eventName: 'NCCC'),
-      ProfileEvents(
-        eventDate: DateTime(2026, 2, 4, 8, 30),
-        eventName: 'Regionals',
-      ),
-    ];
+    // final List<ProfileEvents> activities = [
+    //   ProfileEvents(
+    //     eventDate: DateTime(2025, 11, 8, 9),
+    //     eventName: 'Team Stand-up',
+    //   ),
+    //   ProfileEvents(eventDate: DateTime(2025, 11, 22, 7), eventName: 'NCCC'),
+    //   ProfileEvents(
+    //     eventDate: DateTime(2026, 2, 4, 8, 30),
+    //     eventName: 'Regionals',
+    //   ),
+    // ];
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -74,10 +77,12 @@ class _ProfilePageState extends State<ProfilePage> {
                   if (shouldLogout) {
                     await FirebaseAuth.instance.signOut();
                     // ignore: use_build_context_synchronously
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      '/login/',
-                      (route) => false,
-                    );
+                    if (mounted) {
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                        '/login/',
+                        (route) => false,
+                      );
+                    }
                   }
               }
             },
@@ -177,7 +182,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            school,
+                            email,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -213,13 +218,22 @@ class _ProfilePageState extends State<ProfilePage> {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 children: [
-                  _buildSectionHeader('Scheduled Activities'),
+                  _buildSectionHeader('Scheduled Events'),
                   const SizedBox(height: 14),
-                  ...activities
+                  if (global.calendar!.isEmpty)
+                    const Text(
+                      'No scheduled events.',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey,
+                      ),
+                    )
+                  else 
+                  ...global.calendar!
                       .map(
-                        (activity) => _buildActivityCard(
-                          activity.eventName,
-                          activity.formattedDate,
+                        (cal) => _buildActivityCard(
+                          cal['name'],
+                          DateFormat('E, MMM d \'@\' h:mm a').format(cal['date'].toDate()),
                         ),
                       )
                       .toList(),

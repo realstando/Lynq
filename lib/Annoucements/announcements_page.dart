@@ -1,4 +1,6 @@
 import 'package:coding_prog/Annoucements/new_announcement.dart';
+import 'package:coding_prog/globals.dart' as globals;
+import 'package:coding_prog/globals.dart' as global;
 import 'package:flutter/material.dart';
 import 'package:coding_prog/Annoucements/announcement_format.dart';
 import 'package:coding_prog/Annoucements/announcement.dart';
@@ -9,12 +11,9 @@ class AnnouncementsPage extends StatefulWidget {
   const AnnouncementsPage({
     super.key,
     required this.onNavigate,
-    required this.announcements,
-    required this.onAddAnnouncement,
   });
   final void Function(int) onNavigate;
-  final List<Announcement> announcements;
-  final void Function(Announcement) onAddAnnouncement;
+  // final void Function(Announcement) onAddAnnouncement;
 
   @override
   State<AnnouncementsPage> createState() => _AnnouncementsPageState();
@@ -22,40 +21,38 @@ class AnnouncementsPage extends StatefulWidget {
 
 class _AnnouncementsPageState extends State<AnnouncementsPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final bool _isAdvisor = globals.currentUserRole == 'advisors';
 
-  final List<Announcement> announcements = [
-    Announcement(
-      initial: "WA",
-      name: "Washington FBLA",
-      title: "Time Change for Network Design",
-      content:
-          "Hey students! There will be a time change for the roleplay event Network Design due to scheduling conflicts. Thanks for understanding!",
-      date: DateTime.now(),
-    ),
-    Announcement(
-      initial: "GA",
-      name: "Georgia FBLA",
-      title: "Regional Meeting Reminder",
-      content:
-          "Don’t forget: our regional leadership meeting is tomorrow at 10 AM. Check your emails for the Zoom link.",
-      date: DateTime.now(),
-    ),
-  ];
+  // final List<Announcement> announcements = [
+  //   Announcement(
+  //     initial: "WA",
+  //     name: "Washington FBLA",
+  //     title: "Time Change for Network Design",
+  //     content:
+  //         "Hey students! There will be a time change for the roleplay event Network Design due to scheduling conflicts. Thanks for understanding!",
+  //     date: DateTime.now(),
+  //   ),
+  //   Announcement(
+  //     initial: "GA",
+  //     name: "Georgia FBLA",
+  //     title: "Regional Meeting Reminder",
+  //     content:
+  //         "Don’t forget: our regional leadership meeting is tomorrow at 10 AM. Check your emails for the Zoom link.",
+  //     date: DateTime.now(),
+  //   ),
+  // ];
 
   void _openAddAnnouncementOverlay() {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) =>
-            NewAnnouncement(addAnnouncement: _onAddAnnouncement),
-      ),
-    );
-  }
-
-  void _onAddAnnouncement(Announcement announcement) {
-    setState(() {
-      announcements.insert(0, announcement);
-    });
-    Navigator.pop(context);
+            NewAnnouncement(() {
+              setState(() {});
+              Navigator.pop(context);
+            }
+          ),
+        ),
+      );
   }
 
   @override
@@ -77,7 +74,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
         scaffoldKey: _scaffoldKey,
       ),
       backgroundColor: const Color(0xFFF7F9FC),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: _isAdvisor ? FloatingActionButton.extended(
         onPressed: _openAddAnnouncementOverlay,
         backgroundColor: const Color(0xFF0A2E7F), // Clean medium blue
         icon: const Icon(Icons.edit_note, color: Colors.white),
@@ -90,7 +87,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
           ),
         ),
         elevation: 6,
-      ),
+      ) : null,
       body: Column(
         children: [
           // Header banner
@@ -127,7 +124,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
                   ),
                   padding: const EdgeInsets.all(10),
                   child: Text(
-                    announcements.length.toString(),
+                    global.announcements!.length.toString(),
                     style: const TextStyle(
                       color: Color(0xFF0A2E7F),
                       fontWeight: FontWeight.w600,
@@ -143,10 +140,10 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
           Expanded(
             child: ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              itemCount: announcements.length,
+              itemCount: global.announcements!.length,
               separatorBuilder: (_, __) => const SizedBox(height: 14),
               itemBuilder: (context, index) {
-                final announcement = announcements[index];
+                final announcement = global.announcements![index];
                 return Card(
                   elevation: 1.5,
                   shadowColor: Colors.grey.shade200,
