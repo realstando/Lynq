@@ -94,28 +94,27 @@ class _MainScaffoldState extends State<MainScaffold> {
   final Map<String, StreamSubscription> _announcementListeners = {};
   final Map<String, StreamSubscription> _calendarListeners = {}; 
 
-  List<Widget> get _pages => [
-    HomePage(
-      onNavigate: _navigateBar,
-    ),
-    AnnouncementsPage(
-      onNavigate: _navigateBar,
-    ),
-    EventsPage(
-      onNavigate: _navigateBar,
-    ),
-    CalendarPage(
-      onNavigate: _navigateBar,
-    ),
-    ResourcePage(onNavigate: _navigateBar),
-    ProfilePage(
-      onNavigate: _navigateBar,
-    ),
-    GroupPage(onNavigate: _navigateBar),
-    SocialMediaHub(onNavigate: _navigateBar),
-    InstagramHomePage(onNavigate: _navigateBar),
-    YouTubeScreen(onNavigate: _navigateBar),
-  ];
+  List<Widget> get _pages {
+    List<Widget> pages = [
+      HomePage(onNavigate: _navigateBar),
+      AnnouncementsPage(onNavigate: _navigateBar),
+      EventsPage(onNavigate: _navigateBar),
+      CalendarPage(onNavigate: _navigateBar),
+      ResourcePage(onNavigate: _navigateBar),
+      ProfilePage(onNavigate: _navigateBar),
+      GroupPage(onNavigate: _navigateBar),
+      SocialMediaHub(onNavigate: _navigateBar),
+      InstagramHomePage(onNavigate: _navigateBar),
+      YouTubeScreen(onNavigate: _navigateBar),
+    ];
+
+    if (globals.isAdmin == true) {
+      pages.insert(10, AdminPage(onNavigate: _navigateBar)); // Adds admin page
+    }
+
+    return pages;
+  }
+
 
   @override
   void initState() {
@@ -298,6 +297,7 @@ class _MainScaffoldState extends State<MainScaffold> {
       }
       if (globals.currentUserEmail == "rryanwwang@gmail.com" || globals.currentUserEmail == "gordon.zhang090321@gmail.com") {
         globals.isAdmin = true;
+        print("admin");
       }
 
       print('User Name: ${globals.currentUserName}');

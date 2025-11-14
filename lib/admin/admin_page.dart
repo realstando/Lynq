@@ -2,10 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class AdminPage extends StatelessWidget {
-  const AdminPage({super.key});
+class AdminPage extends StatefulWidget {
+  const AdminPage({
+    super.key,
+    required this.onNavigate,
+  });
+  final void Function(int) onNavigate;
 
   @override
+  State<AdminPage> createState() => _AdminPageState();
+}
+
+class _AdminPageState extends State<AdminPage> {
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+   @override
   Widget build(BuildContext context) {
     final CollectionReference signupRef =
         FirebaseFirestore.instance.collection('signup_advisors');
@@ -141,4 +153,6 @@ class AdminPage extends StatelessWidget {
       ),
     );
   }
+
 }
+  

@@ -47,18 +47,12 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
       MaterialPageRoute(
         builder: (context) =>
             NewAnnouncement(() {
-            setState(() {});
-            Navigator.pop(context);
-          }),
+              setState(() {});
+              Navigator.pop(context);
+            }
+          ),
         ),
       );
-  }
-
-  void _onAddAnnouncement(Announcement announcement) {
-    if (mounted) {
-      setState(() {});
-    }
-    Navigator.pop(context);
   }
 
   @override
