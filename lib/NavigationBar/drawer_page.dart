@@ -148,7 +148,7 @@ class DrawerPage extends StatelessWidget {
                       title: 'Admin',
                       onTap: () {
                         Navigator.pop(context);
-                        onNavigate(7);
+                        onNavigate(8);
                       },
                       color: color,
                     ),
