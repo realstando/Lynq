@@ -4,7 +4,7 @@ import 'package:coding_prog/Calendar/calendar.dart';
 class CalendarCard extends StatelessWidget {
   const CalendarCard(this.calendar, {super.key});
 
-  final Calendar calendar;
+  final Map<String, dynamic> calendar;
 
   String _formatDate(DateTime date) {
     final months = [
@@ -98,7 +98,7 @@ class CalendarCard extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            calendar.date.day.toString(),
+                            calendar['date'].toDate().day.toString(),
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 26,
@@ -110,7 +110,7 @@ class CalendarCard extends StatelessWidget {
                           SizedBox(height: 4),
                           Text(
                             _formatDate(
-                              calendar.date,
+                              calendar['date'].toDate(),
                             ).split(' ')[0].toUpperCase(),
                             style: TextStyle(
                               color: Color(0xFFE8B44C),
@@ -143,7 +143,7 @@ class CalendarCard extends StatelessWidget {
                           SizedBox(height: 5), // Reduced from 6
                           // Event Title (same)
                           Text(
-                            calendar.event,
+                            calendar['event'],
                             style: TextStyle(
                               color: Color(0xFF003B7E),
                               fontSize: 17,
@@ -166,7 +166,7 @@ class CalendarCard extends StatelessWidget {
                               SizedBox(width: 4),
                               Expanded(
                                 child: Text(
-                                  calendar.location,
+                                  calendar['location'],
                                   style: TextStyle(
                                     color: Colors.grey[700],
                                     fontSize: 13,

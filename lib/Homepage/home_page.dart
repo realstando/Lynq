@@ -1,3 +1,5 @@
+import 'package:coding_prog/globals.dart' as globals;
+import 'package:coding_prog/globals.dart' as global;
 import 'package:flutter/material.dart';
 import 'package:coding_prog/NavigationBar/drawer_page.dart';
 import 'package:coding_prog/NavigationBar/custom_appbar.dart';
@@ -11,13 +13,11 @@ class HomePage extends StatefulWidget {
   const HomePage({
     super.key,
     required this.onNavigate,
-    required this.announcements,
-    required this.calendars,
   });
 
   final void Function(int) onNavigate;
-  final List<Announcement> announcements;
-  final List<Calendar> calendars;
+  // final List<Announcement> announcements;
+  // final List<Map<String, dynamic>> calendars;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -31,26 +31,33 @@ class _HomePageState extends State<HomePage> {
   static const fblaGold = Color(0xFFF4AB19);
   static const fblaLightGold = Color(0xFFFFF4E0);
 
-  final String userName = "Sarah Johnson";
+  final String userName = globals.currentUserName ?? "Member";
 
   // Get the first 3 announcements (in order they appear in the list)
-  List<Announcement> get recentAnnouncements {
-    return widget.announcements.take(3).toList();
+  List<Map<String, dynamic>> get recentAnnouncements {
+    if (global.announcements == null || global.announcements!.isEmpty) {
+      return [];
+    }
+    return global.announcements!.take(3).toList();
   }
 
   // Get all events in the current month
-  List<Calendar> get monthEvents {
+  List<Map<String, dynamic>> get monthEvents {
+    if (global.calendar == null || global.calendar!.isEmpty) {
+      return [];
+    }
+
     final now = DateTime.now();
     final currentMonth = now.month;
     final currentYear = now.year;
 
     // Filter events in current month
-    final filteredEvents = widget.calendars.where((cal) {
-      return cal.date.month == currentMonth && cal.date.year == currentYear;
+    final filteredEvents = global.calendar!.where((cal) {
+      return cal['date'].toDate().month == currentMonth && cal['date'].toDate().year == currentYear;
     }).toList();
 
     // Sort by date (earliest first)
-    filteredEvents.sort((a, b) => a.date.compareTo(b.date));
+    filteredEvents.sort((a, b) => a['date'].toDate().compareTo(b['date'].toDate()));
 
     return filteredEvents;
   }
@@ -184,12 +191,12 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   children: [
-                    _buildSectionHeader("Activities This Month", () {
+                    _buildSectionHeader("Events This Month", () {
                       widget.onNavigate(3);
                     }),
                     const SizedBox(height: 14),
                     if (monthEvents.isEmpty)
-                      _buildEmptyState("No activities this month")
+                      _buildEmptyState("No events this month")
                     else
                       ...monthEvents.map((e) => CalendarCard(e)).toList(),
                     const SizedBox(height: 14),
@@ -237,8 +244,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildAnnouncementCard(Announcement announcement) {
-    final isNew = DateTime.now().difference(announcement.date).inDays < 30;
+  Widget _buildAnnouncementCard(Map<String, dynamic> announcement) {
+    final isNew = DateTime.now().difference(announcement['date'].toDate()).inDays < 30;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -272,7 +279,7 @@ class _HomePageState extends State<HomePage> {
             ),
             child: Center(
               child: Text(
-                announcement.initial,
+                'a',
                 style: const TextStyle(
                   color: fblaNavy,
                   fontWeight: FontWeight.w800,
@@ -290,7 +297,7 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     Expanded(
                       child: Text(
-                        announcement.name,
+                        announcement['name'],
                         style: const TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
@@ -325,7 +332,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  announcement.title,
+                  announcement['title'],
                   style: TextStyle(
                     color: Colors.grey.shade700,
                     fontSize: 14,
@@ -345,7 +352,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      announcement.formattedDate,
+                      DateFormat.yMd().format(announcement['date'].toDate()),
                       style: TextStyle(
                         color: Colors.grey.shade600,
                         fontSize: 12,

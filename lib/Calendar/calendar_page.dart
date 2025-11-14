@@ -1,4 +1,6 @@
 import 'package:coding_prog/Calendar/new_calendar.dart';
+import 'package:coding_prog/globals.dart' as globals;
+import 'package:coding_prog/globals.dart' as global;
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'calendar.dart';
@@ -10,12 +12,8 @@ class CalendarPage extends StatefulWidget {
   const CalendarPage({
     super.key,
     required this.onNavigate,
-    required this.calendars,
-    required this.onAddCalendar,
   });
   final void Function(int) onNavigate;
-  final List<Calendar> calendars;
-  final void Function(Calendar) onAddCalendar;
 
   @override
   State<CalendarPage> createState() {
@@ -25,92 +23,100 @@ class CalendarPage extends StatefulWidget {
 
 class CalendarPageState extends State<CalendarPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final bool _isAdvisor = globals.currentUserRole == 'advisors';
   DateTime focused = DateTime.now();
   DateTime? selected;
   double _topHeight = 620.0;
   String _filterMode = 'all'; // 'all', 'upcoming', 'today', 'selected'
 
-  final List<Calendar> calendars = [
-    Calendar(
-      "Washington SBLC",
-      DateTime.utc(2026, 4, 26),
-      "Bellevue Washington",
-    ),
-    Calendar(
-      "Anaheim NLC",
-      DateTime.utc(2026, 6, 26),
-      "Anaheim California",
-    ),
-  ];
+  // final List<Calendar> calendars = [
+  //   Calendar(
+  //     "Washington SBLC",
+  //     DateTime.utc(2026, 4, 26),
+  //     "Bellevue Washington",
+  //   ),
+  //   Calendar(
+  //     "Anaheim NLC",
+  //     DateTime.utc(2026, 6, 26),
+  //     "Anaheim California",
+  //   ),
+  // ];
 
-  List<Calendar> get _filteredCalendars {
+  List<Map<String, dynamic>> get _filteredCalendars {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
     switch (_filterMode) {
       case 'upcoming':
-        final oneMonthFromNow = DateTime(now.year, now.month + 1, now.day);
-
-        final futureEvents = calendars.where((calendar) {
-          final eventDate = DateTime(
-            calendar.date.year,
-            calendar.date.month,
-            calendar.date.day,
+        // Get all future events
+        final futureEvents = global.calendar!.where((calendar) {
+          
+          final eventDate = calendar['date'].toDate();
+          final eventDay = DateTime(
+            eventDate.year,
+            eventDate.month,
+            eventDate.day,
           );
-          return eventDate.isAfter(today.subtract(Duration(days: 1)));
+          return eventDay.isAfter(today.subtract(Duration(days: 1)));
+
         }).toList();
 
-        futureEvents.sort((a, b) => a.date.compareTo(b.date));
+        // Sort by date (earliest first)
+        futureEvents.sort((a, b) => a['date'].toDate().compareTo(b['date'].toDate()));
 
+        // If 5 or fewer events total, show them all
         if (futureEvents.length <= 5) {
           return futureEvents;
         }
 
+        // If more than 5 events, show only events in the next month
+        // Show next 5 events OR (if there are more than 5 events) show events in the next month
+        final oneMonthFromNow = DateTime(now.year, now.month + 1, now.day);
         return futureEvents.where((calendar) {
-          final eventDate = DateTime(
-            calendar.date.year,
-            calendar.date.month,
-            calendar.date.day,
+          final eventDate = calendar['date'].toDate();
+          final eventDay = DateTime(
+            eventDate.year,
+            eventDate.month,
+            eventDate.day,
           );
-          return eventDate.isBefore(oneMonthFromNow.add(Duration(days: 1)));
+          return eventDay.isBefore(oneMonthFromNow.add(Duration(days: 1)));
         }).toList();
 
       case 'today':
-        return calendars.where((calendar) {
-          final eventDate = DateTime(
-            calendar.date.year,
-            calendar.date.month,
-            calendar.date.day,
+        // Show only today's events
+        return global.calendar!.where((calendar) {
+          final eventDate = calendar['date'].toDate();
+          final eventDay = DateTime(
+            eventDate.year,
+            eventDate.month,
+            eventDate.day,
           );
-          return isSameDay(eventDate, today);
+          return isSameDay(eventDay, today);
         }).toList();
 
       case 'selected':
+        // Show events for selected date
         if (selected == null) {
           return [];
         }
-        return calendars.where((calendar) {
-          return isSameDay(calendar.date, selected);
+        return global.calendar!.where((calendar) {
+          return isSameDay(calendar['date'].toDate(), selected);
         }).toList();
 
       default: // 'all'
-        return calendars;
+        return global.calendar!;
     }
   }
 
   void _openAddResourceOverlay() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => NewCalendar(addCalendar: _onAddCalendar),
+        builder: (context) => NewCalendar(() {
+          setState(() {});
+          Navigator.pop(context);
+        }),
       ),
     );
-  }
-
-  void _onAddCalendar(Calendar calendar) {
-    setState(() {
-      calendars.insert(0, calendar);
-    });
-    Navigator.pop(context);
   }
 
   @override
@@ -126,12 +132,67 @@ class CalendarPageState extends State<CalendarPage> {
         color: const Color(0xFFF4AB19), // Deep blue
         onNavigate: widget.onNavigate,
       ),
-
+      floatingActionButton: _isAdvisor ? Padding(
+        padding: EdgeInsets.only(bottom: 20, right: 8),
+        child: Container(
+          height: 56,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF003B7E), Color(0xFF002856)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Color(0xFF003B7E).withOpacity(0.4),
+                blurRadius: 12,
+                offset: Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                _openAddResourceOverlay();
+                print("Button tapped!");
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.add_circle_outline,
+                      color: Color(0xFFE8B44C),
+                      size: 24,
+                    ),
+                    SizedBox(width: 12),
+                    Text(
+                      "New Event",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ) : null,
       body: Column(
         children: [
-          Container(
+          // Top section - FIXED HEIGHT
+          SizedBox(
             height: _topHeight,
             child: SingleChildScrollView(
+              physics: ClampingScrollPhysics(),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -195,7 +256,6 @@ class CalendarPageState extends State<CalendarPage> {
                             ],
                           ),
                         ),
-
                         SizedBox(height: 12),
                         Container(
                           width: 200,
@@ -522,3 +582,4 @@ class CalendarPageState extends State<CalendarPage> {
     );
   }
 }
+

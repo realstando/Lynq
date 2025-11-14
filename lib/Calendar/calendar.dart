@@ -1,15 +1,15 @@
-import 'package:intl/intl.dart';
+// import 'package:intl/intl.dart';
 
-final formatter = DateFormat.yMd();
+// final formatter = DateFormat.yMd();
 
-class Calendar {
-  Calendar(this.event, this.date, this.location);
+// class Calendar {
+//   Calendar(this.event, this.date, this.location);
 
-  final String event;
-  final DateTime date;
-  final String location;
+//   final String event;
+//   final DateTime date;
+//   final String location;
 
-  String get formattedDate {
-    return formatter.format(date);
-  }
-}
+//   String get formattedDate {
+//     return formatter.format(date);
+//   }
+// }

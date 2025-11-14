@@ -10,7 +10,7 @@ class AdminPage extends StatelessWidget {
     final CollectionReference signupRef =
         FirebaseFirestore.instance.collection('signup_advisors');
     final CollectionReference approvedRef =
-        FirebaseFirestore.instance.collection('approved_advisors');
+        FirebaseFirestore.instance.collection('advisors');
 
     return Scaffold(
       appBar: AppBar(
@@ -67,6 +67,7 @@ class AdminPage extends StatelessWidget {
                               final userCredential = await FirebaseAuth.instance
                                   .createUserWithEmailAndPassword(
                                       email: email, password: password);
+                              await userCredential.user!.updateDisplayName("$fName $lName");
                               await approvedRef.doc(userCredential.user!.uid).set({
                                 'first_name': fName,
                                 'last_name': lName,

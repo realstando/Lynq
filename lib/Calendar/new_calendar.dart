@@ -1,9 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:coding_prog/globals.dart' as globals;
 import 'package:flutter/material.dart';
 import 'package:coding_prog/Calendar/calendar.dart';
+import 'package:intl/intl.dart';
 
 class NewCalendar extends StatefulWidget {
-  const NewCalendar({required this.addCalendar, super.key});
-  final void Function(Calendar calendar) addCalendar;
+  const NewCalendar(void setState, {super.key});
 
   @override
   State<NewCalendar> createState() {
@@ -11,13 +13,23 @@ class NewCalendar extends StatefulWidget {
   }
 }
 
-List<String> items = ['Washington', 'Oregon', 'North Creek'];
+// List<String> items = ['Washington', 'Oregon', 'North Creek'];
 
 class _NewCalendarState extends State<NewCalendar> {
   final _titleController = TextEditingController();
   final _locationController = TextEditingController();
 
-  String _selectedValue = items[0];
+  List<String> get groupItems {
+    if (globals.groups == null || globals.groups!.isEmpty) {
+      return [];
+    }
+    return globals.groups!.map((group) {
+      final name = group['name']?.toString() ?? '';
+      final code = group['code']?.toString() ?? '';
+      return '$name ($code)';
+    }).toList();
+  }
+  String? _selectedValue;
   DateTime selectedDate = DateTime.now();
 
   @override
@@ -27,7 +39,7 @@ class _NewCalendarState extends State<NewCalendar> {
     super.dispose();
   }
 
-  void _submitExpenseData() {
+  void _submitExpenseData() async {
     if (_titleController.text.trim().isEmpty ||
         _locationController.text.trim().isEmpty) {
       showDialog(
@@ -67,12 +79,18 @@ class _NewCalendarState extends State<NewCalendar> {
       );
       return;
     }
-    Calendar currentEvent = Calendar(
-      _titleController.text,
-      selectedDate,
-      _locationController.text,
-    );
-    widget.addCalendar(currentEvent);
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('groups').doc(_selectedValue!.substring(_selectedValue!.indexOf("(")+1, _selectedValue!.indexOf(")")))
+          .collection('calendar')
+          .add({
+            'event': _titleController.text.trim(),
+            'location': _locationController.text.trim(),
+            'date': selectedDate,
+      });
+    } catch (_) {
+    }
   }
 
   void _presentDatePicker() async {
@@ -173,7 +191,8 @@ class _NewCalendarState extends State<NewCalendar> {
                     ),
                     Spacer(),
                     DropdownButton(
-                      items: items.map((String item) {
+                      hint: Text('Select group', style: TextStyle(color: Colors.grey[400])),
+                      items: groupItems.map((String item) {
                         return DropdownMenuItem<String>(
                           value: item,
                           child: Text(
@@ -326,7 +345,7 @@ class _NewCalendarState extends State<NewCalendar> {
                       ),
                       SizedBox(width: 12),
                       Text(
-                        formatter.format(selectedDate),
+                        DateFormat.yMd().format(selectedDate),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
