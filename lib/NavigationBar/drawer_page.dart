@@ -134,7 +134,7 @@ class DrawerPage extends StatelessWidget {
                   ),
                   DrawerItem(
                     icon: Icons.mobile_friendly_rounded,
-                    title: 'Instagram',
+                    title: 'Social Media',
                     onTap: () {
                       Navigator.pop(context);
                       onNavigate(7);

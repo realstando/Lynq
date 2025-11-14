@@ -1,7 +1,8 @@
 import 'package:coding_prog/Annoucements/announcements_page.dart';
 import 'package:coding_prog/Groups/admin_group_page.dart';
 import 'package:coding_prog/Homepage/home_page.dart';
-import 'package:coding_prog/SocialMedia/instagram_page.dart';
+import 'package:coding_prog/SocialMedia/Youtube/youtube_screen.dart';
+import 'package:coding_prog/SocialMedia/Instagram/instagram_page.dart';
 import 'package:coding_prog/admin/admin_page.dart';
 import 'package:coding_prog/login/signup_page.dart';
 import 'package:coding_prog/profile/profile_page.dart';
@@ -22,6 +23,7 @@ import 'package:coding_prog/Calendar/calendar.dart';
 import 'package:coding_prog/Groups/group_page.dart';
 import 'package:coding_prog/Groups/group.dart';
 import 'package:coding_prog/Groups/admin_group_page.dart';
+import 'package:coding_prog/SocialMedia/mediahub.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,7 +41,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'LYNQ',
       debugShowCheckedModeBanner: false,
-      home: const MainScaffold(),
+      home: MainScaffold(),
       routes: {
         '/login/': (context) => const LoginPage(),
         '/signup/': (context) => const SignupPage(),
@@ -88,7 +90,9 @@ class _MainScaffoldState extends State<MainScaffold> {
         onNavigate: _navigateBar,
       ),
       GroupPage(onNavigate: _navigateBar),
+      SocialMediaHub(onNavigate: _navigateBar),
       InstagramHomePage(onNavigate: _navigateBar),
+      YouTubeScreen(onNavigate: _navigateBar),
     ];
   }
 
