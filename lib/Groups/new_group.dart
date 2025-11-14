@@ -6,7 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class NewGroup extends StatefulWidget {
-  NewGroup(void setState, {super.key});
+  const NewGroup(void setState, {super.key});
   @override
   State<NewGroup> createState() => _NewGroupState();
 }

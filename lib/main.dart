@@ -86,8 +86,9 @@ class _MainScaffoldState extends State<MainScaffold> {
   int _selectedIndex = 0;
   bool isLoading = true;
 
-  StreamSubscription? _userGroupsSub;
+  StreamSubscription? _userSubs;
   final Map<String, StreamSubscription> _groupListeners = {};
+  final Map<String, StreamSubscription> _announcementListeners = {}; 
 
   List<Widget> get _pages => [
     HomePage(
@@ -97,7 +98,6 @@ class _MainScaffoldState extends State<MainScaffold> {
     ),
     AnnouncementsPage(
       onNavigate: _navigateBar,
-      announcements: _announcements,
       onAddAnnouncement: _addAnnouncement,
     ),
     EventsPage(
@@ -133,7 +133,7 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   @override
   void dispose() {
-    stopListeningToUserGroups();
+    stopListeningToUserData();
     super.dispose();
   }
 
@@ -314,7 +314,7 @@ class _MainScaffoldState extends State<MainScaffold> {
 
       // Only listen to groups if user role and UID are set
       if (globals.currentUserRole != null && globals.currentUID != null) {
-        _listenToUserGroups();
+        _listenToUserData();
       } else {
         print('ERROR: User role or UID is null - cannot listen to groups');
       }
@@ -364,15 +364,15 @@ class _MainScaffoldState extends State<MainScaffold> {
     }
   }
 
-  void _listenToUserGroups() {
-    stopListeningToUserGroups();
+  void _listenToUserData() {
+    stopListeningToUserData();
 
     final firestore = FirebaseFirestore.instance;
 
     // Ensure globals.groups is initialized
     globals.groups ??= [];
 
-    _userGroupsSub = firestore
+    _userSubs = firestore
         .collection(globals.currentUserRole!)
         .doc(globals.currentUID)
         .collection('groups')
@@ -388,8 +388,10 @@ class _MainScaffoldState extends State<MainScaffold> {
                   .toList()
                   .forEach((code) {
                 _groupListeners.remove(code)?.cancel();
+                _announcementListeners.remove(code)?.cancel();
                 setState(() {
                   globals.groups?.removeWhere((g) => g['code'] == code);
+                  globals.announcements?.removeWhere((a) => a['code'] == code);
                 });
               });
 
@@ -412,6 +414,26 @@ class _MainScaffoldState extends State<MainScaffold> {
                       },
                       cancelOnError: false,
                     );
+                _announcementListeners[code] = firestore
+                    .collection('groups')
+                    .doc(code)
+                    .collection('announcements')
+                    .orderBy('date', descending: true) // Most recent first
+                    .snapshots()
+                    .listen(
+                      (announcementsSnapshot) {
+                        try {
+                          _updateGroupAnnouncements(code, announcementsSnapshot);
+                        } catch (e) {
+                          print('Error updating announcements for group $code: $e');
+                        }
+                      },
+                      onError: (error) {
+                        print('Error listening to announcements for group $code: $error');
+                      },
+                      cancelOnError: false,
+                    );
+
               }
             } catch (e) {
               print('Error processing user groups: $e');
@@ -451,12 +473,53 @@ class _MainScaffoldState extends State<MainScaffold> {
     }
   }
 
-  void stopListeningToUserGroups() {
-    _userGroupsSub?.cancel();
-    _userGroupsSub = null;
+  void _updateGroupAnnouncements(String code, QuerySnapshot announcementsSnapshot) {
+    setState(() {
+      globals.announcements ??= [];
+
+      // Remove old announcements for this group
+      globals.announcements!.removeWhere((a) => a['code'] == code);
+
+      // Find the group to get its name
+      final group = globals.groups?.firstWhere(
+        (g) => g['code'] == code,
+        orElse: () => {'name': 'Unknown Group'},
+      );
+      final name = group?['name']?.toString() ?? 'Unknown Group';
+      print('Group name for $code: $name');
+
+      // Add new announcements for this group
+      for (var doc in announcementsSnapshot.docs) {
+        final announcementData = doc.data() as Map<String, dynamic>;
+        announcementData['id'] = doc.id; // Store document ID
+        announcementData['code'] = code; // Store which group this is from
+        announcementData['name'] = name; 
+
+        globals.announcements!.add(announcementData);
+      }
+
+      // Sort all announcements by date (most recent first)
+      globals.announcements!.sort((a, b) {
+        final aDate = (a['date'] as Timestamp?)?.toDate() ?? DateTime(1970);
+        final bDate = (b['date'] as Timestamp?)?.toDate() ?? DateTime(1970);
+        return bDate.compareTo(aDate);
+      });
+    });
+
+    print('Updated ${announcementsSnapshot.docs.length} announcements for group $code');
+  }
+
+
+  void stopListeningToUserData() {
+    _userSubs?.cancel();
+    _userSubs = null;
     for (var sub in _groupListeners.values) {
       sub.cancel();
     }
     _groupListeners.clear();
+    for (var sub in _announcementListeners.values) {
+      sub.cancel();
+    }
+    _announcementListeners.clear();
   }
 }

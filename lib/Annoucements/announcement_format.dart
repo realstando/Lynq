@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:coding_prog/Annoucements/announcement.dart';
+import 'package:intl/intl.dart';
 
 class AnnouncementFormat extends StatelessWidget {
   const AnnouncementFormat({
@@ -7,7 +8,7 @@ class AnnouncementFormat extends StatelessWidget {
     super.key,
   });
 
-  final Announcement announcement;
+  final Map<String, dynamic> announcement;
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +78,7 @@ class AnnouncementFormat extends StatelessWidget {
                       radius: 25,
                       backgroundColor: Colors.white,
                       child: Text(
-                        announcement.initial,
+                        "a",
                         style: const TextStyle(
                           color: primaryBlue,
                           fontWeight: FontWeight.w800,
@@ -89,7 +90,7 @@ class AnnouncementFormat extends StatelessWidget {
                   const SizedBox(width: 15),
                   Expanded(
                     child: Text(
-                      announcement.name,
+                      announcement['name'],
                       style: const TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 18,
@@ -110,7 +111,7 @@ class AnnouncementFormat extends StatelessWidget {
 
               // Title
               Text(
-                announcement.title,
+                announcement['title'],
                 style: const TextStyle(
                   color: Color(0xFF0F172A),
                   fontSize: 19,
@@ -140,7 +141,7 @@ class AnnouncementFormat extends StatelessWidget {
 
               // Content
               Text(
-                announcement.content,
+                announcement['content'],
                 style: TextStyle(
                   fontSize: 14.5,
                   color: Colors.grey[800],
@@ -160,7 +161,7 @@ class AnnouncementFormat extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    announcement.formattedDate,
+                    _formattedDate(announcement['date'].toDate()),
                     style: TextStyle(
                       color: primaryBlue.withOpacity(0.7),
                       fontSize: 14,
@@ -174,5 +175,10 @@ class AnnouncementFormat extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formattedDate (DateTime date) {
+    var formatter1 = DateFormat.yMd();
+    return formatter1.format(date);
   }
 }

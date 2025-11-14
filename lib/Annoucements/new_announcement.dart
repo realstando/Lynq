@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:coding_prog/globals.dart' as globals;
 import 'package:flutter/material.dart';
 import 'package:coding_prog/Annoucements/announcement.dart';
 
@@ -14,6 +16,18 @@ class NewAnnouncement extends StatefulWidget {
 class _NewAnnouncementState extends State<NewAnnouncement> {
   final _titleController = TextEditingController();
   final _informationController = TextEditingController();
+  String? selectedValue;
+
+  List<String> get groupItems {
+    if (globals.groups == null || globals.groups!.isEmpty) {
+      return [];
+    }
+    return globals.groups!.map((group) {
+      final name = group['name']?.toString() ?? '';
+      final code = group['code']?.toString() ?? '';
+      return '$name ($code)';
+    }).toList();
+  }
 
   @override
   void dispose() {
@@ -22,7 +36,7 @@ class _NewAnnouncementState extends State<NewAnnouncement> {
     super.dispose();
   }
 
-  void _submitExpense() {
+  void _submitExpense() async {
     if (_titleController.text.trim().isEmpty ||
         _informationController.text.trim().isEmpty) {
       showDialog(
@@ -73,6 +87,20 @@ class _NewAnnouncementState extends State<NewAnnouncement> {
       );
       return;
     }
+
+    try {
+      print(selectedValue!.substring(selectedValue!.indexOf("(")+1, selectedValue!.indexOf(")")));
+      await FirebaseFirestore.instance
+          .collection('groups').doc(selectedValue!.substring(selectedValue!.indexOf("(")+1, selectedValue!.indexOf(")")))
+          .collection('announcements')
+          .add({
+            'content': _informationController.text.trim(),
+            'title': _titleController.text.trim(),
+            'date': DateTime.now(),
+      });
+    } catch (_) {
+    }
+
     Announcement announcement = Announcement(
       content: _informationController.text.trim(),
       title: _titleController.text.trim(),
@@ -104,6 +132,53 @@ class _NewAnnouncementState extends State<NewAnnouncement> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 8),
+              Text(
+                "Group",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF003B7E),
+                ),
+              ),
+              SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                initialValue: selectedValue,
+                hint: Text('Select a group', style: TextStyle(color: Colors.grey[400])),
+                items: groupItems.map((String item) {
+                  return DropdownMenuItem<String>(
+                    value: item,
+                    child: Text(item),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedValue = newValue;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: 'Select a group',
+                  hintStyle: TextStyle(color: Colors.grey[400]),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Color(0xFF003B7E), width: 2),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                ),
+              ),
+              SizedBox(height: 24),
               Text(
                 "Subject",
                 style: TextStyle(

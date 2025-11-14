@@ -22,7 +22,6 @@ class _GroupPageState extends State<GroupPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController _joinCodeController = TextEditingController();
   final bool _isAdvisor = globals.currentUserRole == 'advisors';
-  String _joinCode = "";
   String? _errorMessage;
 
   // FBLA Colors
@@ -187,11 +186,6 @@ class _GroupPageState extends State<GroupPage> {
                           .collection('groups').doc(code).set({});
                     }
 
-                    setState(() {
-                      _joinCode = code;
-                      // TODO: Search for group and add to joinedGroups if found
-                    });
-                    print('Join code: $code');
                     Navigator.of(context).pop();
 
                     // Show success message
