@@ -12,109 +12,69 @@ class AnnouncementFormat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryBlue = Color(
-      0xFF2563EB,
-    ); // same tone as EventsFormat's objective blue
-    const Color deepBlue = Color(0xFF1E3A8A);
-    const Color gold = Color(0xFFFFD54F);
+    const Color primaryBlue = Color(0xFF1D52BC);
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white,
-            Color(0xFFE8EDFF), // subtle blue-tinted white
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: primaryBlue.withOpacity(0.15),
-            blurRadius: 12,
-            offset: const Offset(0, 5),
-          ),
-        ],
+        color: primaryBlue.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: primaryBlue.withOpacity(0.25),
-          width: 1.2,
+          color: primaryBlue.withOpacity(0.3),
+          width: 1.5,
         ),
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header Row
               Row(
                 children: [
-                  // Avatar badge (similar glow effect)
-                  Container(
-                    padding: const EdgeInsets.all(3),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: const LinearGradient(
-                        colors: [
-                          primaryBlue,
-                          deepBlue,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: primaryBlue.withOpacity(0.4),
-                          blurRadius: 6,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: CircleAvatar(
-                      radius: 25,
-                      backgroundColor: Colors.white,
-                      child: Text(
-                        "a",
-                        style: const TextStyle(
-                          color: primaryBlue,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 20,
-                        ),
+                  CircleAvatar(
+                    radius: 22,
+                    backgroundColor: primaryBlue,
+                    child: Text(
+                      announcement['name'][0].toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 15),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       announcement['name'],
                       style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
                         color: Color(0xFF0F172A),
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const Icon(
-                    Icons.star_rounded,
-                    color: gold,
-                    size: 28,
+                  Icon(
+                    Icons.campaign,
+                    color: primaryBlue.withOpacity(0.6),
+                    size: 22,
                   ),
                 ],
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
               // Title
               Text(
                 announcement['title'],
                 style: const TextStyle(
                   color: Color(0xFF0F172A),
-                  fontSize: 19,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   height: 1.3,
                 ),
@@ -122,34 +82,17 @@ class AnnouncementFormat extends StatelessWidget {
 
               const SizedBox(height: 8),
 
-              // Decorative divider (gold gradient like EventsFormat accent)
-              Container(
-                height: 2,
-                width: 60,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Color(0xFFFFD54F),
-                      Color(0xFFFFB300),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.all(Radius.circular(4)),
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
               // Content
               Text(
                 announcement['content'],
                 style: TextStyle(
-                  fontSize: 14.5,
-                  color: Colors.grey[800],
-                  height: 1.55,
+                  fontSize: 14,
+                  color: Colors.grey[700],
+                  height: 1.4,
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               // Footer (date row)
               Row(
@@ -164,7 +107,7 @@ class AnnouncementFormat extends StatelessWidget {
                     DateFormat.yMd().format((announcement['date'].toDate())),
                     style: TextStyle(
                       color: primaryBlue.withOpacity(0.7),
-                      fontSize: 14,
+                      fontSize: 13,
                       fontStyle: FontStyle.italic,
                     ),
                   ),

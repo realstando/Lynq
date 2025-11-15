@@ -61,9 +61,49 @@ class AuthWrapper extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        // While checking auth state
+        // While checking auth state - show branded loading screen
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return Scaffold(
+            backgroundColor: const Color(0xFF0A2E7F), // FBLA Navy
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    height: 120,
+                    width: 120,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: const Padding(
+                      padding: EdgeInsets.all(20.0),
+                      child: Image(
+                        image: AssetImage('assets/Lynq_Logo.png'),
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  const CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Color(0xFFF4AB19),
+                    ), // FBLA Gold
+                    strokeWidth: 3,
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Loading LYNQ...',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
         }
 
         // User is logged in
@@ -92,7 +132,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   StreamSubscription? _userSubs;
   final Map<String, StreamSubscription> _groupListeners = {};
   final Map<String, StreamSubscription> _announcementListeners = {};
-  final Map<String, StreamSubscription> _calendarListeners = {}; 
+  final Map<String, StreamSubscription> _calendarListeners = {};
 
   List<Widget> get _pages {
     List<Widget> pages = [
@@ -106,23 +146,25 @@ class _MainScaffoldState extends State<MainScaffold> {
       SocialMediaHub(onNavigate: _navigateBar),
       InstagramHomePage(onNavigate: _navigateBar),
       YouTubeScreen(onNavigate: _navigateBar),
-      AdminPage(onNavigate: _navigateBar)
+      AdminPage(onNavigate: _navigateBar),
     ];
 
     if (globals.isAdmin == true) {
       setState(() {
-        pages.insert(10, AdminPage(onNavigate: _navigateBar)); // Adds admin page
+        pages.insert(
+          10,
+          AdminPage(onNavigate: _navigateBar),
+        ); // Adds admin page
       });
     }
 
     return pages;
   }
 
-
   @override
   void initState() {
     super.initState();
-    
+
     // Wrap in try-catch to prevent crashes
     try {
       _fetchUser();
@@ -146,43 +188,49 @@ class _MainScaffoldState extends State<MainScaffold> {
     });
   }
 
-  // final List<Announcement> _announcements = [
-  //   Announcement(
-  //     initial: "WA",
-  //     name: "Washington FBLA",
-  //     title: "Time Change for Network Design",
-  //     date: DateTime(2025, 4, 25, 13, 21),
-  //     content:
-  //         "Hey students! There will be a time change for the roleplay event Network Design due to scheduling conflicts. Thanks for understanding!",
-  //   ),
-  //   Announcement(
-  //     initial: "GA",
-  //     name: "Georgia FBLA",
-  //     title: "Time Change for MIS",
-  //     date: DateTime(2025, 4, 25, 13, 21),
-  //     content:
-  //         "Hey students! There will be a time change for the roleplay event MIS due to scheduling conflicts. Thanks for understanding!",
-  //   ),
-  // ];
-
-  // final List<Calendar> _calendars = [
-  //   Calendar(
-  //     "Washington SBLC",
-  //     DateTime.utc(2026, 4, 26),
-  //     "Bellevue Washington",
-  //   ),
-  //   Calendar(
-  //     "Anaheim NLC",
-  //     DateTime.utc(2026, 6, 26),
-  //     "Anaheim California",
-  //   ),
-  // ];
-
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        backgroundColor: const Color(0xFF0A2E7F),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                height: 120,
+                width: 120,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: const Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: Image(
+                    image: AssetImage('assets/Lynq_Logo.png'),
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+              const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Color(0xFFF4AB19),
+                ), // FBLA Gold
+                strokeWidth: 3,
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Setting up your experience...',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
       );
     }
     return Scaffold(
@@ -200,74 +248,81 @@ class _MainScaffoldState extends State<MainScaffold> {
           ],
         ),
         child: SafeArea(
-          child: NavigationBar(
-            selectedIndex: _selectedIndex > 3
-                ? 0
-                : _selectedIndex, // Clamp to 0-3
-            onDestinationSelected: _navigateBar,
-            backgroundColor: Colors.transparent,
-            surfaceTintColor: Colors.transparent,
-            indicatorColor: const Color(0xFF0A2E7F),
-            indicatorShape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            height: 65,
-            elevation: 0,
-            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-            animationDuration: const Duration(milliseconds: 400),
-            destinations: [
-              NavigationDestination(
-                icon: Icon(
-                  Icons.home_outlined,
-                  size: 24,
-                  color: Colors.grey[600],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              NavigationBar(
+                selectedIndex: _selectedIndex > 3
+                    ? 0
+                    : _selectedIndex, // Clamp to 0-3
+                onDestinationSelected: _navigateBar,
+                backgroundColor: Colors.transparent,
+                surfaceTintColor: Colors.transparent,
+                indicatorColor: const Color(0xFF0A2E7F),
+                indicatorShape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                selectedIcon: const Icon(
-                  Icons.home_rounded,
-                  size: 26,
-                  color: Colors.white,
-                ),
-                label: 'Home',
+                height: 65,
+                elevation: 0,
+                labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                animationDuration: const Duration(milliseconds: 400),
+                destinations: [
+                  NavigationDestination(
+                    icon: Icon(
+                      Icons.home_outlined,
+                      size: 24,
+                      color: Colors.grey[600],
+                    ),
+                    selectedIcon: const Icon(
+                      Icons.home_rounded,
+                      size: 26,
+                      color: Colors.white,
+                    ),
+                    label: 'Home',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(
+                      Icons.campaign_outlined,
+                      size: 24,
+                      color: Colors.grey[600],
+                    ),
+                    selectedIcon: const Icon(
+                      Icons.campaign_rounded,
+                      size: 26,
+                      color: Colors.white,
+                    ),
+                    label: 'Announcements',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(
+                      Icons.event_outlined,
+                      size: 24,
+                      color: Colors.grey[600],
+                    ),
+                    selectedIcon: const Icon(
+                      Icons.event_rounded,
+                      size: 26,
+                      color: Colors.white,
+                    ),
+                    label: 'Events',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(
+                      Icons.menu_book_outlined,
+                      size: 24,
+                      color: Colors.grey[600],
+                    ),
+                    selectedIcon: const Icon(
+                      Icons.calendar_month,
+                      size: 26,
+                      color: Colors.white,
+                    ),
+                    label: 'Calendar',
+                  ),
+                ],
               ),
-              NavigationDestination(
-                icon: Icon(
-                  Icons.campaign_outlined,
-                  size: 24,
-                  color: Colors.grey[600],
-                ),
-                selectedIcon: const Icon(
-                  Icons.campaign_rounded,
-                  size: 26,
-                  color: Colors.white,
-                ),
-                label: 'Announcements',
-              ),
-              NavigationDestination(
-                icon: Icon(
-                  Icons.event_outlined,
-                  size: 24,
-                  color: Colors.grey[600],
-                ),
-                selectedIcon: const Icon(
-                  Icons.event_rounded,
-                  size: 26,
-                  color: Colors.white,
-                ),
-                label: 'Events',
-              ),
-              NavigationDestination(
-                icon: Icon(
-                  Icons.menu_book_outlined,
-                  size: 24,
-                  color: Colors.grey[600],
-                ),
-                selectedIcon: const Icon(
-                  Icons.calendar_month,
-                  size: 26,
-                  color: Colors.white,
-                ),
-                label: 'Calendar',
-              ),
+
+              // Logo branding at bottom
             ],
           ),
         ),
@@ -283,7 +338,8 @@ class _MainScaffoldState extends State<MainScaffold> {
 
       // Initialize user data
       globals.currentUID = FirebaseAuth.instance.currentUser?.uid;
-      globals.currentUserName = FirebaseAuth.instance.currentUser?.displayName ?? '';
+      globals.currentUserName =
+          FirebaseAuth.instance.currentUser?.displayName ?? '';
       globals.currentUserEmail = FirebaseAuth.instance.currentUser?.email;
       globals.groups = []; // Initialize groups list
 
@@ -298,7 +354,8 @@ class _MainScaffoldState extends State<MainScaffold> {
       if (globals.currentUserEmail == "rryanwwang@gmail.com") {
         globals.currentUserRole = 'advisors';
       }
-      if (globals.currentUserEmail == "rryanwwang@gmail.com" || globals.currentUserEmail == "gordon.zhang090321@gmail.com") {
+      if (globals.currentUserEmail == "rryanwwang@gmail.com" ||
+          globals.currentUserEmail == "gordon.zhang090321@gmail.com") {
         globals.isAdmin = true;
         print("admin");
       }
@@ -374,25 +431,31 @@ class _MainScaffoldState extends State<MainScaffold> {
         .listen(
           (userGroupsSnapshot) {
             try {
-              final groupCodes = userGroupsSnapshot.docs.map((d) => d.id).toSet();
+              final groupCodes = userGroupsSnapshot.docs
+                  .map((d) => d.id)
+                  .toSet();
 
               // Remove listeners for groups the user left
               _groupListeners.keys
                   .where((code) => !groupCodes.contains(code))
                   .toList()
                   .forEach((code) {
-                _groupListeners.remove(code)?.cancel();
-                _announcementListeners.remove(code)?.cancel();
-                _calendarListeners.remove(code)?.cancel();
-                setState(() {
-                  globals.groups?.removeWhere((g) => g['code'] == code);
-                  globals.announcements?.removeWhere((a) => a['code'] == code);
-                  globals.calendar?.removeWhere((a) => a['code'] == code);
-                });
-              });
+                    _groupListeners.remove(code)?.cancel();
+                    _announcementListeners.remove(code)?.cancel();
+                    _calendarListeners.remove(code)?.cancel();
+                    setState(() {
+                      globals.groups?.removeWhere((g) => g['code'] == code);
+                      globals.announcements?.removeWhere(
+                        (a) => a['code'] == code,
+                      );
+                      globals.calendar?.removeWhere((a) => a['code'] == code);
+                    });
+                  });
 
               // Add listeners for new groups
-              for (final code in groupCodes.where((c) => !_groupListeners.containsKey(c))) {
+              for (final code in groupCodes.where(
+                (c) => !_groupListeners.containsKey(c),
+              )) {
                 _groupListeners[code] = firestore
                     .collection('groups')
                     .doc(code)
@@ -419,13 +482,20 @@ class _MainScaffoldState extends State<MainScaffold> {
                     .listen(
                       (announcementsSnapshot) {
                         try {
-                          _updateGroupAnnouncements(code, announcementsSnapshot);
+                          _updateGroupAnnouncements(
+                            code,
+                            announcementsSnapshot,
+                          );
                         } catch (e) {
-                          print('Error updating announcements for group $code: $e');
+                          print(
+                            'Error updating announcements for group $code: $e',
+                          );
                         }
                       },
                       onError: (error) {
-                        print('Error listening to announcements for group $code: $error');
+                        print(
+                          'Error listening to announcements for group $code: $error',
+                        );
                       },
                       cancelOnError: false,
                     );
@@ -444,7 +514,9 @@ class _MainScaffoldState extends State<MainScaffold> {
                         }
                       },
                       onError: (error) {
-                        print('Error listening to calendar for group $code: $error');
+                        print(
+                          'Error listening to calendar for group $code: $error',
+                        );
                       },
                       cancelOnError: false,
                     );
@@ -470,7 +542,9 @@ class _MainScaffoldState extends State<MainScaffold> {
 
         globals.groups ??= [];
 
-        final existingIndex = globals.groups!.indexWhere((g) => g['code'] == code);
+        final existingIndex = globals.groups!.indexWhere(
+          (g) => g['code'] == code,
+        );
         if (existingIndex != -1) {
           globals.groups![existingIndex] = groupData;
         } else {
@@ -487,7 +561,10 @@ class _MainScaffoldState extends State<MainScaffold> {
     }
   }
 
-  void _updateGroupAnnouncements(String code, QuerySnapshot announcementsSnapshot) {
+  void _updateGroupAnnouncements(
+    String code,
+    QuerySnapshot announcementsSnapshot,
+  ) {
     setState(() {
       globals.announcements ??= [];
 
@@ -507,7 +584,7 @@ class _MainScaffoldState extends State<MainScaffold> {
         final announcementData = doc.data() as Map<String, dynamic>;
         announcementData['id'] = doc.id; // Store document ID
         announcementData['code'] = code; // Store which group this is from
-        announcementData['name'] = name; 
+        announcementData['name'] = name;
 
         globals.announcements!.add(announcementData);
       }
@@ -520,7 +597,9 @@ class _MainScaffoldState extends State<MainScaffold> {
       });
     });
 
-    print('Updated ${announcementsSnapshot.docs.length} announcements for group $code');
+    print(
+      'Updated ${announcementsSnapshot.docs.length} announcements for group $code',
+    );
   }
 
   void _updateGroupCalendar(String code, QuerySnapshot calendarSnapshot) {

@@ -40,16 +40,18 @@ class DrawerPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Logo instead of icon
                   Container(
+                    height: 80,
+                    width: 80,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Icon(
-                      icon,
-                      size: 32,
-                      color: color,
+                    child: const Image(
+                      image: AssetImage('assets/Lynq_Logo.png'),
+                      fit: BoxFit.contain,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -156,7 +158,7 @@ class DrawerPage extends StatelessWidget {
               ),
             ),
 
-            // Footer
+            // Footer with logo branding
             Container(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -176,6 +178,9 @@ class DrawerPage extends StatelessWidget {
                       onNavigate(5);
                     },
                   ),
+                  const SizedBox(height: 8),
+
+                  // Small logo in footer
                 ],
               ),
             ),

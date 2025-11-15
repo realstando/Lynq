@@ -25,8 +25,8 @@ class _GroupPageState extends State<GroupPage> {
   String? _errorMessage;
 
   // FBLA Colors
-  static const Color fblaBlue = Color.fromARGB(255, 1, 26, 167);
-  static const Color fblaDarkBlue = Color(0xFF1D52BC);
+  static const Color fblaBlue = Color(0xFF1D52BC);
+  static const Color fblaDarkBlue = Color(0XFF0A2E7F);
   static const Color fblaGold = Color(0xFFF4AB19);
 
   void _addGroup() {
@@ -43,7 +43,6 @@ class _GroupPageState extends State<GroupPage> {
     );
   }
 
-
   void showJoinDialog() {
     _joinCodeController.clear();
     _errorMessage = null;
@@ -55,17 +54,25 @@ class _GroupPageState extends State<GroupPage> {
           builder: (context, setDialogState) {
             return AlertDialog(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(12),
               ),
               title: Row(
                 children: [
+                  // Logo instead of icon
                   Container(
-                    padding: EdgeInsets.all(8),
+                    height: 32,
+                    width: 32,
                     decoration: BoxDecoration(
                       color: fblaBlue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(Icons.group_add, color: fblaBlue, size: 28),
+                    child: Padding(
+                      padding: EdgeInsets.all(6.0),
+                      child: Image(
+                        image: AssetImage('assets/Lynq_Logo.png'),
+                        fit: BoxFit.contain,
+                      ),
+                    ),
                   ),
                   SizedBox(width: 12),
                   Text(
@@ -73,6 +80,7 @@ class _GroupPageState extends State<GroupPage> {
                     style: TextStyle(
                       color: fblaDarkBlue,
                       fontWeight: FontWeight.bold,
+                      fontSize: 18,
                     ),
                   ),
                 ],
@@ -150,9 +158,16 @@ class _GroupPageState extends State<GroupPage> {
                 ElevatedButton(
                   onPressed: () async {
                     String code = _joinCodeController.text.trim().toUpperCase();
-                    final groupDoc = await FirebaseFirestore.instance.collection('groups').doc(code).get();
-                    final studentDoc = await FirebaseFirestore.instance.collection('students').doc(globals.currentUID)
-                                            .collection('groups').doc(code).get();
+                    final groupDoc = await FirebaseFirestore.instance
+                        .collection('groups')
+                        .doc(code)
+                        .get();
+                    final studentDoc = await FirebaseFirestore.instance
+                        .collection('students')
+                        .doc(globals.currentUID)
+                        .collection('groups')
+                        .doc(code)
+                        .get();
 
                     if (code.isEmpty) {
                       setDialogState(() {
@@ -174,7 +189,7 @@ class _GroupPageState extends State<GroupPage> {
                       });
                       return;
                     }
-                    
+
                     if (studentDoc.exists) {
                       setDialogState(() {
                         _errorMessage = 'Already joined this group';
@@ -182,13 +197,15 @@ class _GroupPageState extends State<GroupPage> {
                       return;
                     } else {
                       await FirebaseFirestore.instance
-                          .collection('students').doc(globals.currentUID)
-                          .collection('groups').doc(code).set({});
+                          .collection('students')
+                          .doc(globals.currentUID)
+                          .collection('groups')
+                          .doc(code)
+                          .set({});
                     }
 
                     Navigator.of(context).pop();
 
-                    // Show success message
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Row(
@@ -243,7 +260,6 @@ class _GroupPageState extends State<GroupPage> {
                   fontSize: 15,
                 ),
               ),
-              elevation: 6,
             )
           : null,
       backgroundColor: Colors.grey[50],
@@ -265,82 +281,39 @@ class _GroupPageState extends State<GroupPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Hero Section
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [fblaBlue, fblaDarkBlue],
-                ),
-              ),
-              child: Column(
-                children: [
-                  SizedBox(height: 40),
-                  Icon(
-                    Icons.groups,
-                    size: 80,
-                    color: fblaGold,
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    'FBLA Groups',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 40),
-                    child: Text(
-                      _isAdvisor ? 'Connect with your chapter and compete together' : 'Manage your chapters and connect with members',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white.withOpacity(0.9),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 40),
-                ],
-              ),
-            ),
-
             // Main Content
             Padding(
               padding: EdgeInsets.all(24),
               child: Column(
                 children: [
-                  // Join Group Card
+                  // Join Group Card with Logo
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: fblaBlue.withOpacity(0.1),
-                          blurRadius: 20,
-                          offset: Offset(0, 10),
-                        ),
-                      ],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: fblaBlue.withOpacity(0.3),
+                        width: 1.5,
+                      ),
                     ),
                     child: Padding(
                       padding: EdgeInsets.all(24),
                       child: Column(
                         children: [
+                          // Logo instead of key icon
                           Container(
-                            padding: EdgeInsets.all(16),
+                            height: 60,
+                            width: 60,
                             decoration: BoxDecoration(
-                              color: fblaGold.withOpacity(0.1),
-                              shape: BoxShape.circle,
+                              color: fblaGold.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Icon(
-                              Icons.key,
-                              size: 40,
-                              color: fblaGold,
+                            child: Padding(
+                              padding: EdgeInsets.all(12.0),
+                              child: Image(
+                                image: AssetImage('assets/Lynq_Logo.png'),
+                                fit: BoxFit.contain,
+                              ),
                             ),
                           ),
                           SizedBox(height: 20),
@@ -372,9 +345,8 @@ class _GroupPageState extends State<GroupPage> {
                                 backgroundColor: fblaBlue,
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                elevation: 0,
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -399,13 +371,23 @@ class _GroupPageState extends State<GroupPage> {
 
                   SizedBox(height: 32),
 
-                  // Your Groups Section Header
+                  // Your Groups Section Header with Logo
                   Row(
                     children: [
-                      Icon(
-                        _isAdvisor ? Icons.admin_panel_settings : Icons.folder_special,
-                        color: fblaBlue,
-                        size: 28,
+                      Container(
+                        height: 32,
+                        width: 32,
+                        decoration: BoxDecoration(
+                          color: fblaBlue.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.all(6.0),
+                          child: Image(
+                            image: AssetImage('assets/Lynq_Logo.png'),
+                            fit: BoxFit.contain,
+                          ),
+                        ),
                       ),
                       SizedBox(width: 12),
                       Text(
@@ -436,7 +418,7 @@ class _GroupPageState extends State<GroupPage> {
                             ),
                           ),
                         ),
-                      ]
+                      ],
                     ],
                   ),
                   SizedBox(height: 16),
@@ -447,21 +429,28 @@ class _GroupPageState extends State<GroupPage> {
                           padding: EdgeInsets.all(40),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: fblaBlue.withOpacity(0.1),
-                                blurRadius: 20,
-                                offset: Offset(0, 10),
-                              ),
-                            ],
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.grey.shade300,
+                            ),
                           ),
                           child: Column(
                             children: [
-                              Icon(
-                                Icons.group_outlined,
-                                size: 60,
-                                color: Colors.grey[400],
+                              // Logo in empty state
+                              Container(
+                                height: 60,
+                                width: 60,
+                                decoration: BoxDecoration(
+                                  color: fblaBlue.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.all(12.0),
+                                  child: Image(
+                                    image: AssetImage('assets/Lynq_Logo.png'),
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
                               ),
                               SizedBox(height: 16),
                               Text(
@@ -474,7 +463,9 @@ class _GroupPageState extends State<GroupPage> {
                               ),
                               SizedBox(height: 8),
                               Text(
-                                _isAdvisor ? 'Create your first group to get started' : 'Enter a join code above to join your first group',
+                                _isAdvisor
+                                    ? 'Create your first group to get started'
+                                    : 'Enter a join code above to join your first group',
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.grey[500],
@@ -501,7 +492,9 @@ class _GroupPageState extends State<GroupPage> {
                         child: _buildInfoCard(
                           icon: Icons.school,
                           title: _isAdvisor ? 'Chapter' : 'Your Chapter',
-                          description: _isAdvisor ? 'Manage school groups' : 'Join your school\'s FBLA chapter',
+                          description: _isAdvisor
+                              ? 'Manage school groups'
+                              : 'Join your school\'s FBLA chapter',
                           color: fblaBlue,
                         ),
                       ),
@@ -510,7 +503,9 @@ class _GroupPageState extends State<GroupPage> {
                         child: _buildInfoCard(
                           icon: Icons.location_on,
                           title: _isAdvisor ? 'State' : 'State Level',
-                          description: _isAdvisor ? 'State-level groups' : 'Connect with state chapters',
+                          description: _isAdvisor
+                              ? 'State-level groups'
+                              : 'Connect with state chapters',
                           color: fblaDarkBlue,
                         ),
                       ),
@@ -519,12 +514,12 @@ class _GroupPageState extends State<GroupPage> {
 
                   SizedBox(height: 16),
 
-                  // Admin Benefits Section
+                  // Benefits Section
                   Container(
                     padding: EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       color: fblaGold.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: fblaGold.withOpacity(0.3)),
                     ),
                     child: Column(
@@ -533,13 +528,17 @@ class _GroupPageState extends State<GroupPage> {
                         Row(
                           children: [
                             Icon(
-                              _isAdvisor ? Icons.admin_panel_settings : Icons.star,
+                              _isAdvisor
+                                  ? Icons.admin_panel_settings
+                                  : Icons.star,
                               color: fblaGold,
                               size: 24,
                             ),
                             SizedBox(width: 8),
                             Text(
-                              _isAdvisor ? 'Advisor Features' : 'Why join groups?',
+                              _isAdvisor
+                                  ? 'Advisor Features'
+                                  : 'Why join groups?',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -559,7 +558,7 @@ class _GroupPageState extends State<GroupPage> {
                           _buildBenefitItem('Connect with chapter members'),
                           _buildBenefitItem('Access exclusive resources'),
                           _buildBenefitItem('Stay updated on events'),
-                        ]
+                        ],
                       ],
                     ),
                   ),
@@ -582,25 +581,15 @@ class _GroupPageState extends State<GroupPage> {
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.1),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1.5,
+        ),
       ),
       child: Column(
         children: [
-          Container(
-            padding: EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: color, size: 28),
-          ),
+          Icon(icon, color: color, size: 32),
           SizedBox(height: 12),
           Text(
             title,

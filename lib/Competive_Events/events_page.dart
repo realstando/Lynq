@@ -49,6 +49,17 @@ class _EventsPageState extends State<EventsPage> {
     return const Color(0xFFF8F9FA);
   }
 
+  Color _getHeaderColor() {
+    if (_selectedCategory == EventCategory.objective) {
+      return fblaNavyDark;
+    } else if (_selectedCategory == EventCategory.roleplay) {
+      return fblaGold;
+    } else if (_selectedCategory == EventCategory.presentation) {
+      return fblaNavyLight;
+    }
+    return fblaNavyDark;
+  }
+
   @override
   Widget build(BuildContext context) {
     final filteredEvents = EventsList.allEvents.where((event) {
@@ -77,37 +88,9 @@ class _EventsPageState extends State<EventsPage> {
       ),
       body: Column(
         children: [
-          // Header with gradient
+          // Header
           Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: _selectedCategory == null
-                    ? [
-                        Color(0xFF0A2E7F), // Navy dark
-                        Color(0xFF2E5B9E), // Navy light
-                        Color(0xFF4A7BC8), // Brighter blue
-                      ]
-                    : _selectedCategory == EventCategory.objective
-                    ? [
-                        Color(0xFF0A2E7F), // Navy dark
-                        Color(0xFF1A3A6B), // Deep blue
-                        Color(0xFF2E5B9E), // Royal blue
-                      ]
-                    : _selectedCategory == EventCategory.roleplay
-                    ? [
-                        Color(0xFFF4AB19), // FBLA Gold
-                        Color(0xFFFFC04D), // Light gold
-                        Color(0xFFFFD580), // Pale gold
-                      ]
-                    : [
-                        Color(0xFF2E5B9E), // Navy light
-                        Color(0xFF4A7BC8), // Bright blue
-                        Color(0xFF6B9FE8), // Sky blue
-                      ],
-              ),
-            ),
+            color: _getHeaderColor(),
             child: Column(
               children: [
                 // Title and subtitle
@@ -124,15 +107,6 @@ class _EventsPageState extends State<EventsPage> {
                               : Colors.white,
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
-                          shadows: _selectedCategory == EventCategory.roleplay
-                              ? []
-                              : [
-                                  Shadow(
-                                    color: Colors.black.withOpacity(0.3),
-                                    offset: Offset(0, 2),
-                                    blurRadius: 4,
-                                  ),
-                                ],
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -140,8 +114,8 @@ class _EventsPageState extends State<EventsPage> {
                         'Explore 73 FBLA events to showcase your skills',
                         style: TextStyle(
                           color: _selectedCategory == EventCategory.roleplay
-                              ? Colors.black
-                              : Colors.white.withValues(alpha: 0.95),
+                              ? Colors.black.withOpacity(0.7)
+                              : Colors.white.withOpacity(0.85),
                           fontSize: 14,
                         ),
                       ),
@@ -155,14 +129,7 @@ class _EventsPageState extends State<EventsPage> {
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 12,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: TextField(
                       controller: _searchController,
@@ -207,7 +174,7 @@ class _EventsPageState extends State<EventsPage> {
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
                         contentPadding: const EdgeInsets.symmetric(

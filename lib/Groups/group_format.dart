@@ -5,8 +5,7 @@ class GroupFormat extends StatelessWidget {
   final Map<String, dynamic> group;
 
   // FBLA Colors
-  static const Color fblaBlue = Color.fromARGB(255, 1, 26, 167);
-  static const Color fblaDarkBlue = Color(0xFF1D52BC);
+  static const Color fblaBlue = Color(0xFF1D52BC);
   static const Color fblaGold = Color(0xFFF4AB19);
 
   const GroupFormat(this.group, {super.key});
@@ -16,39 +15,39 @@ class GroupFormat extends StatelessWidget {
     return Container(
       margin: EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: fblaBlue.withOpacity(0.08),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
+        color: fblaBlue.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: fblaBlue.withOpacity(0.3),
+          width: 1.5,
+        ),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           onTap: () {
             // Navigate to group details page
-            // Navigator.push(context, MaterialPageRoute(builder: (context) => GroupDetailsPage(group: group)));
           },
           child: Padding(
             padding: EdgeInsets.all(16),
             child: Row(
               children: [
-                // Group Icon
+                // Logo instead of group icon
                 Container(
-                  padding: EdgeInsets.all(12),
+                  height: 48,
+                  width: 48,
                   decoration: BoxDecoration(
-                    color: fblaBlue.withOpacity(0.1),
+                    color: fblaBlue,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
-                    Icons.group,
-                    color: fblaBlue,
-                    size: 28,
+                  child: Padding(
+                    padding: EdgeInsets.all(10.0),
+                    child: Image(
+                      image: AssetImage('assets/Lynq_Logo.png'),
+                      fit: BoxFit.contain,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
 
@@ -64,7 +63,7 @@ class GroupFormat extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: fblaDarkBlue,
+                          color: fblaBlue,
                         ),
                       ),
                       SizedBox(height: 4),
@@ -130,13 +129,6 @@ class GroupFormat extends StatelessWidget {
                     size: 22,
                   ),
                   tooltip: 'Copy join code',
-                ),
-
-                // Arrow Icon
-                Icon(
-                  Icons.arrow_forward_ios,
-                  color: Colors.grey[400],
-                  size: 16,
                 ),
               ],
             ),
