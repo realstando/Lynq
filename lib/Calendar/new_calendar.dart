@@ -29,6 +29,7 @@ class _NewCalendarState extends State<NewCalendar> {
       return '$name ($code)';
     }).toList();
   }
+
   String? _selectedValue;
   DateTime selectedDate = DateTime.now();
 
@@ -82,15 +83,23 @@ class _NewCalendarState extends State<NewCalendar> {
 
     try {
       await FirebaseFirestore.instance
-          .collection('groups').doc(_selectedValue!.substring(_selectedValue!.indexOf("(")+1, _selectedValue!.indexOf(")")))
+          .collection('groups')
+          .doc(
+            _selectedValue!.substring(
+              _selectedValue!.indexOf("(") + 1,
+              _selectedValue!.indexOf(")"),
+            ),
+          )
           .collection('calendar')
           .add({
             'event': _titleController.text.trim(),
             'location': _locationController.text.trim(),
             'date': selectedDate,
-      });
-    } catch (_) {
-    }
+          });
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } catch (_) {}
   }
 
   void _presentDatePicker() async {
@@ -191,7 +200,10 @@ class _NewCalendarState extends State<NewCalendar> {
                     ),
                     Spacer(),
                     DropdownButton(
-                      hint: Text('Select group', style: TextStyle(color: Colors.grey[400])),
+                      hint: Text(
+                        'Select group',
+                        style: TextStyle(color: Colors.grey[400]),
+                      ),
                       items: groupItems.map((String item) {
                         return DropdownMenuItem<String>(
                           value: item,

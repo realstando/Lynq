@@ -29,22 +29,10 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final String name = globals.currentUserName ?? 'Member';
     final String email = globals.currentUserEmail ?? 'Member';
-    // final String school = 'Stanford University';
     final List<String> events = [
       'MAD',
       'Test',
     ];
-    // final List<ProfileEvents> activities = [
-    //   ProfileEvents(
-    //     eventDate: DateTime(2025, 11, 8, 9),
-    //     eventName: 'Team Stand-up',
-    //   ),
-    //   ProfileEvents(eventDate: DateTime(2025, 11, 22, 7), eventName: 'NCCC'),
-    //   ProfileEvents(
-    //     eventDate: DateTime(2026, 2, 4, 8, 30),
-    //     eventName: 'Regionals',
-    //   ),
-    // ];
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -101,7 +89,7 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with gradient (similar to home page)
+            // Header with gradient and logo
             Container(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
@@ -206,7 +194,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 children: [
                   _buildSectionHeader('My Events'),
                   const SizedBox(height: 14),
-                  ...events.map((event) => _buildEventCard(event)).toList(),
+                  if (events.isEmpty)
+                    _buildEmptyState(
+                      'No events yet',
+                      'Join events to see them here',
+                      Icons.event_busy,
+                    )
+                  else
+                    ...events.map((event) => _buildEventCard(event)).toList(),
                 ],
               ),
             ),
@@ -220,28 +215,28 @@ class _ProfilePageState extends State<ProfilePage> {
                 children: [
                   _buildSectionHeader('Scheduled Events'),
                   const SizedBox(height: 14),
-                  if (global.calendar!.isEmpty)
-                    const Text(
-                      'No scheduled events.',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey,
-                      ),
+                  if (global.calendar == null || global.calendar!.isEmpty)
+                    _buildEmptyState(
+                      'No scheduled events',
+                      'Check back later for upcoming activities',
+                      Icons.calendar_today,
                     )
-                  else 
-                  ...global.calendar!
-                      .map(
-                        (cal) => _buildActivityCard(
-                          cal['name'],
-                          DateFormat('E, MMM d \'@\' h:mm a').format(cal['date'].toDate()),
-                        ),
-                      )
-                      .toList(),
+                  else
+                    ...global.calendar!
+                        .map(
+                          (cal) => _buildActivityCard(
+                            cal['name'],
+                            DateFormat(
+                              'E, MMM d \'@\' h:mm a',
+                            ).format(cal['date'].toDate()),
+                          ),
+                        )
+                        .toList(),
                 ],
               ),
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -249,16 +244,81 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildSectionHeader(String title) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.w800,
-          color: fblaNavy,
-          letterSpacing: -0.5,
+    return Row(
+      children: [
+        Container(
+          height: 32,
+          width: 32,
+          decoration: BoxDecoration(
+            color: fblaNavy.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Padding(
+            padding: EdgeInsets.all(6.0),
+            child: Image(
+              image: AssetImage('assets/Lynq_Logo.png'),
+              fit: BoxFit.contain,
+            ),
+          ),
         ),
+        const SizedBox(width: 10),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            color: fblaNavy,
+            letterSpacing: -0.5,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState(String title, String subtitle, IconData icon) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        children: [
+          Container(
+            height: 60,
+            width: 60,
+            decoration: BoxDecoration(
+              color: fblaNavy.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Padding(
+              padding: EdgeInsets.all(12.0),
+              child: Image(
+                image: AssetImage('assets/Lynq_Logo.png'),
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[700],
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey[500],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -344,11 +404,7 @@ class _ProfilePageState extends State<ProfilePage> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [fblaNavy, Color(0xFF00528a)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              color: fblaNavy,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(

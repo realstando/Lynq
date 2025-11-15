@@ -16,8 +16,6 @@ class HomePage extends StatefulWidget {
   });
 
   final void Function(int) onNavigate;
-  // final List<Announcement> announcements;
-  // final List<Map<String, dynamic>> calendars;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -29,7 +27,6 @@ class _HomePageState extends State<HomePage> {
   // FBLA Official Colors
   static const fblaNavy = Color(0xFF0A2E7F);
   static const fblaGold = Color(0xFFF4AB19);
-  static const fblaLightGold = Color(0xFFFFF4E0);
 
   final String userName = globals.currentUserName ?? "Member";
 
@@ -53,11 +50,14 @@ class _HomePageState extends State<HomePage> {
 
     // Filter events in current month
     final filteredEvents = global.calendar!.where((cal) {
-      return cal['date'].toDate().month == currentMonth && cal['date'].toDate().year == currentYear;
+      return cal['date'].toDate().month == currentMonth &&
+          cal['date'].toDate().year == currentYear;
     }).toList();
 
     // Sort by date (earliest first)
-    filteredEvents.sort((a, b) => a['date'].toDate().compareTo(b['date'].toDate()));
+    filteredEvents.sort(
+      (a, b) => a['date'].toDate().compareTo(b['date'].toDate()),
+    );
 
     return filteredEvents;
   }
@@ -84,22 +84,9 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header with gradient
+              // Header
               Container(
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [fblaNavy, Color(0xFF00528a)],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: fblaNavy.withOpacity(0.3),
-                      blurRadius: 20,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
+                color: fblaNavy,
                 padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -132,22 +119,19 @@ class _HomePageState extends State<HomePage> {
                     ),
                     // FBLA logo
                     Container(
-                      height: 80,
-                      width: 80,
+                      height: 100,
+                      width: 100,
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: fblaGold.withOpacity(0.4),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
                       ),
                       child: const Center(
-                        child: Image(
-                          image: AssetImage('assets/Lynq_Logo.png'),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 5),
+                          child: Image(
+                            image: AssetImage('assets/Lynq_Logo.png'),
+                            fit: BoxFit.fill,
+                          ),
                         ),
                       ),
                     ),
@@ -162,18 +146,25 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   children: [
-                    _buildSectionHeader("Recent Announcements", () {
-                      widget.onNavigate(1);
-                    }),
+                    _buildSectionHeader(
+                      "Recent Announcements",
+                      Icons.campaign,
+                      () {
+                        widget.onNavigate(1);
+                      },
+                    ),
                     const SizedBox(height: 14),
                     if (recentAnnouncements.isEmpty)
-                      _buildEmptyState("No announcements yet")
+                      _buildEmptyState(
+                        "No announcements yet",
+                        "Check back later for updates!",
+                      )
                     else
                       ...recentAnnouncements
                           .map((a) => _buildAnnouncementCard(a))
                           .toList(),
                     const SizedBox(height: 14),
-                    _buildPrimaryButton(
+                    _buildSecondaryButton(
                       "View All Announcements",
                       Icons.campaign,
                       () {
@@ -191,23 +182,30 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   children: [
-                    _buildSectionHeader("Events This Month", () {
-                      widget.onNavigate(3);
-                    }),
+                    _buildSectionHeader(
+                      "Events This Month",
+                      Icons.event,
+                      () {
+                        widget.onNavigate(3);
+                      },
+                    ),
                     const SizedBox(height: 14),
                     if (monthEvents.isEmpty)
-                      _buildEmptyState("No events this month")
+                      _buildEmptyState(
+                        "No events this month",
+                        "Stay tuned for upcoming events!",
+                      )
                     else
                       ...monthEvents.map((e) => CalendarCard(e)).toList(),
                     const SizedBox(height: 14),
-                    _buildSecondaryButton("View Calendar", Icons.event, () {
+                    _buildPrimaryButton("View Calendar", Icons.event, () {
                       widget.onNavigate(3);
                     }),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -215,181 +213,206 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildEmptyState(String message) {
+  Widget _buildEmptyState(String message, String subtitle) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Logo in empty state
+          Container(
+            height: 60,
+            width: 60,
+            decoration: BoxDecoration(
+              color: fblaNavy.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Image(
+                image: AssetImage('assets/Lynq_Logo.png'),
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: TextStyle(
+              color: Colors.grey[700],
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: TextStyle(
+              color: Colors.grey[500],
+              fontSize: 13,
+              fontWeight: FontWeight.w400,
+            ),
           ),
         ],
       ),
-      child: Center(
-        child: Text(
-          message,
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
+    );
+  }
+
+  Widget _buildAnnouncementCard(Map<String, dynamic> announcement) {
+    const Color primaryBlue = Color(0xFF1D52BC);
+    const Color gold = Color(0xFFFFD54F);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: primaryBlue.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: primaryBlue.withOpacity(0.3),
+          width: 1.5,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: primaryBlue,
+                child: Text(
+                  announcement['name'][0].toUpperCase(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            announcement['name'],
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                              color: Color(0xFF0F172A),
+                            ),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.campaign,
+                          color: primaryBlue,
+                          size: 18,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      announcement['title'],
+                      style: TextStyle(
+                        color: Colors.grey.shade700,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        height: 1.3,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today,
+                          size: 12,
+                          color: primaryBlue.withOpacity(0.7),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          DateFormat.yMd().format(
+                            announcement['date'].toDate(),
+                          ),
+                          style: TextStyle(
+                            color: primaryBlue.withOpacity(0.7),
+                            fontSize: 11,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildAnnouncementCard(Map<String, dynamic> announcement) {
-    final isNew = DateTime.now().difference(announcement['date'].toDate()).inDays < 30;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [fblaLightGold, Color(0xFFFFF9EF)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFFFE7B3)),
-            ),
-            child: Center(
-              child: Text(
-                'a',
-                style: const TextStyle(
-                  color: fblaNavy,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 20,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        announcement['name'],
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                          color: fblaNavy,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                    ),
-                    if (isNew)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF10B981), Color(0xFF34D399)],
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Text(
-                          "NEW",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  announcement['title'],
-                  style: TextStyle(
-                    color: Colors.grey.shade700,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    height: 1.4,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.access_time,
-                      size: 14,
-                      color: Colors.grey.shade500,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      DateFormat.yMd().format(announcement['date'].toDate()),
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(String title, VoidCallback onViewAll) {
+  Widget _buildSectionHeader(
+    String title,
+    IconData icon,
+    VoidCallback onViewAll,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-            color: fblaNavy,
-            letterSpacing: -0.5,
-          ),
+        Row(
+          children: [
+            // Small logo icon next to section title
+            Container(
+              height: 32,
+              width: 32,
+              decoration: BoxDecoration(
+                color: fblaNavy.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Padding(
+                padding: EdgeInsets.all(6.0),
+                child: Image(
+                  image: AssetImage('assets/Lynq_Logo.png'),
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: fblaNavy,
+                letterSpacing: -0.5,
+              ),
+            ),
+          ],
         ),
         GestureDetector(
           onTap: onViewAll,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: fblaLightGold,
+              color: fblaGold.withOpacity(0.2),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFFFE7B3)),
+              border: Border.all(
+                color: fblaGold.withOpacity(0.4),
+              ),
             ),
             child: const Text(
               "View All",
@@ -414,19 +437,8 @@ class _HomePageState extends State<HomePage> {
       width: double.infinity,
       height: 54,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [fblaGold, Color(0xFFFFD666)],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: fblaGold.withOpacity(0.4),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: fblaGold,
+        borderRadius: BorderRadius.circular(12),
       ),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
@@ -434,7 +446,7 @@ class _HomePageState extends State<HomePage> {
           foregroundColor: fblaNavy,
           shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20),
         ),
@@ -467,19 +479,8 @@ class _HomePageState extends State<HomePage> {
       width: double.infinity,
       height: 54,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [fblaNavy, Color(0xFF00528a)],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: fblaNavy.withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: fblaNavy,
+        borderRadius: BorderRadius.circular(12),
       ),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
@@ -487,7 +488,7 @@ class _HomePageState extends State<HomePage> {
           foregroundColor: Colors.white,
           shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20),
         ),

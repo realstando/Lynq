@@ -23,35 +23,28 @@ class ResourceFormat extends StatelessWidget {
   }
 
   void _showLinkDialog(BuildContext context) {
+    const primaryBlue = Color(0xFF2563EB);
+
     showDialog(
       context: context,
       builder: (ctx) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(12),
           ),
-          title: Row(
+          title: const Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF22C55E), Color(0xFF166534)],
-                  ),
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                ),
-                child: const Icon(
-                  Icons.language_rounded,
-                  color: Color(0xFFFFC93C),
-                  size: 24,
-                ),
+              Icon(
+                Icons.language_rounded,
+                color: primaryBlue,
+                size: 24,
               ),
-              const SizedBox(width: 12),
-              const Text(
+              SizedBox(width: 12),
+              Text(
                 "Open Resource",
                 style: TextStyle(
-                  color: Color(0xFF166534),
-                  fontSize: 20,
+                  color: Color(0xFF0F172A),
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -73,19 +66,22 @@ class ResourceFormat extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: primaryBlue.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey[300]!),
+                  border: Border.all(
+                    color: primaryBlue.withOpacity(0.3),
+                    width: 1.5,
+                  ),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.link, color: Color(0xFF22C55E), size: 18),
+                    const Icon(Icons.link, color: primaryBlue, size: 18),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         resource.link,
                         style: const TextStyle(
-                          color: Color(0xFF166534),
+                          color: Color(0xFF0F172A),
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
                         ),
@@ -116,39 +112,32 @@ class ResourceFormat extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
               ),
             ),
-            Container(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF22C55E), Color(0xFF166534)],
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _launchURL();
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: primaryBlue,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
                 ),
-                borderRadius: BorderRadius.circular(8),
               ),
-              child: TextButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  _launchURL();
-                },
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 10,
-                  ),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      "Open Link",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "Open Link",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
                     ),
-                    SizedBox(width: 6),
-                    Icon(Icons.open_in_new, size: 16),
-                  ],
-                ),
+                  ),
+                  SizedBox(width: 6),
+                  Icon(Icons.open_in_new, size: 16),
+                ],
               ),
             ),
           ],
@@ -159,102 +148,59 @@ class ResourceFormat extends StatelessWidget {
 
   @override
   Widget build(context) {
-    const Color primaryGreen = Color(0xFF22C55E);
-    const Color deepGreen = Color(0xFF166534);
-    const Color gold = Color(0xFFFFC93C);
+    const Color primaryBlue = Color(0xFF2563EB);
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Colors.white, Color(0xFFF0FFF4)],
+        color: primaryBlue.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: primaryBlue.withOpacity(0.3),
+          width: 1.5,
         ),
-        border: Border.all(color: primaryGreen.withOpacity(0.25), width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: primaryGreen.withOpacity(0.15),
-            blurRadius: 12,
-            offset: const Offset(0, 5),
-          ),
-        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header row
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [primaryGreen, deepGreen],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: primaryGreen.withOpacity(0.4),
-                        blurRadius: 6,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.auto_stories_rounded,
-                    color: Colors.white,
-                    size: 26,
-                  ),
+                const Icon(
+                  Icons.auto_stories_rounded,
+                  color: primaryBlue,
+                  size: 24,
                 ),
-                const SizedBox(width: 15),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     resource.title,
                     style: const TextStyle(
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.bold,
                       fontSize: 18,
                       color: Color(0xFF0F172A),
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                Icon(Icons.star_rounded, color: gold, size: 26),
               ],
             ),
 
-            const SizedBox(height: 14),
-
-            // Divider line
-            Container(
-              height: 2,
-              width: 60,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFFFFD54F), Color(0xFFFFB300)],
-                ),
-                borderRadius: BorderRadius.all(Radius.circular(4)),
-              ),
-            ),
-
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
 
             // Body text
             Text(
               resource.body,
               style: TextStyle(
-                fontSize: 14.5,
-                color: Colors.grey[800],
-                height: 1.55,
+                fontSize: 14,
+                color: Colors.grey[700],
+                height: 1.4,
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
             // Link button
             Center(
@@ -262,23 +208,12 @@ class ResourceFormat extends StatelessWidget {
                 onTap: () => _showLinkDialog(context),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 28,
+                    horizontal: 24,
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [primaryGreen, deepGreen],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
-                      BoxShadow(
-                        color: primaryGreen.withOpacity(0.35),
-                        blurRadius: 12,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
+                    color: primaryBlue,
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
@@ -293,9 +228,8 @@ class ResourceFormat extends StatelessWidget {
                         'View Resource',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 15.5,
+                          fontSize: 15,
                           fontWeight: FontWeight.bold,
-                          letterSpacing: 0.3,
                         ),
                       ),
                       SizedBox(width: 8),

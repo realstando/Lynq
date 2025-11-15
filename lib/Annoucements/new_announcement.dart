@@ -89,17 +89,30 @@ class _NewAnnouncementState extends State<NewAnnouncement> {
     }
 
     try {
-      print(selectedValue!.substring(selectedValue!.indexOf("(")+1, selectedValue!.indexOf(")")));
+      print(
+        selectedValue!.substring(
+          selectedValue!.indexOf("(") + 1,
+          selectedValue!.indexOf(")"),
+        ),
+      );
       await FirebaseFirestore.instance
-          .collection('groups').doc(selectedValue!.substring(selectedValue!.indexOf("(")+1, selectedValue!.indexOf(")")))
+          .collection('groups')
+          .doc(
+            selectedValue!.substring(
+              selectedValue!.indexOf("(") + 1,
+              selectedValue!.indexOf(")"),
+            ),
+          )
           .collection('announcements')
           .add({
             'content': _informationController.text.trim(),
             'title': _titleController.text.trim(),
             'date': DateTime.now(),
-      });
-    } catch (_) {
-    }
+          });
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } catch (_) {}
   }
 
   @override
@@ -134,7 +147,10 @@ class _NewAnnouncementState extends State<NewAnnouncement> {
               SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 initialValue: selectedValue,
-                hint: Text('Select a group', style: TextStyle(color: Colors.grey[400])),
+                hint: Text(
+                  'Select a group',
+                  style: TextStyle(color: Colors.grey[400]),
+                ),
                 items: groupItems.map((String item) {
                   return DropdownMenuItem<String>(
                     value: item,
