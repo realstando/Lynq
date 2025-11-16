@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:coding_prog/NavigationBar/custom_appbar.dart';
+import 'package:coding_prog/NavigationBar/drawer_page.dart';
 
 class AdminPage extends StatefulWidget {
   const AdminPage({
@@ -16,34 +18,35 @@ class AdminPage extends StatefulWidget {
 class _AdminPageState extends State<AdminPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  // FBLA Colors
+  static const fblaNavy = Color(0xFF0A2E7F);
+  static const fblaBlue = Color(0xFF1D52BC);
+  static const fblaGold = Color(0xFFF4AB19);
+  static const warningOrange = Color(0xFFF4AB19);
+  static const successGreen = Color(0xFF1D52BC);
+
   @override
   Widget build(BuildContext context) {
-    final CollectionReference signupRef =
-        FirebaseFirestore.instance.collection('signup_advisors');
-    final CollectionReference approvedRef =
-        FirebaseFirestore.instance.collection('advisors');
+    final CollectionReference signupRef = FirebaseFirestore.instance.collection(
+      'signup_advisors',
+    );
+    final CollectionReference approvedRef = FirebaseFirestore.instance
+        .collection('advisors');
 
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: const Color(0xFFF7F9FC),
-      appBar: AppBar(
-        title: const Text(
-          'Admin Panel',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
-        centerTitle: true,
-        foregroundColor: Colors.white,
-        backgroundColor: const Color(0xFF1E3A8A),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            widget.onNavigate(0); // Navigate to home page
-          },
-        ),
+      backgroundColor: Colors.grey[50],
+      drawer: DrawerPage(
+        icon: Icons.campaign_rounded,
+        name: 'Admin Page',
+        color: Colors.black,
+        onNavigate: widget.onNavigate,
+      ),
+      appBar: CustomAppBar(
+        color: Colors.blue,
+        name: "Admin Page",
+        scaffoldKey: _scaffoldKey,
+        onNavigate: widget.onNavigate,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -54,7 +57,7 @@ class _AdminPageState extends State<AdminPage> {
             _buildSectionHeader(
               'Pending Advisors',
               Icons.pending_actions,
-              const Color(0xFFFB923C),
+              warningOrange,
             ),
             const SizedBox(height: 12),
 
@@ -74,7 +77,7 @@ class _AdminPageState extends State<AdminPage> {
                   return _buildEmptyState(
                     'No pending advisors',
                     Icons.check_circle_outline,
-                    const Color(0xFF10B981),
+                    successGreen,
                   );
                 }
 
@@ -111,7 +114,7 @@ class _AdminPageState extends State<AdminPage> {
             _buildSectionHeader(
               'Approved Advisors',
               Icons.verified_user,
-              const Color(0xFF10B981),
+              successGreen,
             ),
             const SizedBox(height: 12),
 
@@ -165,30 +168,19 @@ class _AdminPageState extends State<AdminPage> {
   }
 
   Widget _buildSectionHeader(String title, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1.5,
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(width: 12),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 24),
+        const SizedBox(width: 12),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey[900],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -200,14 +192,14 @@ class _AdminPageState extends State<AdminPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.grey.shade200,
-          width: 1.5,
+          color: Colors.grey.shade300,
+          width: 1,
         ),
       ),
       child: Center(
         child: Column(
           children: [
-            Icon(icon, size: 48, color: color.withOpacity(0.5)),
+            Icon(icon, size: 48, color: color.withValues(alpha: 0.5)),
             const SizedBox(height: 12),
             Text(
               message,
@@ -232,16 +224,13 @@ class _AdminPageState extends State<AdminPage> {
     required CollectionReference signupRef,
     required CollectionReference approvedRef,
   }) {
-    const Color primaryBlue = Color(0xFF1D52BC);
-    const Color warningOrange = Color(0xFFFB923C);
-
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: warningOrange.withOpacity(0.08),
+        color: warningOrange.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: warningOrange.withOpacity(0.3),
+          color: warningOrange.withValues(alpha: 0.3),
           width: 1.5,
         ),
       ),
@@ -303,9 +292,12 @@ class _AdminPageState extends State<AdminPage> {
                         try {
                           final userCredential = await FirebaseAuth.instance
                               .createUserWithEmailAndPassword(
-                                  email: email, password: password);
-                          await userCredential.user!
-                              .updateDisplayName("$fName $lName");
+                                email: email,
+                                password: password,
+                              );
+                          await userCredential.user!.updateDisplayName(
+                            "$fName $lName",
+                          );
                           await approvedRef.doc(userCredential.user!.uid).set({
                             'first_name': fName,
                             'last_name': lName,
@@ -318,13 +310,15 @@ class _AdminPageState extends State<AdminPage> {
                               SnackBar(
                                 content: Row(
                                   children: [
-                                    const Icon(Icons.check_circle,
-                                        color: Colors.white),
+                                    const Icon(
+                                      Icons.check_circle,
+                                      color: Colors.white,
+                                    ),
                                     const SizedBox(width: 12),
                                     Text('Approved $fName $lName'),
                                   ],
                                 ),
-                                backgroundColor: const Color(0xFF10B981),
+                                backgroundColor: successGreen,
                                 behavior: SnackBarBehavior.floating,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
@@ -338,7 +332,10 @@ class _AdminPageState extends State<AdminPage> {
                               SnackBar(
                                 content: Row(
                                   children: [
-                                    const Icon(Icons.error, color: Colors.white),
+                                    const Icon(
+                                      Icons.error,
+                                      color: Colors.white,
+                                    ),
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Text('Error: ${e.message}'),
@@ -356,13 +353,12 @@ class _AdminPageState extends State<AdminPage> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF10B981),
+                        backgroundColor: successGreen,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        elevation: 0,
                       ),
                       icon: const Icon(Icons.check, size: 20),
                       label: const Text(
@@ -381,11 +377,12 @@ class _AdminPageState extends State<AdminPage> {
                         context: context,
                         builder: (context) => AlertDialog(
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           title: const Text('Reject Advisor?'),
                           content: Text(
-                              'Are you sure you want to reject $fName $lName?'),
+                            'Are you sure you want to reject $fName $lName?',
+                          ),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context, false),
@@ -422,7 +419,6 @@ class _AdminPageState extends State<AdminPage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      elevation: 0,
                     ),
                     child: const Icon(Icons.close, size: 20),
                   ),
@@ -440,15 +436,13 @@ class _AdminPageState extends State<AdminPage> {
     required String lName,
     required String email,
   }) {
-    const Color successGreen = Color(0xFF10B981);
-
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: successGreen.withOpacity(0.08),
+        color: successGreen.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: successGreen.withOpacity(0.3),
+          color: successGreen.withValues(alpha: 0.3),
           width: 1.5,
         ),
       ),
@@ -496,17 +490,10 @@ class _AdminPageState extends State<AdminPage> {
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: successGreen.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.check_circle,
-                  color: successGreen,
-                  size: 24,
-                ),
+              Icon(
+                Icons.check_circle,
+                color: successGreen,
+                size: 24,
               ),
             ],
           ),
