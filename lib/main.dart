@@ -175,6 +175,11 @@ class _MainScaffoldState extends State<MainScaffold> {
   @override
   void dispose() {
     stopListeningToUserData();
+    globals.currentUID = null;
+    globals.currentUserName = null;
+    globals.currentUserRole = null;
+    globals.currentUserEmail = null;
+    globals.isAdmin = false;
     super.dispose();
   }
 
@@ -346,16 +351,6 @@ class _MainScaffoldState extends State<MainScaffold> {
       // Fetch user role from Firestore
       await _fetchUserRole();
 
-      FirebaseFirestore.instance
-          .collection(globals.currentUserRole!)
-          .doc(globals.currentUID)
-          .collection('events')
-          .snapshots()
-          .listen((snapshot) {
-            globals.events = snapshot.docs.map((doc) => doc.id).toList();
-          });
-      print("Events: " + globals.events.toString());
-
       // Special case for admin email
       if (globals.currentUserEmail == "rryanwwang@gmail.com") {
         globals.currentUserRole = 'advisors';
@@ -372,6 +367,17 @@ class _MainScaffoldState extends State<MainScaffold> {
 
       // Only listen to groups if user role and UID are set
       if (globals.currentUserRole != null && globals.currentUID != null) {
+        FirebaseFirestore.instance
+          .collection(globals.currentUserRole!)
+          .doc(globals.currentUID)
+          .collection('events')
+          .snapshots()
+          .listen((snapshot) {
+          setState(() {
+            globals.events = snapshot.docs.map((doc) => doc.id).toList();
+          });
+        });
+        print("Events: " + globals.events.toString());
         _listenToUserData();
       } else {
         print('ERROR: User role or UID is null - cannot listen to groups');
