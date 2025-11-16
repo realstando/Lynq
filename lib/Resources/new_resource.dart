@@ -1,9 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:coding_prog/globals.dart' as globals;
 import 'package:flutter/material.dart';
 import 'package:coding_prog/Resources/resource.dart';
 
 class NewResource extends StatefulWidget {
-  const NewResource({required this.addResource, super.key});
-  final void Function(Resource resource) addResource;
+  const NewResource(void setState, {super.key});
 
   @override
   State<NewResource> createState() {
@@ -11,15 +12,24 @@ class NewResource extends StatefulWidget {
   }
 }
 
-List<String> items = ['Washington', 'Oregon', 'North Creek'];
-
 class _NewAnnouncementState extends State<NewResource> {
   final _titleController = TextEditingController();
   final _informationController = TextEditingController();
   final _linkController = TextEditingController();
 
-  String _selectedValue = items[0];
   String? _linkError;
+  String? _selectedValue;
+
+  List<String> get groupItems {
+    if (globals.groups == null || globals.groups!.isEmpty) {
+      return [];
+    }
+    return globals.groups!.map((group) {
+      final name = group['name']?.toString() ?? '';
+      final code = group['code']?.toString() ?? '';
+      return '$name ($code)';
+    }).toList();
+  }
 
   @override
   void initState() {
@@ -36,7 +46,7 @@ class _NewAnnouncementState extends State<NewResource> {
     super.dispose();
   }
 
-  void submitResource() {
+  Future<void> submitResource() async {
     // Trim all inputs
     final title = _titleController.text.trim();
     final information = _informationController.text.trim();
@@ -57,14 +67,32 @@ class _NewAnnouncementState extends State<NewResource> {
       return;
     }
 
-    // If everything is valid, add the resource
-    widget.addResource(
-      Resource(
-        body: information,
-        title: title,
-        link: link,
-      ),
-    );
+    try {
+      print(
+        _selectedValue!.substring(
+          _selectedValue!.indexOf("(") + 1,
+          _selectedValue!.indexOf(")"),
+        ),
+      );
+      await FirebaseFirestore.instance
+          .collection('groups')
+          .doc(
+            _selectedValue!.substring(
+              _selectedValue!.indexOf("(") + 1,
+              _selectedValue!.indexOf(")"),
+            ),
+          )
+          .collection('resources')
+          .add({
+            'body': information,
+            'title': title,
+            'link': link,
+          });
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } catch (_) {}
+    
   }
 
   void _validateLink() {
@@ -216,19 +244,29 @@ class _NewAnnouncementState extends State<NewResource> {
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[300]!),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Color(0xFFE8B44C).withOpacity(0.3),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
                     Icon(
-                      Icons.group,
+                      Icons.people_outline,
                       color: Color(0xFF003B7E),
                       size: 24,
                     ),
                     SizedBox(width: 12),
                     Text(
-                      "Target Audience:",
+                      "To:",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -236,39 +274,36 @@ class _NewAnnouncementState extends State<NewResource> {
                       ),
                     ),
                     Spacer(),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
+                    DropdownButton(
+                      hint: Text(
+                        'Select group',
+                        style: TextStyle(color: Colors.grey[400]),
                       ),
-                      decoration: BoxDecoration(
-                        color: Color(0xFFE8B44C).withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: DropdownButton<String>(
-                        value: _selectedValue,
-                        underline: SizedBox(),
-                        icon: Icon(
-                          Icons.arrow_drop_down,
-                          color: Color(0xFF003B7E),
-                        ),
-                        style: TextStyle(
-                          color: Color(0xFF003B7E),
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
-                        items: items.map((String item) {
-                          return DropdownMenuItem<String>(
-                            value: item,
-                            child: Text(item),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          if (value == null) return;
-                          setState(() {
-                            _selectedValue = value;
-                          });
-                        },
+                      items: groupItems.map((String item) {
+                        return DropdownMenuItem<String>(
+                          value: item,
+                          child: Text(
+                            item,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF003B7E),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value == null) {
+                          return;
+                        }
+                        setState(() {
+                          _selectedValue = value;
+                        });
+                      },
+                      value: _selectedValue,
+                      underline: SizedBox(),
+                      icon: Icon(
+                        Icons.arrow_drop_down,
+                        color: Color(0xFFE8B44C),
                       ),
                     ),
                   ],

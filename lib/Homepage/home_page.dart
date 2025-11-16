@@ -68,13 +68,13 @@ class _HomePageState extends State<HomePage> {
       key: _scaffoldKey,
       drawer: DrawerPage(
         icon: Icons.menu_book_rounded,
-        name: 'Home Page',
+        name: 'Home',
         color: Colors.black,
         onNavigate: widget.onNavigate,
       ),
       appBar: CustomAppBar(
         onNavigate: widget.onNavigate,
-        name: 'Home Page',
+        name: 'Home',
         color: Colors.black,
         scaffoldKey: _scaffoldKey,
       ),

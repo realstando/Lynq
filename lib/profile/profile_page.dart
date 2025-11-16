@@ -29,20 +29,14 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final String name = globals.currentUserName ?? 'Member';
     final String email = globals.currentUserEmail ?? 'Member';
-    final List<String> events = [
-      'MAD',
-      'Test',
-    ];
+    // final List<String> events = [
+    //   'MAD',
+    //   'Test',
+    // ];
 
     return Scaffold(
       backgroundColor: Colors.white,
       key: _scaffoldKey,
-      drawer: DrawerPage(
-        icon: Icons.campaign_rounded,
-        name: 'Profile',
-        color: const Color(0xFF0A2E7F),
-        onNavigate: widget.onNavigate,
-      ),
       appBar: AppBar(
         title: const Text(
           'Profile',
@@ -55,6 +49,12 @@ class _ProfilePageState extends State<ProfilePage> {
         backgroundColor: fblaNavy,
         foregroundColor: Colors.white,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            widget.onNavigate(0); // Navigate to home page
+          },
+        ),
         actions: [
           PopupMenuButton<MenuAction>(
             icon: const Icon(Icons.more_vert, color: Colors.white),
@@ -194,14 +194,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 children: [
                   _buildSectionHeader('My Events'),
                   const SizedBox(height: 14),
-                  if (events.isEmpty)
+                  if (global.events!.isEmpty)
                     _buildEmptyState(
                       'No events yet',
                       'Join events to see them here',
                       Icons.event_busy,
                     )
                   else
-                    ...events.map((event) => _buildEventCard(event)).toList(),
+                    ...global.events!.map((event) => _buildEventCard(event)),
                 ],
               ),
             ),

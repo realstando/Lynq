@@ -1,10 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:coding_prog/globals.dart' as globals;
 import 'package:flutter/material.dart';
 import 'package:coding_prog/Calendar/calendar.dart';
 
 class CalendarCard extends StatelessWidget {
-  const CalendarCard(this.calendar, {super.key});
+  CalendarCard(this.calendar, {super.key});
 
   final Map<String, dynamic> calendar;
+  final bool _isAdvisor = globals.currentUserRole == 'advisors';
 
   String _formatDate(DateTime date) {
     final months = [
@@ -22,6 +25,97 @@ class CalendarCard extends StatelessWidget {
       'Dec',
     ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+
+  void _onRemoveCal(BuildContext context, Map<String, dynamic> cal) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.delete_outline,
+                color: Colors.red,
+                size: 28,
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  "Delete Event",
+                  style: TextStyle(
+                    color: Color(0xFF003B7E),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            "Are you sure you want to delete '${cal['title']}'? This action cannot be undone.",
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.grey[600],
+              ),
+              child: Text(
+                "Cancel",
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: TextButton(
+                onPressed: () async {
+                  // Capture navigator and messenger synchronously to avoid using BuildContext after an await
+                  final navigator = Navigator.of(ctx);
+                  final messenger = ScaffoldMessenger.of(context);
+
+                  await FirebaseFirestore.instance
+                        .collection('groups')
+                        .doc(cal['code'])
+                        .collection('calendar')
+                        .doc(cal['id'])
+                        .delete();
+
+                  // Close the dialog using the captured navigator
+                  navigator.pop();
+
+                  // Show confirmation snackbar using the captured messenger
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text('Event deleted successfully'),
+                      backgroundColor: Colors.red,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                ),
+                child: Text(
+                  "Delete",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -133,11 +227,16 @@ class CalendarCard extends StatelessWidget {
             ),
 
             // Chevron/Arrow
-            Icon(
-              Icons.chevron_right,
-              color: fblaNavy.withOpacity(0.3),
-              size: 26,
-            ),
+            if (_isAdvisor)
+                    IconButton(
+                        onPressed: () => _onRemoveCal(context, calendar),
+                        icon: Icon(
+                          Icons.delete_outline,
+                          color: Colors.red[300],
+                          size: 26,
+                        ),
+                        tooltip: 'Delete Event',
+                      ),
           ],
         ),
       ),
