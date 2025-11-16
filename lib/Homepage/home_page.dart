@@ -3,18 +3,18 @@ import 'package:coding_prog/globals.dart' as global;
 import 'package:flutter/material.dart';
 import 'package:coding_prog/NavigationBar/drawer_page.dart';
 import 'package:coding_prog/NavigationBar/custom_appbar.dart';
-import 'package:coding_prog/Calendar/calendar.dart';
 import 'package:coding_prog/Calendar/calendar_card.dart';
-import 'package:coding_prog/Annoucements/announcement.dart';
-import 'package:coding_prog/Annoucements/announcement_format.dart';
 import 'package:intl/intl.dart';
 
+/// The home page that displays a welcome header, recent announcements, and upcoming events.
+/// Serves as the main landing page after login with quick access to key information.
 class HomePage extends StatefulWidget {
   const HomePage({
     super.key,
     required this.onNavigate,
   });
 
+  /// Callback function to navigate to different pages by index
   final void Function(int) onNavigate;
 
   @override
@@ -22,15 +22,18 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  /// Global key for controlling the scaffold and drawer
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  // Declaring the colors to be used for this screen
+  /// FBLA brand colors used throughout the page
   static const fblaNavy = Color(0xFF0A2E7F);
   static const fblaGold = Color(0xFFF4AB19);
 
+  /// Current user's name displayed in the welcome header
   final String userName = globals.currentUserName ?? "Member";
 
-  // Get the first 3 announcements (in order they appear in the list)
+  /// Gets the first 3 most recent announcements to display on the home page
+  /// Returns an empty list if no announcements are available
   List<Map<String, dynamic>> get recentAnnouncements {
     if (global.announcements == null || global.announcements!.isEmpty) {
       return [];
@@ -38,7 +41,8 @@ class _HomePageState extends State<HomePage> {
     return global.announcements!.take(3).toList();
   }
 
-  // Get all events in the current month
+  /// Gets all events scheduled for the current month, sorted by date
+  /// Filters calendar events by current month and year, then sorts chronologically
   List<Map<String, dynamic>> get monthEvents {
     if (global.calendar == null || global.calendar!.isEmpty) {
       return [];
@@ -48,13 +52,13 @@ class _HomePageState extends State<HomePage> {
     final currentMonth = now.month;
     final currentYear = now.year;
 
-    // Filter events in current month
+    // Filter events that occur in the current month and year
     final filteredEvents = global.calendar!.where((cal) {
       return cal['date'].toDate().month == currentMonth &&
           cal['date'].toDate().year == currentYear;
     }).toList();
 
-    // Sort by date (earliest first)
+    // Sort events by date (earliest first)
     filteredEvents.sort(
       (a, b) => a['date'].toDate().compareTo(b['date'].toDate()),
     );
@@ -66,12 +70,14 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
+      // Navigation drawer
       drawer: DrawerPage(
         icon: Icons.menu_book_rounded,
         name: 'Home',
         color: Colors.black,
         onNavigate: widget.onNavigate,
       ),
+      // Custom app bar with navigation
       appBar: CustomAppBar(
         onNavigate: widget.onNavigate,
         name: 'Home',
@@ -84,15 +90,14 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Creating the header for the home page
+              // Welcome header with user name and logo
               Container(
                 color: fblaNavy,
                 padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment
-                      .spaceBetween, // Centering the welcome text and icon
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // The "Welcome back" text on the top of the home page
+                    // Welcome text section
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,7 +123,7 @@ class _HomePageState extends State<HomePage> {
                         ],
                       ),
                     ),
-                    // FBLA logo
+                    // FBLA/Lynq logo
                     Container(
                       height: 100,
                       width: 100,
@@ -147,14 +152,16 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   children: [
+                    // Section header with "View All" button
                     _buildSectionHeader(
                       "Recent Announcements",
                       Icons.campaign,
                       () {
-                        widget.onNavigate(1);
+                        widget.onNavigate(1); // Navigate to announcements page
                       },
                     ),
                     const SizedBox(height: 14),
+                    // Show empty state or announcement cards
                     if (recentAnnouncements.isEmpty)
                       _buildEmptyState(
                         "No announcements yet",
@@ -165,6 +172,7 @@ class _HomePageState extends State<HomePage> {
                           .map((a) => _buildAnnouncementCard(a))
                           .toList(),
                     const SizedBox(height: 14),
+                    // Button to view all announcements
                     _buildSecondaryButton(
                       "View All Announcements",
                       Icons.campaign,
@@ -183,14 +191,16 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   children: [
+                    // Section header with "View All" button
                     _buildSectionHeader(
                       "Events This Month",
                       Icons.event,
                       () {
-                        widget.onNavigate(3);
+                        widget.onNavigate(3); // Navigate to calendar page
                       },
                     ),
                     const SizedBox(height: 14),
+                    // Show empty state or event cards
                     if (monthEvents.isEmpty)
                       _buildEmptyState(
                         "No events this month",
@@ -199,6 +209,7 @@ class _HomePageState extends State<HomePage> {
                     else
                       ...monthEvents.map((e) => CalendarCard(e)).toList(),
                     const SizedBox(height: 14),
+                    // Button to view full calendar
                     _buildPrimaryButton("View Calendar", Icons.event, () {
                       widget.onNavigate(3);
                     }),
@@ -214,6 +225,9 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// Builds an empty state widget displayed when no content is available
+  /// @param message The main message to display
+  /// @param subtitle The secondary message providing additional context
   Widget _buildEmptyState(String message, String subtitle) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -226,7 +240,7 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Logo in empty state
+          // Logo icon with light background
           Container(
             height: 60,
             width: 60,
@@ -243,6 +257,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 16),
+          // Main message
           Text(
             message,
             style: TextStyle(
@@ -252,6 +267,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 4),
+          // Subtitle message
           Text(
             subtitle,
             style: TextStyle(
@@ -265,6 +281,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// Builds a card displaying a single announcement with author, title, and date
+  /// @param announcement The announcement data containing name, title, and date
   Widget _buildAnnouncementCard(Map<String, dynamic> announcement) {
     const Color primaryBlue = Color(0xFF1D52BC);
     const Color gold = Color(0xFFFFD54F);
@@ -287,6 +305,7 @@ class _HomePageState extends State<HomePage> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Author avatar with first letter of name
               CircleAvatar(
                 radius: 18,
                 backgroundColor: primaryBlue,
@@ -300,10 +319,12 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(width: 10),
+              // Announcement details
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Author name and announcement icon
                     Row(
                       children: [
                         Expanded(
@@ -324,6 +345,7 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                     const SizedBox(height: 4),
+                    // Announcement title (truncated if too long)
                     Text(
                       announcement['title'],
                       style: TextStyle(
@@ -336,6 +358,7 @@ class _HomePageState extends State<HomePage> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 6),
+                    // Date posted
                     Row(
                       children: [
                         Icon(
@@ -366,6 +389,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// Builds a section header with title, icon, and "View All" button
+  /// @param title The section title text
+  /// @param icon The icon to display (currently unused but kept for consistency)
+  /// @param onViewAll Callback when "View All" button is tapped
   Widget _buildSectionHeader(
     String title,
     IconData icon,
@@ -393,6 +420,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             const SizedBox(width: 10),
+            // Section title text
             Text(
               title,
               style: const TextStyle(
@@ -405,22 +433,16 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
 
-        // Creating the "View All" button next to Announcements and Events
+        // "View All" button to navigate to full page
         GestureDetector(
-          onTap: onViewAll, // Navigates to the announcement/calendar page
+          onTap: onViewAll,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              // Creates the background for the button
-              color: fblaGold.withValues(
-                alpha: 0.2,
-              ), // FBLA Gold 20% transparent
+              color: fblaGold.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
-              // Adds a slightly less bolded border
               border: Border.all(
-                color: fblaGold.withValues(
-                  alpha: 0.4,
-                ), // FBLA Gold 40% transparent
+                color: fblaGold.withValues(alpha: 0.4),
               ),
             ),
             child: const Text(
@@ -437,6 +459,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// Builds a primary action button with gold background (used for calendar)
+  /// @param text The button text
+  /// @param icon The icon to display before the text
+  /// @param onPressed Callback when button is pressed
   Widget _buildPrimaryButton(
     String text,
     IconData icon,
@@ -479,6 +505,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// Builds a secondary action button with navy background (used for announcements)
+  /// @param text The button text
+  /// @param icon The icon to display before the text
+  /// @param onPressed Callback when button is pressed
   Widget _buildSecondaryButton(
     String text,
     IconData icon,

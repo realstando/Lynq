@@ -2,39 +2,52 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:coding_prog/Groups/new_group.dart';
 import 'package:coding_prog/globals.dart' as globals;
 import 'package:coding_prog/globals.dart' as global;
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:coding_prog/NavigationBar/custom_appbar.dart';
 import 'package:coding_prog/NavigationBar/drawer_page.dart';
 import 'package:coding_prog/Groups/group_format.dart';
 import 'package:coding_prog/NavigationBar/custom_actionbutton.dart';
 
+/// A page that displays and manages FBLA groups.
+/// Students can join groups using a 6-character code, while advisors can create and manage groups.
 class GroupPage extends StatefulWidget {
+  /// Callback function to navigate to different pages by index
   final Function(int) onNavigate;
+
   const GroupPage({
     super.key,
     required this.onNavigate,
   });
+
   @override
   State<GroupPage> createState() => _GroupPageState();
 }
 
 class _GroupPageState extends State<GroupPage> {
+  /// Global key for controlling the scaffold and drawer
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  /// Text controller for the join code input field
   final TextEditingController _joinCodeController = TextEditingController();
+
+  /// Check if the current user is an advisor (advisors can create groups)
   final bool _isAdvisor = globals.currentUserRole == 'advisors';
+
+  /// Error message displayed when join code validation fails
   String? _errorMessage;
 
-  // FBLA Colors
+  /// FBLA brand colors used throughout the page
   static const Color fblaBlue = Color(0xFF1D52BC);
   static const Color fblaDarkBlue = Color(0XFF0A2E7F);
   static const Color fblaGold = Color(0xFFF4AB19);
 
+  /// Navigates to the new group creation page (advisor only)
   void _addGroup() {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => NewGroup(
           () {
+            // Refresh the page after creating a new group
             if (mounted) {
               setState(() {});
             }
@@ -44,7 +57,10 @@ class _GroupPageState extends State<GroupPage> {
     );
   }
 
+  /// Displays a dialog for students to enter a join code
+  /// Validates the code and adds the student to the group if valid
   void showJoinDialog() {
+    // Reset the controller and error message
     _joinCodeController.clear();
     _errorMessage = null;
 
@@ -57,9 +73,10 @@ class _GroupPageState extends State<GroupPage> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
+              // Dialog header with logo
               title: Row(
                 children: [
-                  // Logo instead of icon
+                  // Logo icon
                   Container(
                     height: 32,
                     width: 32,
@@ -90,6 +107,7 @@ class _GroupPageState extends State<GroupPage> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Instructions text
                   Text(
                     'Enter the 6-character join code provided by your teacher',
                     style: TextStyle(
@@ -98,6 +116,7 @@ class _GroupPageState extends State<GroupPage> {
                     ),
                   ),
                   SizedBox(height: 16),
+                  // Join code input field
                   TextField(
                     controller: _joinCodeController,
                     textCapitalization: TextCapitalization.characters,
@@ -134,9 +153,10 @@ class _GroupPageState extends State<GroupPage> {
                         borderSide: BorderSide(color: Colors.red, width: 2),
                       ),
                       errorText: _errorMessage,
-                      counterText: '',
+                      counterText: '', // Hide character counter
                     ),
                     onChanged: (value) {
+                      // Clear error message when user types
                       if (_errorMessage != null) {
                         setDialogState(() {
                           _errorMessage = null;
@@ -147,6 +167,7 @@ class _GroupPageState extends State<GroupPage> {
                 ],
               ),
               actions: [
+                // Cancel button
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
@@ -156,13 +177,18 @@ class _GroupPageState extends State<GroupPage> {
                     style: TextStyle(color: Colors.grey[600]),
                   ),
                 ),
+                // Join button with validation logic
                 ElevatedButton(
                   onPressed: () async {
                     String code = _joinCodeController.text.trim().toUpperCase();
+
+                    // Fetch the group document from Firestore
                     final groupDoc = await FirebaseFirestore.instance
                         .collection('groups')
                         .doc(code)
                         .get();
+
+                    // Check if student has already joined this group
                     final studentDoc = await FirebaseFirestore.instance
                         .collection('students')
                         .doc(globals.currentUID)
@@ -170,6 +196,7 @@ class _GroupPageState extends State<GroupPage> {
                         .doc(code)
                         .get();
 
+                    // Validation: Check if code is empty
                     if (code.isEmpty) {
                       setDialogState(() {
                         _errorMessage = 'Please enter a join code';
@@ -177,6 +204,7 @@ class _GroupPageState extends State<GroupPage> {
                       return;
                     }
 
+                    // Validation: Check if code is exactly 6 characters
                     if (code.length != 6) {
                       setDialogState(() {
                         _errorMessage = 'Code must be 6 characters';
@@ -184,6 +212,7 @@ class _GroupPageState extends State<GroupPage> {
                       return;
                     }
 
+                    // Validation: Check if group exists
                     if (!groupDoc.exists) {
                       setDialogState(() {
                         _errorMessage = 'Not a valid join code';
@@ -191,12 +220,14 @@ class _GroupPageState extends State<GroupPage> {
                       return;
                     }
 
+                    // Validation: Check if already joined
                     if (studentDoc.exists) {
                       setDialogState(() {
                         _errorMessage = 'Already joined this group';
                       });
                       return;
                     } else {
+                      // Add student to the group
                       await FirebaseFirestore.instance
                           .collection('students')
                           .doc(globals.currentUID)
@@ -205,8 +236,10 @@ class _GroupPageState extends State<GroupPage> {
                           .set({});
                     }
 
+                    // Close the dialog
                     Navigator.of(context).pop();
 
+                    // Show success message
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Row(
@@ -248,6 +281,7 @@ class _GroupPageState extends State<GroupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Floating action button to create new groups (advisor only)
       floatingActionButton: _isAdvisor
           ? CustomActionButton(
               openAddPage: _addGroup,
@@ -257,6 +291,7 @@ class _GroupPageState extends State<GroupPage> {
           : null,
       backgroundColor: Colors.grey[50],
       key: _scaffoldKey,
+      // Navigation drawer
       drawer: Drawer(
         child: DrawerPage(
           icon: Icons.group_rounded,
@@ -265,6 +300,7 @@ class _GroupPageState extends State<GroupPage> {
           onNavigate: widget.onNavigate,
         ),
       ),
+      // Custom app bar
       appBar: CustomAppBar(
         name: "Groups",
         color: fblaBlue,
@@ -279,7 +315,7 @@ class _GroupPageState extends State<GroupPage> {
               padding: EdgeInsets.all(24),
               child: Column(
                 children: [
-                  // Join Group Card with Logo
+                  // Join Group Card - allows students to enter a join code
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -293,7 +329,7 @@ class _GroupPageState extends State<GroupPage> {
                       padding: EdgeInsets.all(24),
                       child: Column(
                         children: [
-                          // Logo instead of key icon
+                          // Logo icon
                           Container(
                             height: 60,
                             width: 60,
@@ -329,6 +365,7 @@ class _GroupPageState extends State<GroupPage> {
                             ),
                           ),
                           SizedBox(height: 28),
+                          // Button to open join dialog
                           SizedBox(
                             width: double.infinity,
                             height: 56,
@@ -364,9 +401,10 @@ class _GroupPageState extends State<GroupPage> {
 
                   SizedBox(height: 32),
 
-                  // Your Groups Section Header with Logo
+                  // Your Groups Section Header with admin badge for advisors
                   Row(
                     children: [
+                      // Logo icon
                       Container(
                         height: 32,
                         width: 32,
@@ -391,6 +429,7 @@ class _GroupPageState extends State<GroupPage> {
                           color: fblaDarkBlue,
                         ),
                       ),
+                      // Admin badge for advisors
                       if (_isAdvisor) ...[
                         SizedBox(width: 8),
                         Container(
@@ -416,7 +455,7 @@ class _GroupPageState extends State<GroupPage> {
                   ),
                   SizedBox(height: 16),
 
-                  // Groups List
+                  // Groups List - displays all joined groups or empty state
                   global.groups!.isEmpty
                       ? Container(
                           padding: EdgeInsets.all(40),
@@ -455,6 +494,7 @@ class _GroupPageState extends State<GroupPage> {
                                 ),
                               ),
                               SizedBox(height: 8),
+                              // Different message for advisors vs students
                               Text(
                                 _isAdvisor
                                     ? 'Create your first group to get started'
@@ -478,7 +518,7 @@ class _GroupPageState extends State<GroupPage> {
 
                   SizedBox(height: 32),
 
-                  // Info Cards
+                  // Info Cards - display information about chapter and state groups
                   Row(
                     children: [
                       Expanded(
@@ -507,7 +547,7 @@ class _GroupPageState extends State<GroupPage> {
 
                   SizedBox(height: 16),
 
-                  // Benefits Section
+                  // Benefits Section - lists features for advisors or benefits for students
                   Container(
                     padding: EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -541,6 +581,7 @@ class _GroupPageState extends State<GroupPage> {
                           ],
                         ),
                         SizedBox(height: 16),
+                        // Different benefits for advisors vs students
                         if (_isAdvisor) ...[
                           _buildBenefitItem('Create and manage groups'),
                           _buildBenefitItem('Generate join codes'),
@@ -564,6 +605,11 @@ class _GroupPageState extends State<GroupPage> {
     );
   }
 
+  /// Builds an informational card with an icon, title, and description
+  /// @param icon The icon to display
+  /// @param title The card title
+  /// @param description The card description text
+  /// @param color The accent color for the card
   Widget _buildInfoCard({
     required IconData icon,
     required String title,
@@ -607,6 +653,8 @@ class _GroupPageState extends State<GroupPage> {
     );
   }
 
+  /// Builds a single benefit item with a checkmark icon and text
+  /// @param text The benefit description
   Widget _buildBenefitItem(String text) {
     return Padding(
       padding: EdgeInsets.only(bottom: 8),
@@ -630,6 +678,7 @@ class _GroupPageState extends State<GroupPage> {
 
   @override
   void dispose() {
+    // Clean up the text controller to prevent memory leaks
     _joinCodeController.dispose();
     super.dispose();
   }

@@ -1,14 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:coding_prog/globals.dart' as globals;
 import 'package:flutter/material.dart';
-import 'package:coding_prog/Calendar/calendar.dart';
 
+/// Stateless widget that displays a calendar event card
+/// Shows event date, title, location, and delete button (for advisors only)
 class CalendarCard extends StatelessWidget {
   CalendarCard(this.calendar, {super.key});
 
+  /// Map containing event data (event, location, date, code, id)
   final Map<String, dynamic> calendar;
+
+  /// Flag to check if current user is an advisor (only advisors can delete events)
   final bool _isAdvisor = globals.currentUserRole == 'advisors';
 
+  /// Formats a DateTime object into a readable string format
+  /// Returns format: "MMM DD, YYYY" (e.g., "Jan 15, 2025")
   String _formatDate(DateTime date) {
     final months = [
       'Jan',
@@ -27,6 +33,12 @@ class CalendarCard extends StatelessWidget {
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 
+  /// Shows a confirmation dialog before deleting an event
+  /// Only accessible by advisors
+  ///
+  /// Parameters:
+  /// - [context]: BuildContext for showing dialog
+  /// - [cal]: Map containing the event data to be deleted
   void _onRemoveCal(BuildContext context, Map<String, dynamic> cal) {
     showDialog(
       context: context,
@@ -35,6 +47,7 @@ class CalendarCard extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
+          // Dialog title with delete icon
           title: Row(
             children: [
               Icon(
@@ -55,11 +68,13 @@ class CalendarCard extends StatelessWidget {
               ),
             ],
           ),
+          // Confirmation message showing event title
           content: Text(
             "Are you sure you want to delete '${cal['title']}'? This action cannot be undone.",
             style: TextStyle(fontSize: 16),
           ),
           actions: [
+            // Cancel button
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
@@ -72,6 +87,7 @@ class CalendarCard extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
+            // Delete button (red background)
             Container(
               decoration: BoxDecoration(
                 color: Colors.red,
@@ -79,21 +95,23 @@ class CalendarCard extends StatelessWidget {
               ),
               child: TextButton(
                 onPressed: () async {
-                  // Capture navigator and messenger synchronously to avoid using BuildContext after an await
+                  // Capture navigator and messenger synchronously to avoid using
+                  // BuildContext after an async operation (await)
                   final navigator = Navigator.of(ctx);
                   final messenger = ScaffoldMessenger.of(context);
 
+                  // Delete the event from Firestore
                   await FirebaseFirestore.instance
-                        .collection('groups')
-                        .doc(cal['code'])
-                        .collection('calendar')
-                        .doc(cal['id'])
-                        .delete();
+                      .collection('groups')
+                      .doc(cal['code'])
+                      .collection('calendar')
+                      .doc(cal['id'])
+                      .delete();
 
                   // Close the dialog using the captured navigator
                   navigator.pop();
 
-                  // Show confirmation snackbar using the captured messenger
+                  // Show success snackbar using the captured messenger
                   messenger.showSnackBar(
                     SnackBar(
                       content: Text('Event deleted successfully'),
@@ -120,16 +138,17 @@ class CalendarCard extends StatelessWidget {
 
   @override
   Widget build(context) {
+    // FBLA brand colors
     const fblaNavy = Color(0xFF0A2E7F);
     const fblaGold = Color(0xFFF4AB19);
 
     return Container(
       margin: EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: fblaNavy.withOpacity(0.08),
+        color: fblaNavy.withOpacity(0.08), // Light navy background
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: fblaNavy.withOpacity(0.3),
+          color: fblaNavy.withOpacity(0.3), // Semi-transparent navy border
           width: 1.5,
         ),
       ),
@@ -138,7 +157,7 @@ class CalendarCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Date Box
+            // Date Box - Shows day number and month abbreviation
             Container(
               width: 64,
               height: 64,
@@ -149,6 +168,7 @@ class CalendarCard extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  // Day number (e.g., "15")
                   Text(
                     calendar['date'].toDate().day.toString(),
                     style: TextStyle(
@@ -160,10 +180,13 @@ class CalendarCard extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 4),
+                  // Month abbreviation (e.g., "JAN")
                   Text(
                     _formatDate(
-                      calendar['date'].toDate(),
-                    ).split(' ')[0].toUpperCase(),
+                          calendar['date'].toDate(),
+                        )
+                        .split(' ')[0]
+                        .toUpperCase(), // Extract month from formatted date
                     style: TextStyle(
                       color: fblaGold,
                       fontSize: 11,
@@ -178,7 +201,7 @@ class CalendarCard extends StatelessWidget {
 
             SizedBox(width: 16),
 
-            // Event Details
+            // Event Details Section
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,13 +216,14 @@ class CalendarCard extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       height: 1.2,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2, // Allow up to 2 lines
+                    overflow:
+                        TextOverflow.ellipsis, // Add "..." if text is too long
                   ),
 
                   SizedBox(height: 8),
 
-                  // Location
+                  // Location with icon
                   Row(
                     children: [
                       Icon(
@@ -217,7 +241,8 @@ class CalendarCard extends StatelessWidget {
                             fontWeight: FontWeight.w500,
                           ),
                           maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          overflow:
+                              TextOverflow.ellipsis, // Truncate if too long
                         ),
                       ),
                     ],
@@ -226,17 +251,17 @@ class CalendarCard extends StatelessWidget {
               ),
             ),
 
-            // Chevron/Arrow
+            // Delete Button - Only shown if user is an advisor
             if (_isAdvisor)
-                    IconButton(
-                        onPressed: () => _onRemoveCal(context, calendar),
-                        icon: Icon(
-                          Icons.delete_outline,
-                          color: Colors.red[300],
-                          size: 26,
-                        ),
-                        tooltip: 'Delete Event',
-                      ),
+              IconButton(
+                onPressed: () => _onRemoveCal(context, calendar),
+                icon: Icon(
+                  Icons.delete_outline,
+                  color: Colors.red[300],
+                  size: 26,
+                ),
+                tooltip: 'Delete Event',
+              ),
           ],
         ),
       ),

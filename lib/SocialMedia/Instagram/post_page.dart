@@ -3,325 +3,16 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:coding_prog/SocialMedia/Instagram/post_detail.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Instagram Viewer',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        brightness: Brightness.light,
-      ),
-      home: InstagramHomePage(),
-    );
-  }
-}
-
-class InstagramHomePage extends StatefulWidget {
-  @override
-  _InstagramHomePageState createState() => _InstagramHomePageState();
-}
-
-class _InstagramHomePageState extends State<InstagramHomePage> {
-  // FBLA Official Colors
-  static const fblaNavy = Color(0xFF0A2E7F);
-  static const fblaGold = Color(0xFFF4AB19);
-  static const fblaLightGold = Color(0xFFFFF4E0);
-
-  List<String> savedPages = [];
-  TextEditingController _controller = TextEditingController();
-
-  void _addPage() {
-    if (_controller.text.isNotEmpty) {
-      setState(() {
-        savedPages.add(_controller.text.trim());
-        _controller.clear();
-      });
-    }
-  }
-
-  void _removePage(int index) {
-    setState(() {
-      savedPages.removeAt(index);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'Instagram Pages',
-          style: TextStyle(
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.5,
-            color: Colors.white,
-          ),
-        ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [fblaNavy, Color(0xFF00528a)],
-            ),
-          ),
-        ),
-        elevation: 0,
-      ),
-      backgroundColor: Colors.grey.shade50,
-      body: Column(
-        children: [
-          // Add Instagram Page Section
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
-                  blurRadius: 12,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Add Instagram Account',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: fblaNavy,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _controller,
-                        decoration: InputDecoration(
-                          hintText: 'Enter Instagram username',
-                          hintStyle: TextStyle(color: Colors.grey.shade500),
-                          prefixIcon: const Icon(
-                            Icons.alternate_email,
-                            color: fblaNavy,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: fblaNavy,
-                              width: 2,
-                            ),
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey.shade50,
-                        ),
-                        onSubmitted: (_) => _addPage(),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      height: 56,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [fblaGold, Color(0xFFFFD666)],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: fblaGold.withOpacity(0.4),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          foregroundColor: fblaNavy,
-                          shadowColor: Colors.transparent,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                        ),
-                        onPressed: _addPage,
-                        child: const Text(
-                          'Add',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 8),
-
-          // Saved Pages List
-          Expanded(
-            child: savedPages.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            color: fblaLightGold,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: const Color(0xFFFFE7B3),
-                              width: 2,
-                            ),
-                          ),
-                          child: const Icon(
-                            Icons.photo_library_outlined,
-                            size: 40,
-                            color: fblaNavy,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No pages added yet',
-                          style: TextStyle(
-                            color: Colors.grey[700],
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Add an Instagram username above!',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.grey[500],
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: savedPages.length,
-                    itemBuilder: (context, index) {
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: Colors.grey.shade200),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.06),
-                              blurRadius: 12,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          leading: Container(
-                            width: 50,
-                            height: 50,
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [fblaLightGold, Color(0xFFFFF9EF)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: const Color(0xFFFFE7B3),
-                              ),
-                            ),
-                            child: const Icon(
-                              Icons.camera_alt,
-                              color: fblaNavy,
-                              size: 24,
-                            ),
-                          ),
-                          title: Text(
-                            '@${savedPages[index]}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
-                              color: fblaNavy,
-                              letterSpacing: -0.3,
-                            ),
-                          ),
-                          subtitle: const Text(
-                            'Tap to view posts',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          trailing: IconButton(
-                            icon: const Icon(
-                              Icons.delete_outline,
-                              color: Colors.red,
-                              size: 24,
-                            ),
-                            onPressed: () => _removePage(index),
-                          ),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => PostsPage(
-                                  username: savedPages[index],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
+/// A StatefulWidget that displays Instagram posts for a given username
+/// Uses the Simple Instagram API from RapidAPI to fetch and display posts
 class PostsPage extends StatefulWidget {
-  // FBLA Official Colors
+  // FBLA Official Brand Colors
   static const fblaNavy = Color(0xFF0A2E7F);
   static const fblaGold = Color(0xFFF4AB19);
 
+  /// The Instagram username to fetch posts for
   final String username;
 
   PostsPage({required this.username});
@@ -331,43 +22,57 @@ class PostsPage extends StatefulWidget {
 }
 
 class _PostsPageState extends State<PostsPage> {
+  /// List to store fetched Instagram posts
   List<dynamic> posts = [];
+
+  /// Flag to track loading state
   bool isLoading = true;
+
+  /// Stores error messages if API request fails
   String? errorMessage;
 
   @override
   void initState() {
     super.initState();
+    // Fetch posts when the widget is first created
     fetchPosts();
   }
 
+  /// Fetches Instagram posts from the RapidAPI endpoint
+  /// Makes an HTTP GET request and updates the UI based on response
   Future<void> fetchPosts() async {
+    // Reset state before fetching
     setState(() {
       isLoading = true;
       errorMessage = null;
     });
 
     try {
-      const String apiKey =
-          'ffc0abf1d2mshe12d87908b4147bp1e8648jsnd85ef0e7803a';
+      // RapidAPI key for Simple Instagram API
+      final String insta_apiKey = dotenv.env['insta_apiKey']!;
 
+      // Make GET request to fetch account info including posts
       final response = await http.get(
         Uri.parse(
           'https://simple-instagram-api.p.rapidapi.com/account-info?username=${widget.username}',
         ),
         headers: {
           'x-rapidapi-host': 'simple-instagram-api.p.rapidapi.com',
-          'x-rapidapi-key': apiKey,
+          'x-rapidapi-key': insta_apiKey,
         },
       );
 
+      // Debug logging
       print('Status Code: ${response.statusCode}');
       print('Response Body: ${response.body}');
 
+      // Check if request was successful
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         print('Parsed Data: $data');
 
+        // Update state with fetched posts
+        // Try multiple possible JSON keys as API response format may vary
         setState(() {
           posts =
               data['edge_owner_to_timeline_media']?['edges'] ??
@@ -377,6 +82,7 @@ class _PostsPageState extends State<PostsPage> {
           isLoading = false;
         });
       } else {
+        // Handle non-200 status codes
         setState(() {
           errorMessage =
               'Failed to load posts.\nStatus: ${response.statusCode}\nResponse: ${response.body}';
@@ -384,6 +90,7 @@ class _PostsPageState extends State<PostsPage> {
         });
       }
     } catch (e) {
+      // Handle any exceptions (network errors, parsing errors, etc.)
       print('Exception: $e');
       setState(() {
         errorMessage = 'Error: $e';
@@ -392,15 +99,18 @@ class _PostsPageState extends State<PostsPage> {
     }
   }
 
+  /// Opens the Instagram profile in an external browser or Instagram app
+  /// Attempts external app first, then falls back to platform default
   void _openInstagram() async {
     final url = Uri.parse('https://instagram.com/${widget.username}');
     try {
+      // Try to open in Instagram app or external browser
       await launchUrl(
         url,
         mode: LaunchMode.externalApplication,
       );
     } catch (e) {
-      // If external app fails, try with platform default
+      // If external app fails, try with platform default (in-app browser)
       try {
         await launchUrl(
           url,
@@ -408,7 +118,7 @@ class _PostsPageState extends State<PostsPage> {
         );
       } catch (e) {
         print('Error launching URL: $e');
-        // Show error to user
+        // Show error snackbar to user
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -426,6 +136,7 @@ class _PostsPageState extends State<PostsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // AppBar with gradient background and Instagram username
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
@@ -436,6 +147,7 @@ class _PostsPageState extends State<PostsPage> {
             color: Colors.white,
           ),
         ),
+        // Gradient background using FBLA colors
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -447,6 +159,7 @@ class _PostsPageState extends State<PostsPage> {
         ),
         elevation: 0,
         actions: [
+          // Button to open Instagram profile externally
           IconButton(
             icon: const Icon(Icons.open_in_new),
             onPressed: _openInstagram,
@@ -457,6 +170,7 @@ class _PostsPageState extends State<PostsPage> {
       ),
       backgroundColor: Colors.grey.shade50,
       body: isLoading
+          // Show loading spinner while fetching posts
           ? Center(
               child: CircularProgressIndicator(
                 valueColor: const AlwaysStoppedAnimation<Color>(
@@ -464,6 +178,7 @@ class _PostsPageState extends State<PostsPage> {
                 ),
               ),
             )
+          // Show error message if fetch failed
           : errorMessage != null
           ? Center(
               child: Padding(
@@ -471,6 +186,7 @@ class _PostsPageState extends State<PostsPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    // Error icon container
                     Container(
                       width: 80,
                       height: 80,
@@ -485,6 +201,7 @@ class _PostsPageState extends State<PostsPage> {
                       ),
                     ),
                     const SizedBox(height: 20),
+                    // Error title
                     Text(
                       'Failed to Load Posts',
                       style: TextStyle(
@@ -494,6 +211,7 @@ class _PostsPageState extends State<PostsPage> {
                       ),
                     ),
                     const SizedBox(height: 12),
+                    // Error message details
                     Text(
                       errorMessage!,
                       textAlign: TextAlign.center,
@@ -504,6 +222,7 @@ class _PostsPageState extends State<PostsPage> {
                       ),
                     ),
                     const SizedBox(height: 24),
+                    // Retry button with gradient styling
                     Container(
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
@@ -545,11 +264,13 @@ class _PostsPageState extends State<PostsPage> {
                 ),
               ),
             )
+          // Show empty state if no posts found
           : posts.isEmpty
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  // Empty state icon container
                   Container(
                     width: 80,
                     height: 80,
@@ -579,11 +300,13 @@ class _PostsPageState extends State<PostsPage> {
                 ],
               ),
             )
+          // Display posts in a grid layout with pull-to-refresh
           : RefreshIndicator(
               color: PostsPage.fblaGold,
               onRefresh: fetchPosts,
               child: GridView.builder(
                 padding: const EdgeInsets.all(12),
+                // 3-column grid layout
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
                   crossAxisSpacing: 6,
@@ -593,14 +316,17 @@ class _PostsPageState extends State<PostsPage> {
                 itemBuilder: (context, index) {
                   final post = posts[index];
 
+                  // Extract image URL from various possible JSON structures
                   String? imageUrl;
 
+                  // Try Instagram's standard edge format
                   if (post['node'] != null) {
                     imageUrl =
                         post['node']['thumbnail_src'] ??
                         post['node']['display_url'] ??
                         post['node']['thumbnail_resources']?[0]?['src'];
                   } else {
+                    // Try alternative formats
                     imageUrl =
                         post['thumbnail_url'] ??
                         post['display_url'] ??
@@ -609,12 +335,15 @@ class _PostsPageState extends State<PostsPage> {
                         post['media_url'];
                   }
 
+                  // Debug logging if image URL not found
                   if (imageUrl == null) {
                     print('Post $index structure: ${post.keys}');
                   }
 
+                  // Grid item with tap navigation to detail page
                   return GestureDetector(
                     onTap: () {
+                      // Navigate to detailed post view
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -635,10 +364,12 @@ class _PostsPageState extends State<PostsPage> {
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
+                        // Display image if URL exists, otherwise show placeholder
                         child: imageUrl != null
                             ? Image.network(
                                 imageUrl,
                                 fit: BoxFit.cover,
+                                // Show loading indicator while image loads
                                 loadingBuilder:
                                     (context, child, loadingProgress) {
                                       if (loadingProgress == null) {
@@ -667,6 +398,7 @@ class _PostsPageState extends State<PostsPage> {
                                         ),
                                       );
                                     },
+                                // Show error icon if image fails to load
                                 errorBuilder: (context, error, stackTrace) {
                                   print('Image load error: $error');
                                   return Container(
@@ -693,6 +425,7 @@ class _PostsPageState extends State<PostsPage> {
                                   );
                                 },
                               )
+                            // Show placeholder if no image URL found
                             : Container(
                                 color: Colors.grey.shade300,
                                 child: Column(

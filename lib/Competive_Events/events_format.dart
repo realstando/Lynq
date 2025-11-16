@@ -1,11 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:coding_prog/globals.dart' as globals;
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:coding_prog/Competive_Events/events.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+/// A card widget that displays FBLA competitive event information
+/// Features category-based theming, favoriting functionality, and external link opening
+/// Integrates with Firestore to persist user's favorite events
 class EventsFormat extends StatefulWidget {
+  /// The competitive event data to display
+  /// Contains title, description, link, and category information
   final CompetitiveEvent event;
 
   const EventsFormat({super.key, required this.event});
@@ -15,19 +19,25 @@ class EventsFormat extends StatefulWidget {
 }
 
 class _EventsFormatState extends State<EventsFormat> {
-  // Simplified FBLA colors
+  // FBLA Official Brand Colors for consistent theming
   static const fblaNavy = Color(0xFF0B1F3F);
   static const fblaBlue = Color(0xFF4A7BC8);
   static const fblaGold = Color(0xFFD4921F);
 
-  bool _isStarred = false; // Track starred state
+  /// Tracks whether this event is starred/favorited by the user
+  /// Synced with Firestore for persistence across sessions
+  bool _isStarred = false;
 
+  /// Load the favorite state from Firestore when widget initializes
   @override
   void initState() {
     super.initState();
     _loadFavoriteState();
   }
 
+  /// Shows a confirmation dialog before opening the event link
+  /// Displays event details and warns user they're leaving the app
+  /// Uses category-based color theming for visual consistency
   void _showLinkDialog(BuildContext context) {
     final categoryColor = _getCategoryColor();
 
@@ -38,6 +48,7 @@ class _EventsFormatState extends State<EventsFormat> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
+          // Dialog title with icon
           title: Row(
             children: [
               Icon(
@@ -58,10 +69,12 @@ class _EventsFormatState extends State<EventsFormat> {
               ),
             ],
           ),
+          // Dialog content showing event details
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Introduction text
               Text(
                 "You're about to open:",
                 style: TextStyle(
@@ -71,6 +84,7 @@ class _EventsFormatState extends State<EventsFormat> {
                 ),
               ),
               const SizedBox(height: 12),
+              // Event info card with category-themed styling
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -84,6 +98,7 @@ class _EventsFormatState extends State<EventsFormat> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Event title
                     Text(
                       widget.event.title,
                       style: TextStyle(
@@ -93,6 +108,7 @@ class _EventsFormatState extends State<EventsFormat> {
                       ),
                     ),
                     const SizedBox(height: 8),
+                    // Event link with icon
                     Row(
                       children: [
                         Icon(Icons.link, color: categoryColor, size: 16),
@@ -114,6 +130,7 @@ class _EventsFormatState extends State<EventsFormat> {
                 ),
               ),
               const SizedBox(height: 12),
+              // Warning message about external browser
               Text(
                 "This will open in your browser.",
                 style: TextStyle(
@@ -124,7 +141,9 @@ class _EventsFormatState extends State<EventsFormat> {
               ),
             ],
           ),
+          // Action buttons
           actions: [
+            // Cancel button
             TextButton(
               onPressed: () => Navigator.pop(ctx),
               style: TextButton.styleFrom(foregroundColor: Colors.grey[600]),
@@ -133,10 +152,11 @@ class _EventsFormatState extends State<EventsFormat> {
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
               ),
             ),
+            // Open link button with category color
             TextButton(
               onPressed: () {
-                Navigator.pop(ctx);
-                _launchURL();
+                Navigator.pop(ctx); // Close dialog first
+                _launchURL(); // Then open link
               },
               style: TextButton.styleFrom(
                 foregroundColor: Colors.white,
@@ -167,9 +187,14 @@ class _EventsFormatState extends State<EventsFormat> {
     );
   }
 
+  /// Opens the event link in the device's default browser
+  /// Automatically adds https:// protocol if missing
+  /// Throws exception if URL cannot be opened
   Future<void> _launchURL() async {
     String urlToLaunch = widget.event.link;
 
+    // Ensure URL has a valid protocol
+    // Many users forget to include https://, so we add it automatically
     if (!urlToLaunch.startsWith('http://') &&
         !urlToLaunch.startsWith('https://') &&
         !urlToLaunch.contains('://')) {
@@ -177,19 +202,24 @@ class _EventsFormatState extends State<EventsFormat> {
     }
 
     final Uri url = Uri.parse(urlToLaunch);
+    // Launch in external browser app (not in-app webview)
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       throw Exception('Could not launch $url');
     }
   }
 
+  /// Toggles the star/favorite state and syncs with Firestore
+  /// Shows a snackbar to confirm the action to the user
   void _toggleStar() async {
+    // Update UI immediately for responsive feel
     setState(() {
       _isStarred = !_isStarred;
     });
 
+    // Sync with Firestore in the background
     await _toggleFavoriteInFirestore();
 
-    // Optional: Show feedback
+    // Show confirmation feedback to user
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -207,6 +237,7 @@ class _EventsFormatState extends State<EventsFormat> {
             ),
           ],
         ),
+        // Gold for added, gray for removed
         backgroundColor: _isStarred ? fblaGold : Colors.grey[700],
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
@@ -217,22 +248,29 @@ class _EventsFormatState extends State<EventsFormat> {
     );
   }
 
+  /// Syncs favorite state with Firestore
+  /// Creates or deletes a document in the user's events subcollection
+  /// Document existence indicates the event is favorited (no data needed)
   Future<void> _toggleFavoriteInFirestore() async {
+    // Path: students/{userId}/events/{eventTitle}
     final docRef = FirebaseFirestore.instance
         .collection('students')
-        .doc(globals.currentUID)
+        .doc(globals.currentUID) // Global variable holding current user ID
         .collection('events')
-        .doc(widget.event.title); // event title is the doc ID
+        .doc(widget.event.title); // Event title is used as document ID
 
     if (_isStarred) {
-      // Add an EMPTY document
+      // Add event to favorites by creating an empty document
+      // Document existence = favorited, no data storage needed
       await docRef.set({});
     } else {
-      // Remove the document
+      // Remove from favorites by deleting the document
       await docRef.delete();
     }
   }
 
+  /// Loads the favorite state from Firestore when widget initializes
+  /// Checks if a document exists for this event in user's favorites
   Future<void> _loadFavoriteState() async {
     final doc = await FirebaseFirestore.instance
         .collection('students')
@@ -241,32 +279,38 @@ class _EventsFormatState extends State<EventsFormat> {
         .doc(widget.event.title)
         .get();
 
+    // If document exists, this event is favorited
     if (doc.exists) {
       setState(() {
         _isStarred = true;
       });
     }
+    // If document doesn't exist, _isStarred remains false (default)
   }
 
+  /// Returns the theme color based on event category
+  /// Used for consistent color coding throughout the UI
   Color _getCategoryColor() {
     switch (widget.event.category) {
       case EventCategory.objective:
-        return fblaNavy;
+        return fblaNavy; // Navy for objective/test events
       case EventCategory.presentation:
-        return fblaBlue;
+        return fblaBlue; // Blue for presentation events
       case EventCategory.roleplay:
-        return fblaGold;
+        return fblaGold; // Gold for roleplay events
     }
   }
 
+  /// Returns the appropriate icon based on event category
+  /// Provides visual distinction between event types
   IconData _getCategoryIcon() {
     switch (widget.event.category) {
       case EventCategory.objective:
-        return Icons.quiz_outlined;
+        return Icons.quiz_outlined; // Quiz icon for objective tests
       case EventCategory.presentation:
-        return Icons.present_to_all_outlined;
+        return Icons.present_to_all_outlined; // Presentation icon
       case EventCategory.roleplay:
-        return Icons.theater_comedy_outlined;
+        return Icons.theater_comedy_outlined; // Theater icon for roleplay
     }
   }
 
@@ -276,47 +320,53 @@ class _EventsFormatState extends State<EventsFormat> {
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      // Category-themed background and border
       decoration: BoxDecoration(
-        color: categoryColor.withOpacity(0.08),
+        color: categoryColor.withOpacity(0.08), // Light tinted background
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: categoryColor.withOpacity(0.3),
           width: 1.5,
         ),
       ),
+      // Material wrapper for ripple effect on tap
       child: Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
+          // Tapping the card opens the link dialog
           onTap: () => _showLinkDialog(context),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header row
+                // Header row with category badge and action buttons
                 Row(
                   children: [
+                    // Category icon
                     Icon(
                       _getCategoryIcon(),
                       size: 18,
                       color: categoryColor,
                     ),
                     const SizedBox(width: 8),
+                    // Category label in uppercase
                     Text(
                       widget.event.category.name.toUpperCase(),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: categoryColor,
-                        letterSpacing: 0.5,
+                        letterSpacing: 0.5, // Wide spacing for emphasis
                       ),
                     ),
-                    const Spacer(),
-                    // Star button
+                    const Spacer(), // Push buttons to the right
+                    // Star/favorite button with animation
                     IconButton(
                       icon: AnimatedSwitcher(
+                        // Smooth transition when toggling star
                         duration: const Duration(milliseconds: 200),
                         transitionBuilder: (child, animation) {
                           return ScaleTransition(
@@ -324,6 +374,7 @@ class _EventsFormatState extends State<EventsFormat> {
                             child: child,
                           );
                         },
+                        // Key ensures animation triggers on state change
                         child: Icon(
                           _isStarred ? Icons.star : Icons.star_border,
                           key: ValueKey(_isStarred),
@@ -334,9 +385,10 @@ class _EventsFormatState extends State<EventsFormat> {
                       onPressed: _toggleStar,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
-                      splashRadius: 20,
+                      splashRadius: 20, // Small ripple effect
                     ),
                     const SizedBox(width: 8),
+                    // External link indicator icon
                     Icon(
                       Icons.open_in_new,
                       color: Colors.grey[600],
@@ -345,9 +397,7 @@ class _EventsFormatState extends State<EventsFormat> {
                   ],
                 ),
 
-                // const SizedBox(height: 12),
-
-                // Event Title
+                // Event title - main identifier
                 Text(
                   widget.event.title,
                   style: const TextStyle(
@@ -359,16 +409,17 @@ class _EventsFormatState extends State<EventsFormat> {
 
                 const SizedBox(height: 8),
 
-                // Description
+                // Event description with ellipsis for long text
                 Text(
                   widget.event.description,
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey[700],
-                    height: 1.4,
+                    height: 1.4, // Line height for readability
                   ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
+                  maxLines: 3, // Limit to 3 lines
+                  overflow:
+                      TextOverflow.ellipsis, // Show ... if text is cut off
                 ),
               ],
             ),

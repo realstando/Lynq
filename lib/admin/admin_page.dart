@@ -4,11 +4,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:coding_prog/NavigationBar/custom_appbar.dart';
 import 'package:coding_prog/NavigationBar/drawer_page.dart';
 
+/// StatefulWidget for the admin dashboard
+/// Allows administrators to review and approve/reject pending advisor registrations
+/// Also displays a list of all approved advisors
 class AdminPage extends StatefulWidget {
   const AdminPage({
     super.key,
     required this.onNavigate,
   });
+
+  /// Callback function to handle navigation to different pages
   final void Function(int) onNavigate;
 
   @override
@@ -16,32 +21,33 @@ class AdminPage extends StatefulWidget {
 }
 
 class _AdminPageState extends State<AdminPage> {
+  // Global key to control the Scaffold state (used for opening drawer)
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  // FBLA Colors
-  static const fblaNavy = Color(0xFF0A2E7F);
-  static const fblaBlue = Color(0xFF1D52BC);
-  static const fblaGold = Color(0xFFF4AB19);
-  static const warningOrange = Color(0xFFF4AB19);
-  static const successGreen = Color(0xFF1D52BC);
+  // FBLA brand colors and status colors
+  static const warningOrange = Color(0xFFF4AB19); // Gold for pending status
+  static const successGreen = Color(0xFF1D52BC); // Blue for approved status
 
   @override
   Widget build(BuildContext context) {
+    // Firestore references for advisor collections
     final CollectionReference signupRef = FirebaseFirestore.instance.collection(
-      'signup_advisors',
+      'signup_advisors', // Pending advisors awaiting approval
     );
     final CollectionReference approvedRef = FirebaseFirestore.instance
-        .collection('advisors');
+        .collection('advisors'); // Approved advisors
 
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: Colors.grey[50],
+      // Navigation drawer
       drawer: DrawerPage(
         icon: Icons.campaign_rounded,
         name: 'Admin Page',
         color: Colors.black,
         onNavigate: widget.onNavigate,
       ),
+      // Custom app bar
       appBar: CustomAppBar(
         color: Colors.black,
         name: "Admin Page",
@@ -53,7 +59,7 @@ class _AdminPageState extends State<AdminPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Pending Advisors Section
+            // Pending Advisors Section Header
             _buildSectionHeader(
               'Pending Advisors',
               Icons.pending_actions,
@@ -61,9 +67,11 @@ class _AdminPageState extends State<AdminPage> {
             ),
             const SizedBox(height: 12),
 
+            // Stream builder for real-time pending advisors list
             StreamBuilder<QuerySnapshot>(
               stream: signupRef.snapshots(),
               builder: (context, snapshot) {
+                // Show loading indicator while fetching data
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
                     child: Padding(
@@ -73,6 +81,7 @@ class _AdminPageState extends State<AdminPage> {
                   );
                 }
 
+                // Show empty state if no pending advisors
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return _buildEmptyState(
                     'No pending advisors',
@@ -83,6 +92,7 @@ class _AdminPageState extends State<AdminPage> {
 
                 final advisors = snapshot.data!.docs;
 
+                // Build list of pending advisor cards
                 return ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -110,7 +120,7 @@ class _AdminPageState extends State<AdminPage> {
 
             const SizedBox(height: 32),
 
-            // Approved Advisors Section
+            // Approved Advisors Section Header
             _buildSectionHeader(
               'Approved Advisors',
               Icons.verified_user,
@@ -118,9 +128,11 @@ class _AdminPageState extends State<AdminPage> {
             ),
             const SizedBox(height: 12),
 
+            // Stream builder for real-time approved advisors list
             StreamBuilder<QuerySnapshot>(
               stream: approvedRef.snapshots(),
               builder: (context, snapshot) {
+                // Show loading indicator while fetching data
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
                     child: Padding(
@@ -130,6 +142,7 @@ class _AdminPageState extends State<AdminPage> {
                   );
                 }
 
+                // Show empty state if no approved advisors
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return _buildEmptyState(
                     'No approved advisors yet',
@@ -140,6 +153,7 @@ class _AdminPageState extends State<AdminPage> {
 
                 final approvedAdvisors = snapshot.data!.docs;
 
+                // Build list of approved advisor cards
                 return ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -167,6 +181,8 @@ class _AdminPageState extends State<AdminPage> {
     );
   }
 
+  /// Builds a section header with icon and title
+  /// Used for "Pending Advisors" and "Approved Advisors" sections
   Widget _buildSectionHeader(String title, IconData icon, Color color) {
     return Row(
       children: [
@@ -184,6 +200,8 @@ class _AdminPageState extends State<AdminPage> {
     );
   }
 
+  /// Builds an empty state widget when no items are present
+  /// Shows an icon and message
   Widget _buildEmptyState(String message, IconData icon, Color color) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -215,6 +233,17 @@ class _AdminPageState extends State<AdminPage> {
     );
   }
 
+  /// Builds a card for a pending advisor with approve/reject actions
+  ///
+  /// When approved:
+  /// - Creates Firebase Auth account with provided credentials
+  /// - Moves advisor data from 'signup_advisors' to 'advisors' collection
+  /// - Sets display name in Firebase Auth
+  /// - Deletes from pending collection
+  ///
+  /// When rejected:
+  /// - Shows confirmation dialog
+  /// - Deletes from pending collection without creating account
   Widget _buildPendingAdvisorCard({
     required String fName,
     required String lName,
@@ -227,10 +256,10 @@ class _AdminPageState extends State<AdminPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: warningOrange.withValues(alpha: 0.08),
+        color: warningOrange.withValues(alpha: 0.08), // Light gold background
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: warningOrange.withValues(alpha: 0.3),
+          color: warningOrange.withValues(alpha: 0.3), // Gold border
           width: 1.5,
         ),
       ),
@@ -242,8 +271,10 @@ class _AdminPageState extends State<AdminPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Advisor info row with avatar and name/email
               Row(
                 children: [
+                  // Circular avatar with first initial
                   CircleAvatar(
                     radius: 24,
                     backgroundColor: warningOrange,
@@ -261,6 +292,7 @@ class _AdminPageState extends State<AdminPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Full name
                         Text(
                           '$fName $lName',
                           style: const TextStyle(
@@ -270,6 +302,7 @@ class _AdminPageState extends State<AdminPage> {
                           ),
                         ),
                         const SizedBox(height: 4),
+                        // Email address
                         Text(
                           email,
                           style: TextStyle(
@@ -284,27 +317,34 @@ class _AdminPageState extends State<AdminPage> {
                 ],
               ),
               const SizedBox(height: 16),
+              // Action buttons row
               Row(
                 children: [
+                  // Approve button
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () async {
                         try {
+                          // Create Firebase Auth account
                           final userCredential = await FirebaseAuth.instance
                               .createUserWithEmailAndPassword(
                                 email: email,
                                 password: password,
                               );
+                          // Set display name
                           await userCredential.user!.updateDisplayName(
                             "$fName $lName",
                           );
+                          // Add to approved advisors collection
                           await approvedRef.doc(userCredential.user!.uid).set({
                             'first_name': fName,
                             'last_name': lName,
                             'email': email,
                           });
+                          // Remove from pending collection
                           await signupRef.doc(advisorId).delete();
 
+                          // Show success message
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
@@ -327,6 +367,7 @@ class _AdminPageState extends State<AdminPage> {
                             );
                           }
                         } on FirebaseAuthException catch (e) {
+                          // Show error message if account creation fails
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
@@ -371,8 +412,10 @@ class _AdminPageState extends State<AdminPage> {
                     ),
                   ),
                   const SizedBox(width: 12),
+                  // Reject button
                   ElevatedButton(
                     onPressed: () async {
+                      // Show confirmation dialog
                       final confirm = await showDialog<bool>(
                         context: context,
                         builder: (context) => AlertDialog(
@@ -400,6 +443,7 @@ class _AdminPageState extends State<AdminPage> {
                         ),
                       );
 
+                      // If confirmed, delete the pending advisor
                       if (confirm == true) {
                         await signupRef.doc(advisorId).delete();
                         if (mounted) {
@@ -431,6 +475,8 @@ class _AdminPageState extends State<AdminPage> {
     );
   }
 
+  /// Builds a card for an approved advisor (read-only display)
+  /// Shows advisor info with a checkmark indicator
   Widget _buildApprovedAdvisorCard({
     required String fName,
     required String lName,
@@ -439,10 +485,10 @@ class _AdminPageState extends State<AdminPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: successGreen.withValues(alpha: 0.08),
+        color: successGreen.withValues(alpha: 0.08), // Light blue background
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: successGreen.withValues(alpha: 0.3),
+          color: successGreen.withValues(alpha: 0.3), // Blue border
           width: 1.5,
         ),
       ),
@@ -453,6 +499,7 @@ class _AdminPageState extends State<AdminPage> {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
+              // Circular avatar with first initial
               CircleAvatar(
                 radius: 24,
                 backgroundColor: successGreen,
@@ -470,6 +517,7 @@ class _AdminPageState extends State<AdminPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Full name
                     Text(
                       '$fName $lName',
                       style: const TextStyle(
@@ -479,6 +527,7 @@ class _AdminPageState extends State<AdminPage> {
                       ),
                     ),
                     const SizedBox(height: 4),
+                    // Email address
                     Text(
                       email,
                       style: TextStyle(
@@ -490,6 +539,7 @@ class _AdminPageState extends State<AdminPage> {
                   ],
                 ),
               ),
+              // Checkmark icon indicating approved status
               Icon(
                 Icons.check_circle,
                 color: successGreen,

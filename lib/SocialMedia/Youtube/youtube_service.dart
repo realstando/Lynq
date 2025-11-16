@@ -1,19 +1,23 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:coding_prog/SocialMedia/Youtube/youtube_video.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+/// Service for interacting with YouTube Data API v3.
 class YouTubeService {
-  // You'll need to get your own API key from Google Cloud Console
-  // https://console.cloud.google.com/
+  // YouTube Data API key - Get your own from https://console.cloud.google.com/
   // Enable YouTube Data API v3 and create credentials
-  static const String API_KEY = 'AIzaSyD-3KZf9mtleSA9B98WjnRAu-y55kpb3GI';
+  static final String? Youtube_API_KEY = dotenv.env['Youtube_API_KEY'];
   static const String BASE_URL = 'https://www.googleapis.com/youtube/v3';
 
+  /// Searches for YouTube videos based on query.
+  /// Returns list of videos with metadata including duration and view count.
   Future<List<YouTubeVideo>> searchVideos(String query) async {
     try {
+      // Search for videos matching the query
       final response = await http.get(
         Uri.parse(
-          '$BASE_URL/search?part=snippet&q=$query&type=video&maxResults=20&key=$API_KEY',
+          '$BASE_URL/search?part=snippet&q=$query&type=video&maxResults=20&key=$Youtube_API_KEY',
         ),
       );
 
@@ -24,10 +28,10 @@ class YouTubeService {
         for (var item in data['items']) {
           final videoId = item['id']['videoId'];
 
-          // Get video details for duration and view count
+          // Get additional video details (duration and view count)
           final detailsResponse = await http.get(
             Uri.parse(
-              '$BASE_URL/videos?part=contentDetails,statistics&id=$videoId&key=$API_KEY',
+              '$BASE_URL/videos?part=contentDetails,statistics&id=$videoId&key=$Youtube_API_KEY',
             ),
           );
 
@@ -65,8 +69,8 @@ class YouTubeService {
     }
   }
 
+  /// Converts ISO 8601 duration (PT1H2M10S) to readable format (1:02:10).
   String _formatDuration(String duration) {
-    // Convert ISO 8601 duration (PT1H2M10S) to readable format (1:02:10)
     duration = duration.replaceAll('PT', '');
 
     int hours = 0;
@@ -94,6 +98,7 @@ class YouTubeService {
     }
   }
 
+  /// Formats view count to abbreviated format (1.5M, 45.0K, etc).
   String _formatViewCount(String count) {
     int views = int.parse(count);
 
@@ -106,6 +111,7 @@ class YouTubeService {
     }
   }
 
+  /// Converts date to relative time format (2 years ago, 5 months ago, etc).
   String _formatDate(String dateString) {
     DateTime date = DateTime.parse(dateString);
     DateTime now = DateTime.now();

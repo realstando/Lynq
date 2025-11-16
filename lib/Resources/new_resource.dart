@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:coding_prog/globals.dart' as globals;
 import 'package:flutter/material.dart';
-import 'package:coding_prog/Resources/resource.dart';
 
+/// StatefulWidget for creating a new resource
+/// Allows users to add educational resources with title, description, and link to a selected group
 class NewResource extends StatefulWidget {
   const NewResource(void setState, {super.key});
 
@@ -13,13 +14,19 @@ class NewResource extends StatefulWidget {
 }
 
 class _NewAnnouncementState extends State<NewResource> {
+  // Text controllers for form inputs
   final _titleController = TextEditingController();
   final _informationController = TextEditingController();
   final _linkController = TextEditingController();
 
+  // Error message for link validation
   String? _linkError;
+
+  // Currently selected group from dropdown
   String? _selectedValue;
 
+  /// Generates a list of group names with codes for the dropdown
+  /// Format: "Group Name (CODE)"
   List<String> get groupItems {
     if (globals.groups == null || globals.groups!.isEmpty) {
       return [];
@@ -34,11 +41,13 @@ class _NewAnnouncementState extends State<NewResource> {
   @override
   void initState() {
     super.initState();
+    // Add listener to validate link as user types
     _linkController.addListener(_validateLink);
   }
 
   @override
   void dispose() {
+    // Clean up controllers and listeners
     _titleController.dispose();
     _informationController.dispose();
     _linkController.removeListener(_validateLink);
@@ -46,8 +55,10 @@ class _NewAnnouncementState extends State<NewResource> {
     super.dispose();
   }
 
+  /// Submits the resource to Firebase Firestore
+  /// Validates all fields before submission and shows error dialogs if validation fails
   Future<void> submitResource() async {
-    // Trim all inputs
+    // Trim all inputs to remove leading/trailing whitespace
     final title = _titleController.text.trim();
     final information = _informationController.text.trim();
     final link = _linkController.text.trim();
@@ -58,7 +69,7 @@ class _NewAnnouncementState extends State<NewResource> {
       return;
     }
 
-    // Validate URL
+    // Validate URL format
     if (!_isValidUrl(link)) {
       _showErrorDialog(
         'Invalid Link',
@@ -68,12 +79,15 @@ class _NewAnnouncementState extends State<NewResource> {
     }
 
     try {
+      // Extract group code from selected value (e.g., "Group Name (CODE)" -> "CODE")
       print(
         _selectedValue!.substring(
           _selectedValue!.indexOf("(") + 1,
           _selectedValue!.indexOf(")"),
         ),
       );
+
+      // Add resource to Firestore under the selected group's resources collection
       await FirebaseFirestore.instance
           .collection('groups')
           .doc(
@@ -88,15 +102,22 @@ class _NewAnnouncementState extends State<NewResource> {
             'title': title,
             'link': link,
           });
+
+      // Close the form if widget is still mounted
       if (mounted) {
         Navigator.pop(context);
       }
-    } catch (_) {}
+    } catch (_) {
+      // Silently catch errors (could be improved with error handling)
+    }
   }
 
+  /// Validates the link input in real-time as user types
+  /// Updates _linkError state to show/hide error message
   void _validateLink() {
     final link = _linkController.text.trim();
 
+    // Clear error if field is empty
     if (link.isEmpty) {
       if (mounted) {
         setState(() {
@@ -106,6 +127,7 @@ class _NewAnnouncementState extends State<NewResource> {
       return;
     }
 
+    // Check if URL is valid and update error state
     if (!_isValidUrl(link)) {
       if (mounted) {
         setState(() {
@@ -121,12 +143,19 @@ class _NewAnnouncementState extends State<NewResource> {
     }
   }
 
+  /// Validates if a string is a valid URL
+  /// Checks for:
+  /// - No spaces in URL
+  /// - Valid URI format
+  /// - HTTP/HTTPS scheme
+  /// - Valid domain structure with TLD
+  /// Returns true if URL is valid, false otherwise
   bool _isValidUrl(String url) {
     try {
       // Remove whitespace
       url = url.trim();
 
-      // Check for spaces (URLs shouldn't have spaces)
+      // URLs shouldn't contain spaces
       if (url.isEmpty || url.contains(' ')) return false;
 
       // Add https:// if no scheme is present
@@ -137,28 +166,29 @@ class _NewAnnouncementState extends State<NewResource> {
         urlToValidate = 'https://$url';
       }
 
+      // Try to parse the URL
       final uri = Uri.tryParse(urlToValidate);
       if (uri == null) return false;
 
-      // Must have scheme and authority
+      // URL must have both scheme (http/https) and authority (domain)
       if (!uri.hasScheme || !uri.hasAuthority) return false;
 
-      // Must be http or https
+      // Only allow http and https protocols
       if (uri.scheme != 'http' && uri.scheme != 'https') return false;
 
-      // Host must contain at least one dot
+      // Host must contain at least one dot (for TLD)
       if (!uri.host.contains('.')) return false;
 
-      // Check that there's content before and after the dot
+      // Split host into parts (e.g., "example.com" -> ["example", "com"])
       List<String> parts = uri.host.split('.');
       if (parts.length < 2) return false;
 
-      // Each part must not be empty
+      // Each part must not be empty (e.g., "example..com" is invalid)
       for (String part in parts) {
         if (part.isEmpty) return false;
       }
 
-      // The last part (TLD) must be at least 2 characters
+      // The last part (TLD like .com, .org) must be at least 2 characters
       if (parts.last.length < 2) return false;
 
       return true;
@@ -167,6 +197,8 @@ class _NewAnnouncementState extends State<NewResource> {
     }
   }
 
+  /// Shows an error dialog with a custom title and message
+  /// Used for validation errors and missing information
   void _showErrorDialog(String title, String message) {
     showDialog(
       context: context,
@@ -175,6 +207,7 @@ class _NewAnnouncementState extends State<NewResource> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
+          // Title with warning icon
           title: Row(
             children: [
               Icon(
@@ -195,10 +228,12 @@ class _NewAnnouncementState extends State<NewResource> {
               ),
             ],
           ),
+          // Error message content
           content: Text(
             message,
             style: TextStyle(fontSize: 16),
           ),
+          // Dismiss button
           actions: [
             TextButton(
               onPressed: () {
@@ -222,6 +257,7 @@ class _NewAnnouncementState extends State<NewResource> {
   Widget build(context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
+      // App bar with title
       appBar: AppBar(
         title: Text(
           "New Resource",
@@ -239,6 +275,8 @@ class _NewAnnouncementState extends State<NewResource> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 8),
+
+              // Group Selection Section
               Text(
                 "Group",
                 style: TextStyle(
@@ -248,6 +286,7 @@ class _NewAnnouncementState extends State<NewResource> {
                 ),
               ),
               SizedBox(height: 8),
+              // Dropdown to select which group the resource belongs to
               DropdownButtonFormField<String>(
                 value: _selectedValue,
                 hint: Text(
@@ -288,7 +327,10 @@ class _NewAnnouncementState extends State<NewResource> {
                   ),
                 ),
               ),
+
               SizedBox(height: 24),
+
+              // Resource Title Section
               Text(
                 "Resource Title",
                 style: TextStyle(
@@ -298,10 +340,12 @@ class _NewAnnouncementState extends State<NewResource> {
                 ),
               ),
               SizedBox(height: 8),
+              // Input field for resource title (max 75 characters)
               TextField(
                 controller: _titleController,
                 maxLength: 75,
                 onTapOutside: (event) {
+                  // Dismiss keyboard when tapping outside
                   FocusManager.instance.primaryFocus?.unfocus();
                 },
                 decoration: InputDecoration(
@@ -321,14 +365,17 @@ class _NewAnnouncementState extends State<NewResource> {
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Color(0xFF003B7E), width: 2),
                   ),
-                  counter: Offstage(),
+                  counter: Offstage(), // Hide character counter
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 16,
                   ),
                 ),
               ),
+
               SizedBox(height: 24),
+
+              // Description Section
               Text(
                 "Description",
                 style: TextStyle(
@@ -338,6 +385,7 @@ class _NewAnnouncementState extends State<NewResource> {
                 ),
               ),
               SizedBox(height: 8),
+              // Multi-line input field for resource description (max 200 characters)
               TextField(
                 controller: _informationController,
                 maxLength: 200,
@@ -362,12 +410,15 @@ class _NewAnnouncementState extends State<NewResource> {
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Color(0xFF003B7E), width: 2),
                   ),
-                  counter: Offstage(),
+                  counter: Offstage(), // Hide character counter
                   contentPadding: EdgeInsets.all(16),
                   alignLabelWithHint: true,
                 ),
               ),
+
               SizedBox(height: 24),
+
+              // Resource Link Section
               Text(
                 "Resource Link",
                 style: TextStyle(
@@ -377,6 +428,7 @@ class _NewAnnouncementState extends State<NewResource> {
                 ),
               ),
               SizedBox(height: 8),
+              // Input field for resource URL with real-time validation
               TextField(
                 controller: _linkController,
                 maxLength: 500,
@@ -388,6 +440,7 @@ class _NewAnnouncementState extends State<NewResource> {
                   hintStyle: TextStyle(color: Colors.grey[400]),
                   filled: true,
                   fillColor: Colors.white,
+                  // Show check or error icon based on validation
                   suffixIcon: _linkController.text.isNotEmpty
                       ? Icon(
                           _linkError == null ? Icons.check_circle : Icons.error,
@@ -399,6 +452,7 @@ class _NewAnnouncementState extends State<NewResource> {
                     color: Colors.red,
                     fontSize: 12,
                   ),
+                  // Dynamic border colors based on validation state
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Colors.grey[300]!),
@@ -429,19 +483,23 @@ class _NewAnnouncementState extends State<NewResource> {
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Colors.red, width: 2),
                   ),
-                  counter: Offstage(),
+                  counter: Offstage(), // Hide character counter
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 16,
                   ),
                 ),
               ),
+
               SizedBox(height: 40),
+
+              // Submit Button
               Center(
                 child: Container(
                   width: double.infinity,
                   height: 56,
                   decoration: BoxDecoration(
+                    // Gradient background for visual appeal
                     gradient: LinearGradient(
                       colors: [Color(0xFF003B7E), Color(0xFF002856)],
                       begin: Alignment.topLeft,
@@ -465,12 +523,14 @@ class _NewAnnouncementState extends State<NewResource> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            // Upload icon
                             Icon(
                               Icons.cloud_upload,
                               color: Color(0xFFFFD700),
                               size: 22,
                             ),
                             SizedBox(width: 12),
+                            // Button text
                             Text(
                               "Save Resource",
                               style: TextStyle(
