@@ -1,28 +1,108 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:coding_prog/globals.dart' as globals;
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:coding_prog/Competive_Events/events.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class EventsFormat extends StatelessWidget {
+class EventsFormat extends StatefulWidget {
   final CompetitiveEvent event;
 
   const EventsFormat({super.key, required this.event});
 
+  @override
+  State<EventsFormat> createState() => _EventsFormatState();
+}
+
+class _EventsFormatState extends State<EventsFormat> {
   // Simplified FBLA colors
   static const fblaNavy = Color(0xFF0B1F3F);
   static const fblaBlue = Color(0xFF4A7BC8);
   static const fblaGold = Color(0xFFD4921F);
 
+  bool _isStarred = false; // Track starred state
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFavoriteState();
+  }
+
   void _openLink() async {
-    final Uri url = Uri.parse(event.link);
+    final Uri url = Uri.parse(widget.event.link);
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
-      debugPrint("Could not launch ${event.link}");
+      debugPrint("Could not launch ${widget.event.link}");
+    }
+  }
+
+  void _toggleStar() async {
+    setState(() {
+      _isStarred = !_isStarred;
+    });
+
+    await _toggleFavoriteInFirestore();
+
+    // Optional: Show feedback
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              _isStarred ? Icons.star : Icons.star_border,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Text(_isStarred ? 'Added to your competitive events' : 'Removed from competitive events'),
+          ],
+        ),
+        backgroundColor: _isStarred ? fblaGold : Colors.grey[700],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
+  Future<void> _toggleFavoriteInFirestore() async {
+
+    final docRef = FirebaseFirestore.instance
+        .collection('students')
+        .doc(globals.currentUID)
+        .collection('events')
+        .doc(widget.event.title);  // event title is the doc ID
+
+    if (_isStarred) {
+      // Add an EMPTY document
+      await docRef.set({});
+    } else {
+      // Remove the document
+      await docRef.delete();
+    }
+  }
+
+  Future<void> _loadFavoriteState() async {
+
+    final doc = await FirebaseFirestore.instance
+        .collection('students')
+        .doc(globals.currentUID)
+        .collection('events')
+        .doc(widget.event.title)
+        .get();
+
+    if (doc.exists) {
+      setState(() {
+        _isStarred = true;
+      });
     }
   }
 
   Color _getCategoryColor() {
-    switch (event.category) {
+    switch (widget.event.category) {
       case EventCategory.objective:
         return fblaNavy;
       case EventCategory.presentation:
@@ -33,7 +113,7 @@ class EventsFormat extends StatelessWidget {
   }
 
   IconData _getCategoryIcon() {
-    switch (event.category) {
+    switch (widget.event.category) {
       case EventCategory.objective:
         return Icons.quiz_outlined;
       case EventCategory.presentation:
@@ -64,7 +144,7 @@ class EventsFormat extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           onTap: _openLink,
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -78,7 +158,7 @@ class EventsFormat extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      event.category.name.toUpperCase(),
+                      widget.event.category.name.toUpperCase(),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -87,6 +167,29 @@ class EventsFormat extends StatelessWidget {
                       ),
                     ),
                     const Spacer(),
+                    // Star button
+                    IconButton(
+                      icon: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        transitionBuilder: (child, animation) {
+                          return ScaleTransition(
+                            scale: animation,
+                            child: child,
+                          );
+                        },
+                        child: Icon(
+                          _isStarred ? Icons.star : Icons.star_border,
+                          key: ValueKey(_isStarred),
+                          color: _isStarred ? fblaGold : Colors.grey[600],
+                          size: 24,
+                        ),
+                      ),
+                      onPressed: _toggleStar,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      splashRadius: 20,
+                    ),
+                    const SizedBox(width: 8),
                     Icon(
                       Icons.open_in_new,
                       color: Colors.grey[600],
@@ -95,11 +198,11 @@ class EventsFormat extends StatelessWidget {
                   ],
                 ),
 
-                const SizedBox(height: 12),
+                // const SizedBox(height: 12),
 
                 // Event Title
                 Text(
-                  event.title,
+                  widget.event.title,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -111,7 +214,7 @@ class EventsFormat extends StatelessWidget {
 
                 // Description
                 Text(
-                  event.description,
+                  widget.event.description,
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey[700],
