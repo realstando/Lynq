@@ -7,11 +7,12 @@ import 'package:flutter/material.dart';
 import 'youtube_service.dart';
 import 'package:coding_prog/SocialMedia/Youtube/youtube_video.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:coding_prog/NavigationBar/custom_appbar.dart';
 import 'package:coding_prog/NavigationBar/drawer_page.dart';
 
+/// YouTube screen displaying FBLA videos with search and filtering
 class YouTubeScreen extends StatefulWidget {
   const YouTubeScreen({super.key, required this.onNavigate});
+
   final void Function(int) onNavigate;
 
   @override
@@ -21,11 +22,12 @@ class YouTubeScreen extends StatefulWidget {
 class _YouTubeScreenState extends State<YouTubeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  // FBLA Official Colors (matching HomePage)
+  // FBLA Brand Colors
   static const fblaNavy = Color(0xFF0A2E7F);
   static const fblaGold = Color(0xFFF4AB19);
   static const fblaLightGold = Color(0xFFFFF4E0);
 
+  // State Variables
   final YouTubeService _youtubeService = YouTubeService();
   List<YouTubeVideo> _videos = [];
   bool _isLoading = false;
@@ -37,6 +39,7 @@ class _YouTubeScreenState extends State<YouTubeScreen> {
     _loadFBLAVideos();
   }
 
+  // Load default FBLA videos
   Future<void> _loadFBLAVideos() async {
     setState(() {
       _isLoading = true;
@@ -61,6 +64,7 @@ class _YouTubeScreenState extends State<YouTubeScreen> {
     }
   }
 
+  // Search for videos with query prefixed by "FBLA"
   Future<void> _searchVideos(String query) async {
     if (query.isEmpty) {
       _loadFBLAVideos();
@@ -84,6 +88,7 @@ class _YouTubeScreenState extends State<YouTubeScreen> {
     }
   }
 
+  // Open video in YouTube app or browser after confirmation
   Future<void> _openVideo(String videoId, String videoTitle) async {
     final shouldOpen = await showDialog<bool>(
       context: context,
@@ -188,7 +193,7 @@ class _YouTubeScreenState extends State<YouTubeScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header with gradient (matching HomePage style)
+            // Header with gradient background
             Container(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
@@ -207,7 +212,7 @@ class _YouTubeScreenState extends State<YouTubeScreen> {
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
               child: Column(
                 children: [
-                  // Title
+                  // Title with icon
                   Row(
                     children: [
                       Container(
@@ -237,7 +242,7 @@ class _YouTubeScreenState extends State<YouTubeScreen> {
                     ],
                   ),
                   SizedBox(height: 16),
-                  // Search Bar
+                  // Search bar
                   TextField(
                     controller: _searchController,
                     style: TextStyle(fontSize: 15),
@@ -273,7 +278,7 @@ class _YouTubeScreenState extends State<YouTubeScreen> {
               ),
             ),
 
-            // Quick Filter Chips
+            // Quick filter chips
             Container(
               height: 60,
               padding: EdgeInsets.symmetric(vertical: 10),
@@ -294,7 +299,7 @@ class _YouTubeScreenState extends State<YouTubeScreen> {
               ),
             ),
 
-            // Video List
+            // Video list or loading/empty states
             Expanded(
               child: _isLoading
                   ? Center(
@@ -336,6 +341,7 @@ class _YouTubeScreenState extends State<YouTubeScreen> {
     );
   }
 
+  // Empty state UI
   Widget _buildEmptyState() {
     return Center(
       child: Container(
@@ -391,6 +397,7 @@ class _YouTubeScreenState extends State<YouTubeScreen> {
     );
   }
 
+  // Build filter chip button
   Widget _buildFilterChip(String label, IconData icon, VoidCallback onTap) {
     return Padding(
       padding: EdgeInsets.only(right: 10),
@@ -430,6 +437,7 @@ class _YouTubeScreenState extends State<YouTubeScreen> {
     );
   }
 
+  // Build video card with thumbnail and info
   Widget _buildVideoCard(YouTubeVideo video) {
     return Container(
       margin: EdgeInsets.only(bottom: 16),
@@ -451,7 +459,7 @@ class _YouTubeScreenState extends State<YouTubeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Thumbnail with play button
+            // Thumbnail with play button overlay
             ClipRRect(
               borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
               child: Stack(
@@ -478,6 +486,7 @@ class _YouTubeScreenState extends State<YouTubeScreen> {
                       );
                     },
                   ),
+
                   // Duration badge
                   Positioned(
                     bottom: 10,
@@ -498,6 +507,7 @@ class _YouTubeScreenState extends State<YouTubeScreen> {
                       ),
                     ),
                   ),
+
                   // Play button overlay
                   Positioned.fill(
                     child: Container(
@@ -543,7 +553,7 @@ class _YouTubeScreenState extends State<YouTubeScreen> {
               ),
             ),
 
-            // Video Info
+            // Video information
             Padding(
               padding: EdgeInsets.all(16),
               child: Column(
@@ -563,7 +573,8 @@ class _YouTubeScreenState extends State<YouTubeScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   SizedBox(height: 10),
-                  // Channel
+
+                  // Channel name
                   Row(
                     children: [
                       Container(
@@ -594,7 +605,8 @@ class _YouTubeScreenState extends State<YouTubeScreen> {
                     ],
                   ),
                   SizedBox(height: 12),
-                  // Stats
+
+                  // View count and publish date
                   Row(
                     children: [
                       Icon(

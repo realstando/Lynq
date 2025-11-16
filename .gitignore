@@ -18,6 +18,10 @@ migrate_working_dir/
 *.iws
 .idea/
 
+.env
+.env.local
+.env.*.local
+
 # Build outputs
 **/android/app/build/
 **/ios/build/

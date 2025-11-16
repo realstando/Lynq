@@ -1,14 +1,19 @@
 // ==========================================
 // social_media_hub.dart
 // Selection screen for YouTube or Instagram
+// Hub page that allows users to navigate to different social media platforms
 // ==========================================
 
 import 'package:flutter/material.dart';
 import 'package:coding_prog/NavigationBar/custom_appbar.dart';
 import 'package:coding_prog/NavigationBar/drawer_page.dart';
 
+/// Main hub widget for social media platform selection
+/// Displays cards for YouTube and Instagram platforms
 class SocialMediaHub extends StatefulWidget {
   const SocialMediaHub({super.key, required this.onNavigate});
+
+  /// Callback function to navigate to different pages by index
   final void Function(int) onNavigate;
 
   @override
@@ -16,23 +21,24 @@ class SocialMediaHub extends StatefulWidget {
 }
 
 class _SocialMediaHubState extends State<SocialMediaHub> {
+  /// Global key for managing the scaffold and drawer state
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  // FBLA Official Colors
-  static const fblaNavy = Color(0xFF0A2E7F);
-  static const fblaGold = Color(0xFFF4AB19);
-  static const fblaLightGold = Color(0xFFFFF4E0);
+  // FBLA Official Brand Colors
+  static const fblaNavy = Color(0xFF0A2E7F); // Primary dark blue
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
+      // Custom drawer with social media icon and styling
       drawer: DrawerPage(
         icon: Icons.share_rounded,
         name: 'Social Media',
-        color: Color(0xFFDD2A7B),
+        color: Color(0xFFDD2A7B), // Pink/magenta accent color
         onNavigate: widget.onNavigate,
       ),
+      // Custom app bar with consistent branding
       appBar: CustomAppBar(
         onNavigate: widget.onNavigate,
         name: 'Social Media',
@@ -45,14 +51,17 @@ class _SocialMediaHubState extends State<SocialMediaHub> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header with gradient
+              // ========== Header Section ==========
+              // Gradient header with page title and description
               Container(
                 decoration: BoxDecoration(
+                  // Navy blue gradient background
                   gradient: const LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [fblaNavy, Color(0xFF00528a)],
                   ),
+                  // Subtle shadow for depth
                   boxShadow: [
                     BoxShadow(
                       color: fblaNavy.withOpacity(0.3),
@@ -67,6 +76,7 @@ class _SocialMediaHubState extends State<SocialMediaHub> {
                   children: [
                     Row(
                       children: [
+                        // Icon container with semi-transparent background
                         Container(
                           padding: EdgeInsets.all(12),
                           decoration: BoxDecoration(
@@ -80,10 +90,12 @@ class _SocialMediaHubState extends State<SocialMediaHub> {
                           ),
                         ),
                         SizedBox(width: 12),
+                        // Header text content
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // Subtitle text
                               Text(
                                 'Stay Connected',
                                 style: TextStyle(
@@ -93,6 +105,7 @@ class _SocialMediaHubState extends State<SocialMediaHub> {
                                 ),
                               ),
                               SizedBox(height: 4),
+                              // Main title text
                               Text(
                                 'FBLA Social Media',
                                 style: TextStyle(
@@ -108,6 +121,7 @@ class _SocialMediaHubState extends State<SocialMediaHub> {
                       ],
                     ),
                     SizedBox(height: 12),
+                    // Description text
                     Text(
                       'Connect with FBLA on your favorite platforms',
                       style: TextStyle(
@@ -122,12 +136,13 @@ class _SocialMediaHubState extends State<SocialMediaHub> {
 
               SizedBox(height: 32),
 
-              // Platform Selection Cards
+              // ========== Platform Selection Cards Section ==========
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Section title
                     Text(
                       'Choose a Platform',
                       style: TextStyle(
@@ -139,40 +154,37 @@ class _SocialMediaHubState extends State<SocialMediaHub> {
                     ),
                     SizedBox(height: 20),
 
-                    // YouTube Card
+                    // ========== YouTube Card ==========
                     _buildPlatformCard(
                       title: 'YouTube',
                       subtitle:
                           'Watch FBLA videos, competitions, and tutorials',
                       icon: Icons.play_circle_filled,
-                      backgroundColor: Color(0xFFFF0000),
+                      backgroundColor: Color(0xFFFF0000), // YouTube red
                       stats: [
                         {'icon': Icons.video_library, 'text': '500+ Videos'},
                         {'icon': Icons.people, 'text': '50K+ Subscribers'},
                       ],
                       onTap: () {
-                        // Navigate to YouTube screen
-                        // You can either use your onNavigate or Navigator.push
-                        // Example: widget.onNavigate(YOUR_YOUTUBE_INDEX);
+                        // Navigate to YouTube screen (index 9)
                         widget.onNavigate(9);
                       },
                     ),
 
                     SizedBox(height: 16),
 
-                    // Instagram Card
+                    // ========== Instagram Card ==========
                     _buildPlatformCard(
                       title: 'Instagram',
                       subtitle: 'Follow FBLA photos, stories, and updates',
                       icon: Icons.camera_alt,
-                      backgroundColor: Color(0xFFE1306C),
+                      backgroundColor: Color(0xFFE1306C), // Instagram pink
                       stats: [
                         {'icon': Icons.photo_library, 'text': '1000+ Posts'},
                         {'icon': Icons.favorite, 'text': '75K+ Followers'},
                       ],
                       onTap: () {
-                        // Navigate to Instagram screen
-                        // Example: widget.onNavigate(YOUR_INSTAGRAM_INDEX);
+                        // Navigate to Instagram screen (index 8)
                         widget.onNavigate(8);
                       },
                     ),
@@ -188,6 +200,15 @@ class _SocialMediaHubState extends State<SocialMediaHub> {
     );
   }
 
+  /// Builds a reusable platform card widget
+  ///
+  /// Parameters:
+  /// - [title]: Platform name (e.g., "YouTube", "Instagram")
+  /// - [subtitle]: Brief description of the platform content
+  /// - [icon]: Icon to display in the platform badge
+  /// - [backgroundColor]: Brand color for the platform icon
+  /// - [stats]: List of statistics to display (icon and text pairs)
+  /// - [onTap]: Callback when the card is tapped
   Widget _buildPlatformCard({
     required String title,
     required String subtitle,
@@ -201,6 +222,7 @@ class _SocialMediaHubState extends State<SocialMediaHub> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: Colors.grey.shade200),
+        // Subtle shadow for card elevation
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.06),
@@ -211,6 +233,7 @@ class _SocialMediaHubState extends State<SocialMediaHub> {
       ),
       child: Material(
         color: Colors.transparent,
+        // InkWell provides tap animation and ripple effect
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(18),
@@ -221,12 +244,12 @@ class _SocialMediaHubState extends State<SocialMediaHub> {
               children: [
                 Row(
                   children: [
-                    // Platform Icon
+                    // ========== Platform Icon Badge ==========
                     Container(
                       width: 64,
                       height: 64,
                       decoration: BoxDecoration(
-                        color: backgroundColor,
+                        color: backgroundColor, // Platform-specific color
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Icon(
@@ -236,10 +259,12 @@ class _SocialMediaHubState extends State<SocialMediaHub> {
                       ),
                     ),
                     SizedBox(width: 16),
+                    // ========== Platform Info ==========
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Platform name
                           Text(
                             title,
                             style: TextStyle(
@@ -250,6 +275,7 @@ class _SocialMediaHubState extends State<SocialMediaHub> {
                             ),
                           ),
                           SizedBox(height: 4),
+                          // Platform description
                           Text(
                             subtitle,
                             style: TextStyle(
@@ -262,6 +288,7 @@ class _SocialMediaHubState extends State<SocialMediaHub> {
                         ],
                       ),
                     ),
+                    // Arrow indicator for navigation
                     Icon(
                       Icons.arrow_forward_ios,
                       size: 18,
@@ -270,20 +297,25 @@ class _SocialMediaHubState extends State<SocialMediaHub> {
                   ],
                 ),
                 SizedBox(height: 16),
+                // Divider line
                 Divider(color: Colors.grey.shade200),
                 SizedBox(height: 12),
+                // ========== Platform Statistics ==========
+                // Display stats like follower count, video count, etc.
                 Row(
                   children: stats.map((stat) {
                     return Expanded(
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          // Stat icon
                           Icon(
                             stat['icon'] as IconData,
                             size: 16,
                             color: Colors.grey.shade600,
                           ),
                           SizedBox(width: 6),
+                          // Stat text
                           Flexible(
                             child: Text(
                               stat['text'] as String,

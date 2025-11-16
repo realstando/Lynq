@@ -1,16 +1,18 @@
 import 'package:coding_prog/globals.dart' as globals;
 import 'package:coding_prog/globals.dart' as global;
-import 'package:coding_prog/profile/profile_formats.dart';
-import 'package:coding_prog/profile/profile_lists.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:coding_prog/NavigationBar/drawer_page.dart';
 import 'package:intl/intl.dart';
 
+/// Enum for popup menu actions in the AppBar
 enum MenuAction { logout }
 
+/// A StatefulWidget that displays the user's profile page
+/// Shows user information, enrolled events, and scheduled activities
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key, required this.onNavigate});
+
+  /// Callback function to navigate to different pages by index
   final void Function(int) onNavigate;
 
   @override
@@ -18,25 +20,24 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  /// Key for accessing the Scaffold state (e.g., for drawer)
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  // FBLA Official Colors
+  // FBLA Official Brand Colors
   static const fblaNavy = Color(0xFF0A2E7F);
   static const fblaGold = Color(0xFFF4AB19);
   static const fblaLightGold = Color(0xFFFFF4E0);
 
   @override
   Widget build(BuildContext context) {
+    // Get current user information from global state
     final String name = globals.currentUserName ?? 'Member';
     final String email = globals.currentUserEmail ?? 'Member';
-    // final List<String> events = [
-    //   'MAD',
-    //   'Test',
-    // ];
 
     return Scaffold(
       backgroundColor: Colors.white,
       key: _scaffoldKey,
+      // AppBar with logout menu
       appBar: AppBar(
         title: const Text(
           'Profile',
@@ -49,22 +50,26 @@ class _ProfilePageState extends State<ProfilePage> {
         backgroundColor: fblaNavy,
         foregroundColor: Colors.white,
         elevation: 0,
+        // Back button navigates to home page
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            widget.onNavigate(0); // Navigate to home page
+            widget.onNavigate(0); // Navigate to home page (index 0)
           },
         ),
+        // Three-dot menu with logout option
         actions: [
           PopupMenuButton<MenuAction>(
             icon: const Icon(Icons.more_vert, color: Colors.white),
             onSelected: (value) async {
               switch (value) {
                 case MenuAction.logout:
+                  // Show confirmation dialog before logging out
                   final shouldLogout = await showLogOutDialog(context);
                   if (shouldLogout) {
+                    // Sign out from Firebase
                     await FirebaseAuth.instance.signOut();
-                    // ignore: use_build_context_synchronously
+                    // Navigate to login page and clear navigation stack
                     if (mounted) {
                       Navigator.of(context).pushNamedAndRemoveUntil(
                         '/login/',
@@ -89,7 +94,7 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with gradient and logo
+            // Header section with gradient background and user info
             Container(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
@@ -109,6 +114,7 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Center(
                 child: Column(
                   children: [
+                    // Profile avatar with gold gradient border
                     Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
@@ -138,6 +144,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     ),
                     const SizedBox(height: 16),
+                    // User name
                     Text(
                       name,
                       style: const TextStyle(
@@ -148,6 +155,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     ),
                     const SizedBox(height: 6),
+                    // User email with school icon
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -187,13 +195,14 @@ class _ProfilePageState extends State<ProfilePage> {
 
             const SizedBox(height: 28),
 
-            // My Events Section
+            // My Events Section - displays events user is enrolled in
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 children: [
                   _buildSectionHeader('My Events'),
                   const SizedBox(height: 14),
+                  // Show empty state if no events, otherwise display event cards
                   if (global.events!.isEmpty)
                     _buildEmptyState(
                       'No events yet',
@@ -208,13 +217,14 @@ class _ProfilePageState extends State<ProfilePage> {
 
             const SizedBox(height: 32),
 
-            // Scheduled Activities Section
+            // Scheduled Activities Section - displays upcoming calendar events
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 children: [
                   _buildSectionHeader('Scheduled Events'),
                   const SizedBox(height: 14),
+                  // Show empty state if no scheduled events
                   if (global.calendar == null || global.calendar!.isEmpty)
                     _buildEmptyState(
                       'No scheduled events',
@@ -222,10 +232,12 @@ class _ProfilePageState extends State<ProfilePage> {
                       Icons.calendar_today,
                     )
                   else
+                    // Display each scheduled event with formatted date/time
                     ...global.calendar!
                         .map(
                           (cal) => _buildActivityCard(
                             cal['name'],
+                            // Format: "Mon, Jan 1 @ 3:00 PM"
                             DateFormat(
                               'E, MMM d \'@\' h:mm a',
                             ).format(cal['date'].toDate()),
@@ -243,9 +255,11 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  /// Builds a section header with logo and title
   Widget _buildSectionHeader(String title) {
     return Row(
       children: [
+        // Logo container
         Container(
           height: 32,
           width: 32,
@@ -262,6 +276,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
         const SizedBox(width: 10),
+        // Section title
         Text(
           title,
           style: const TextStyle(
@@ -275,6 +290,8 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  /// Builds an empty state widget when no data is available
+  /// Used for both events and scheduled activities
   Widget _buildEmptyState(String title, String subtitle, IconData icon) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -286,6 +303,7 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       child: Column(
         children: [
+          // Logo container
           Container(
             height: 60,
             width: 60,
@@ -302,6 +320,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
           const SizedBox(height: 16),
+          // Empty state title
           Text(
             title,
             style: TextStyle(
@@ -311,6 +330,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
           const SizedBox(height: 4),
+          // Empty state subtitle/description
           Text(
             subtitle,
             style: TextStyle(
@@ -323,6 +343,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  /// Builds a card displaying an event that the user is enrolled in
   Widget _buildEventCard(String eventName) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -341,6 +362,7 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       child: Row(
         children: [
+          // Event icon with gold gradient background
           Container(
             width: 48,
             height: 48,
@@ -360,6 +382,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
           const SizedBox(width: 14),
+          // Event name
           Expanded(
             child: Text(
               eventName,
@@ -371,6 +394,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
           ),
+          // Forward arrow indicator
           Icon(
             Icons.arrow_forward_ios,
             size: 16,
@@ -381,6 +405,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  /// Builds a card displaying a scheduled activity with date and time
   Widget _buildActivityCard(String activity, String time) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -400,6 +425,7 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Calendar icon with navy background
           Container(
             width: 48,
             height: 48,
@@ -421,10 +447,12 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
           const SizedBox(width: 14),
+          // Activity details (name and time)
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Activity name
                 Text(
                   activity,
                   style: const TextStyle(
@@ -435,6 +463,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
                 const SizedBox(height: 6),
+                // Activity time with clock icon
                 Row(
                   children: [
                     Icon(
@@ -462,6 +491,8 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 }
 
+/// Shows a confirmation dialog asking the user if they want to sign out
+/// Returns true if user confirms, false if cancelled
 Future<bool> showLogOutDialog(BuildContext context) {
   return showDialog(
     context: context,
@@ -484,6 +515,7 @@ Future<bool> showLogOutDialog(BuildContext context) {
           ),
         ),
         actions: [
+          // Cancel button - returns false
           TextButton(
             onPressed: () {
               Navigator.of(context).pop(false);
@@ -496,6 +528,7 @@ Future<bool> showLogOutDialog(BuildContext context) {
               ),
             ),
           ),
+          // Sign Out button - returns true
           TextButton(
             onPressed: () {
               Navigator.of(context).pop(true);
@@ -518,5 +551,6 @@ Future<bool> showLogOutDialog(BuildContext context) {
         ],
       );
     },
+    // Return false if dialog is dismissed without selection
   ).then((value) => value ?? false);
 }

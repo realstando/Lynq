@@ -1,19 +1,28 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:coding_prog/globals.dart' as globals;
 import 'package:flutter/material.dart';
-import 'package:coding_prog/Resources/resource.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+/// A StatelessWidget that displays a resource card with title, body, and link
+/// Advisors have additional permission to delete resources
 class ResourceFormat extends StatelessWidget {
   ResourceFormat({required this.resource, required this.onDelete, super.key});
 
+  /// Map containing resource data (title, body, link, code, id)
   final Map<String, dynamic> resource;
+
+  /// Callback function triggered when resource is deleted
   final VoidCallback onDelete;
+
+  /// Flag to check if current user is an advisor (has delete permissions)
   final bool _isAdvisor = globals.currentUserRole == 'advisors';
 
+  /// Launches the resource URL in an external browser
+  /// Automatically adds https:// protocol if missing
   Future<void> _launchURL() async {
     String urlToLaunch = resource['link'];
 
+    // Add https:// protocol if URL doesn't have any protocol
     if (!urlToLaunch.startsWith('http://') &&
         !urlToLaunch.startsWith('https://') &&
         !urlToLaunch.contains('://')) {
@@ -21,11 +30,15 @@ class ResourceFormat extends StatelessWidget {
     }
 
     final Uri url = Uri.parse(urlToLaunch);
+
+    // Attempt to launch URL in external browser
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       throw Exception('Could not launch $url');
     }
   }
 
+  /// Shows a confirmation dialog before opening the resource link
+  /// Displays the URL and provides cancel/open options
   void _showLinkDialog(BuildContext context) {
     const primaryBlue = Color(0xFF2563EB);
 
@@ -36,6 +49,7 @@ class ResourceFormat extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
+          // Dialog header with globe icon
           title: const Row(
             children: [
               Icon(
@@ -54,6 +68,7 @@ class ResourceFormat extends StatelessWidget {
               ),
             ],
           ),
+          // Dialog content showing URL preview
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,6 +82,7 @@ class ResourceFormat extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
+              // Container displaying the URL with styling
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -97,6 +113,7 @@ class ResourceFormat extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
+              // Info text about browser opening
               Text(
                 "This will open in your browser.",
                 style: TextStyle(
@@ -107,7 +124,9 @@ class ResourceFormat extends StatelessWidget {
               ),
             ],
           ),
+          // Action buttons: Cancel and Open Link
           actions: [
+            // Cancel button
             TextButton(
               onPressed: () => Navigator.pop(ctx),
               style: TextButton.styleFrom(foregroundColor: Colors.grey[600]),
@@ -116,10 +135,11 @@ class ResourceFormat extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
               ),
             ),
+            // Open Link button
             TextButton(
               onPressed: () {
-                Navigator.pop(ctx);
-                _launchURL();
+                Navigator.pop(ctx); // Close dialog
+                _launchURL(); // Launch URL
               },
               style: TextButton.styleFrom(
                 foregroundColor: Colors.white,
@@ -150,6 +170,9 @@ class ResourceFormat extends StatelessWidget {
     );
   }
 
+  /// Shows a confirmation dialog before deleting a resource
+  /// Only accessible to advisors
+  /// Deletes from Firestore and shows success snackbar
   void _onRemoveResource(BuildContext context, Map<String, dynamic> resource) {
     showDialog(
       context: context,
@@ -158,6 +181,7 @@ class ResourceFormat extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
+          // Dialog header with delete icon
           title: Row(
             children: [
               Icon(
@@ -178,11 +202,14 @@ class ResourceFormat extends StatelessWidget {
               ),
             ],
           ),
+          // Confirmation message with resource title
           content: Text(
             "Are you sure you want to delete '${resource['title']}'? This action cannot be undone.",
             style: TextStyle(fontSize: 16),
           ),
+          // Action buttons: Cancel and Delete
           actions: [
+            // Cancel button
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
@@ -195,6 +222,7 @@ class ResourceFormat extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
+            // Delete button with red styling
             Container(
               decoration: BoxDecoration(
                 color: Colors.red,
@@ -202,21 +230,23 @@ class ResourceFormat extends StatelessWidget {
               ),
               child: TextButton(
                 onPressed: () async {
-                  // Capture navigator and messenger synchronously to avoid using BuildContext after an await
+                  // Capture navigator and messenger synchronously
+                  // This avoids BuildContext usage after async operations
                   final navigator = Navigator.of(ctx);
                   final messenger = ScaffoldMessenger.of(context);
 
+                  // Delete resource from Firestore
                   await FirebaseFirestore.instance
                       .collection('groups')
-                      .doc(resource['code'])
+                      .doc(resource['code']) // Group code
                       .collection('resources')
-                      .doc(resource['id'])
+                      .doc(resource['id']) // Resource document ID
                       .delete();
 
-                  // Close the dialog using the captured navigator
+                  // Close the dialog
                   navigator.pop();
 
-                  // Show confirmation snackbar using the captured messenger
+                  // Show success confirmation snackbar
                   messenger.showSnackBar(
                     SnackBar(
                       content: Text('Resource deleted successfully'),
@@ -247,6 +277,7 @@ class ResourceFormat extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      // Card styling with blue border and background
       decoration: BoxDecoration(
         color: primaryBlue.withOpacity(0.08),
         borderRadius: BorderRadius.circular(12),
@@ -260,15 +291,17 @@ class ResourceFormat extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header row
+            // Header row with title and optional delete button
             Row(
               children: [
+                // Book icon
                 const Icon(
                   Icons.auto_stories_rounded,
                   color: primaryBlue,
                   size: 24,
                 ),
                 const SizedBox(width: 12),
+                // Resource title
                 Expanded(
                   child: Text(
                     resource['title'],
@@ -280,6 +313,7 @@ class ResourceFormat extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                // Delete button (only visible to advisors)
                 if (_isAdvisor)
                   IconButton(
                     onPressed: () => _onRemoveResource(context, resource),
@@ -295,19 +329,19 @@ class ResourceFormat extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            // Body text
+            // Resource description/body text
             Text(
               resource['body'],
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey[700],
-                height: 1.4,
+                height: 1.4, // Line height for better readability
               ),
             ),
 
             const SizedBox(height: 16),
 
-            // Link button
+            // "View Resource" button centered at bottom
             Center(
               child: GestureDetector(
                 onTap: () => _showLinkDialog(context),
@@ -323,12 +357,14 @@ class ResourceFormat extends StatelessWidget {
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      // Globe icon
                       Icon(
                         Icons.language_rounded,
                         color: Colors.white,
                         size: 18,
                       ),
                       SizedBox(width: 10),
+                      // Button text
                       Text(
                         'View Resource',
                         style: TextStyle(
@@ -338,6 +374,7 @@ class ResourceFormat extends StatelessWidget {
                         ),
                       ),
                       SizedBox(width: 8),
+                      // Forward arrow icon
                       Icon(
                         Icons.arrow_forward_rounded,
                         color: Colors.white,

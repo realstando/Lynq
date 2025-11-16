@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:coding_prog/globals.dart' as globals;
 import 'package:flutter/material.dart';
-import 'package:coding_prog/Calendar/calendar.dart';
 import 'package:intl/intl.dart';
 
+/// StatefulWidget for creating a new calendar event
+/// Allows users to add events with title, location, and date to a selected group's calendar
 class NewCalendar extends StatefulWidget {
   const NewCalendar(void setState, {super.key});
 
@@ -14,9 +15,12 @@ class NewCalendar extends StatefulWidget {
 }
 
 class _NewCalendarState extends State<NewCalendar> {
+  // Text controllers for form inputs
   final _titleController = TextEditingController();
   final _locationController = TextEditingController();
 
+  /// Generates a list of group names with codes for the dropdown
+  /// Format: "Group Name (CODE)"
   List<String> get groupItems {
     if (globals.groups == null || globals.groups!.isEmpty) {
       return [];
@@ -28,19 +32,27 @@ class _NewCalendarState extends State<NewCalendar> {
     }).toList();
   }
 
+  // Currently selected group from dropdown
   String? _selectedValue;
+
+  // Selected date for the event (defaults to today)
   DateTime selectedDate = DateTime.now();
 
   @override
   void dispose() {
+    // Clean up controllers when widget is disposed
     _titleController.dispose();
     _locationController.dispose();
     super.dispose();
   }
 
+  /// Submits the event data to Firebase Firestore
+  /// Validates that all fields are filled before submission
   void _submitExpenseData() async {
+    // Validate that title and location are not empty
     if (_titleController.text.trim().isEmpty ||
         _locationController.text.trim().isEmpty) {
+      // Show error dialog if fields are missing
       showDialog(
         context: context,
         builder: ((ctx) {
@@ -91,6 +103,8 @@ class _NewCalendarState extends State<NewCalendar> {
     }
 
     try {
+      // Extract group code from selected value (e.g., "Group Name (CODE)" -> "CODE")
+      // Add event to the selected group's calendar subcollection
       await FirebaseFirestore.instance
           .collection('groups')
           .doc(
@@ -105,16 +119,24 @@ class _NewCalendarState extends State<NewCalendar> {
             'location': _locationController.text.trim(),
             'date': selectedDate,
           });
+
+      // Close the form if widget is still mounted
       if (mounted) {
         Navigator.pop(context);
       }
-    } catch (_) {}
+    } catch (_) {
+      // Silently catch errors (could be improved with error handling)
+    }
   }
 
+  /// Presents a date picker dialog for selecting the event date
+  /// Date range: 1 year in the past to 1 year in the future from today
   void _presentDatePicker() async {
     final now = DateTime.now();
     final firstDate = DateTime(now.year - 1, now.month, now.day);
     final lastDate = DateTime(now.year + 1, now.month, now.day);
+
+    // Show date picker with custom theme matching app colors
     final pickedDate = await showDatePicker(
       context: context,
       initialDate: now,
@@ -124,7 +146,7 @@ class _NewCalendarState extends State<NewCalendar> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: Color(0xFF003B7E),
+              primary: Color(0xFF003B7E), // Navy blue for selected date
               onPrimary: Colors.white,
               surface: Colors.white,
               onSurface: Color(0xFF003B7E),
@@ -135,6 +157,7 @@ class _NewCalendarState extends State<NewCalendar> {
       },
     );
 
+    // Update selected date if user picked a date
     if (pickedDate != null) {
       setState(() {
         selectedDate = pickedDate;
@@ -145,6 +168,7 @@ class _NewCalendarState extends State<NewCalendar> {
   @override
   Widget build(context) {
     return Scaffold(
+      // App bar with title
       appBar: AppBar(
         title: Text(
           "New Event",
@@ -163,6 +187,8 @@ class _NewCalendarState extends State<NewCalendar> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 8),
+
+              // Group Selection Section
               Text(
                 "Group",
                 style: TextStyle(
@@ -172,6 +198,7 @@ class _NewCalendarState extends State<NewCalendar> {
                 ),
               ),
               SizedBox(height: 8),
+              // Dropdown to select which group the event belongs to
               DropdownButtonFormField<String>(
                 value: _selectedValue,
                 hint: Text(
@@ -212,7 +239,10 @@ class _NewCalendarState extends State<NewCalendar> {
                   ),
                 ),
               ),
+
               SizedBox(height: 24),
+
+              // Event Title Section
               Text(
                 "Event Title",
                 style: TextStyle(
@@ -222,10 +252,12 @@ class _NewCalendarState extends State<NewCalendar> {
                 ),
               ),
               SizedBox(height: 8),
+              // Input field for event title (max 75 characters)
               TextField(
                 controller: _titleController,
                 maxLength: 75,
                 onTapOutside: (event) {
+                  // Dismiss keyboard when tapping outside
                   FocusManager.instance.primaryFocus?.unfocus();
                 },
                 decoration: InputDecoration(
@@ -245,14 +277,17 @@ class _NewCalendarState extends State<NewCalendar> {
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Color(0xFF003B7E), width: 2),
                   ),
-                  counter: Offstage(),
+                  counter: Offstage(), // Hide character counter
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 16,
                   ),
                 ),
               ),
+
               SizedBox(height: 24),
+
+              // Location Section
               Text(
                 "Location",
                 style: TextStyle(
@@ -262,6 +297,7 @@ class _NewCalendarState extends State<NewCalendar> {
                 ),
               ),
               SizedBox(height: 8),
+              // Input field for event location (max 100 characters)
               TextField(
                 controller: _locationController,
                 maxLength: 100,
@@ -285,14 +321,17 @@ class _NewCalendarState extends State<NewCalendar> {
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Color(0xFF003B7E), width: 2),
                   ),
-                  counter: Offstage(),
+                  counter: Offstage(), // Hide character counter
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 16,
                   ),
                 ),
               ),
+
               SizedBox(height: 24),
+
+              // Date Selection Section
               Text(
                 "Date",
                 style: TextStyle(
@@ -302,6 +341,7 @@ class _NewCalendarState extends State<NewCalendar> {
                 ),
               ),
               SizedBox(height: 8),
+              // Tappable container that opens date picker
               InkWell(
                 onTap: _presentDatePicker,
                 borderRadius: BorderRadius.circular(12),
@@ -314,12 +354,14 @@ class _NewCalendarState extends State<NewCalendar> {
                   ),
                   child: Row(
                     children: [
+                      // Calendar icon
                       Icon(
                         Icons.calendar_today,
                         color: Color(0xFF003B7E),
                         size: 20,
                       ),
                       SizedBox(width: 12),
+                      // Display formatted selected date (e.g., "Jan 15, 2025")
                       Text(
                         DateFormat.yMMMd().format(selectedDate),
                         style: TextStyle(
@@ -328,6 +370,7 @@ class _NewCalendarState extends State<NewCalendar> {
                         ),
                       ),
                       Spacer(),
+                      // Dropdown arrow indicator
                       Icon(
                         Icons.arrow_drop_down,
                         color: Colors.grey[600],
@@ -336,12 +379,16 @@ class _NewCalendarState extends State<NewCalendar> {
                   ),
                 ),
               ),
+
               SizedBox(height: 40),
+
+              // Create Event Button
               Center(
                 child: Container(
                   width: double.infinity,
                   height: 56,
                   decoration: BoxDecoration(
+                    // Gradient background for visual appeal
                     gradient: LinearGradient(
                       colors: [Color(0xFF003B7E), Color(0xFF002856)],
                       begin: Alignment.topLeft,
@@ -359,18 +406,20 @@ class _NewCalendarState extends State<NewCalendar> {
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      onTap: _submitExpenseData,
+                      onTap: _submitExpenseData, // Submit the event data
                       borderRadius: BorderRadius.circular(16),
                       child: Center(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            // Add icon
                             Icon(
                               Icons.add_circle_outline,
                               color: Color(0xFFFFD700),
                               size: 22,
                             ),
                             SizedBox(width: 12),
+                            // Button text
                             Text(
                               "Create Event",
                               style: TextStyle(

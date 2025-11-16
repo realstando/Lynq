@@ -5,18 +5,25 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// StatefulWidget for creating a new group
+/// Allows advisors to create groups with a unique join code that members can use to join
 class NewGroup extends StatefulWidget {
   const NewGroup(void setState, {super.key});
+
   @override
   State<NewGroup> createState() => _NewGroupState();
 }
 
 class _NewGroupState extends State<NewGroup> {
+  // Text controller for the group name input field
   final _titleController = TextEditingController();
 
+  /// Submits the new group to Firebase Firestore
+  /// Validates input, generates a unique join code, and shows success dialog
   void submitGroup() {
     final title = _titleController.text.trim();
 
+    // Validate that group name is not empty
     if (title.isEmpty) {
       showDialog(
         context: context,
@@ -67,12 +74,13 @@ class _NewGroupState extends State<NewGroup> {
       return;
     }
 
+    // Generate a unique 6-character alphanumeric join code
     final code = _generateAlphanumericCode();
 
-    // Show success dialog with join code
+    // Show success dialog with the generated join code
     showDialog(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: false, // Prevent dismissal by tapping outside
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
@@ -98,6 +106,7 @@ class _NewGroupState extends State<NewGroup> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Display the group name
             Text(
               title,
               style: TextStyle(
@@ -108,6 +117,7 @@ class _NewGroupState extends State<NewGroup> {
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 24),
+            // Highlighted container displaying the join code
             Container(
               padding: EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -126,6 +136,7 @@ class _NewGroupState extends State<NewGroup> {
                     ),
                   ),
                   SizedBox(height: 12),
+                  // Large, bold join code for easy reading and sharing
                   Text(
                     code,
                     style: TextStyle(
@@ -139,6 +150,7 @@ class _NewGroupState extends State<NewGroup> {
               ),
             ),
             SizedBox(height: 16),
+            // Instruction text for sharing the code
             Text(
               'Share this code with members to join your group',
               style: TextStyle(
@@ -153,6 +165,7 @@ class _NewGroupState extends State<NewGroup> {
           TextButton(
             onPressed: () async {
               try {
+                // Create the group document in Firestore with advisor information
                 await FirebaseFirestore.instance
                     .collection('groups')
                     .doc(code)
@@ -162,15 +175,19 @@ class _NewGroupState extends State<NewGroup> {
                       'advisor': FirebaseAuth.instance.currentUser!.displayName,
                       'email': FirebaseAuth.instance.currentUser!.email,
                     });
+
+                // Add the group to the advisor's groups subcollection
                 await FirebaseFirestore.instance
                     .collection('advisors')
                     .doc(globals.currentUID)
                     .collection('groups')
                     .doc(code)
                     .set({});
-              } catch (_) {}
-              Navigator.of(dialogContext).pop(); // Close dialog
-              Navigator.of(context).pop(); // Close screen
+              } catch (_) {
+                // Silently catch errors (could be improved with error handling)
+              }
+              Navigator.of(dialogContext).pop(); // Close success dialog
+              Navigator.of(context).pop(); // Close the new group screen
             },
             style: TextButton.styleFrom(
               foregroundColor: Color(0xFF003B7E),
@@ -191,6 +208,7 @@ class _NewGroupState extends State<NewGroup> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // App bar with title
       appBar: AppBar(
         title: Text(
           "New Group",
@@ -209,6 +227,8 @@ class _NewGroupState extends State<NewGroup> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 8),
+
+              // Group Name Section Label
               Text(
                 "Group Name",
                 style: TextStyle(
@@ -218,10 +238,13 @@ class _NewGroupState extends State<NewGroup> {
                 ),
               ),
               SizedBox(height: 8),
+
+              // Group name input field (max 50 characters)
               TextField(
                 controller: _titleController,
                 maxLength: 50,
                 onTapOutside: (event) {
+                  // Dismiss keyboard when tapping outside
                   FocusManager.instance.primaryFocus?.unfocus();
                 },
                 decoration: InputDecoration(
@@ -241,15 +264,18 @@ class _NewGroupState extends State<NewGroup> {
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Color(0xFF003B7E), width: 2),
                   ),
-                  counter: Offstage(),
+                  counter: Offstage(), // Hide character counter
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 16,
                   ),
                 ),
-                textCapitalization: TextCapitalization.words,
+                textCapitalization: TextCapitalization
+                    .words, // Capitalize first letter of each word
               ),
               SizedBox(height: 16),
+
+              // Informational box explaining join code generation
               Container(
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -277,11 +303,14 @@ class _NewGroupState extends State<NewGroup> {
                 ),
               ),
               SizedBox(height: 40),
+
+              // Create Group Button
               Center(
                 child: Container(
                   width: double.infinity,
                   height: 56,
                   decoration: BoxDecoration(
+                    // Gradient background for visual appeal
                     gradient: LinearGradient(
                       colors: [Color(0xFF003B7E), Color(0xFF002856)],
                       begin: Alignment.topLeft,
@@ -299,18 +328,20 @@ class _NewGroupState extends State<NewGroup> {
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      onTap: submitGroup,
+                      onTap: submitGroup, // Call submitGroup when tapped
                       borderRadius: BorderRadius.circular(16),
                       child: Center(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            // Add icon
                             Icon(
                               Icons.add_circle_outline,
                               color: Color(0xFFFFD700),
                               size: 22,
                             ),
                             SizedBox(width: 12),
+                            // Button text
                             Text(
                               "Create Group",
                               style: TextStyle(
@@ -336,15 +367,25 @@ class _NewGroupState extends State<NewGroup> {
 
   @override
   void dispose() {
+    // Clean up the controller when widget is disposed
     _titleController.dispose();
     super.dispose();
   }
 
+  /// Generates a random alphanumeric code for group joining
+  ///
+  /// Excludes confusing characters like 'I', 'O', '0', '1' to prevent user errors
+  ///
+  /// Parameters:
+  /// - [length]: Number of characters in the code (default: 6)
+  ///
+  /// Returns: A random uppercase alphanumeric string (e.g., "K7MN2P")
   static String _generateAlphanumericCode({int length = 6}) {
-    const chars =
-        'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Excludes confusing chars
+    // Character set excludes easily confused characters (I/1, O/0)
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     final random = Random();
 
+    // Generate random string by selecting random characters
     return List.generate(
       length,
       (index) => chars[random.nextInt(chars.length)],
