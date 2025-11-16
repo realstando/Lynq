@@ -6,6 +6,7 @@ import 'package:coding_prog/Annoucements/announcement_format.dart';
 import 'package:coding_prog/Annoucements/announcement.dart';
 import 'package:coding_prog/NavigationBar/custom_appbar.dart';
 import 'package:coding_prog/NavigationBar/drawer_page.dart';
+import 'package:coding_prog/NavigationBar/custom_actionbutton.dart';
 
 class AnnouncementsPage extends StatefulWidget {
   const AnnouncementsPage({
@@ -55,18 +56,10 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
       ),
       backgroundColor: const Color(0xFFF7F9FC),
       floatingActionButton: _isAdvisor
-          ? FloatingActionButton.extended(
-              onPressed: _openAddAnnouncementOverlay,
-              backgroundColor: const Color(0xFF2563EB),
-              icon: const Icon(Icons.edit_note, color: Colors.white),
-              label: const Text(
-                "New Announcement",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                ),
-              ),
+          ? CustomActionButton(
+              openAddPage: _openAddAnnouncementOverlay,
+              name: "New Announcement",
+              icon: Icons.campaign_rounded,
             )
           : null,
       body: hasAnnouncements
