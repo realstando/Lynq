@@ -698,6 +698,11 @@ class _MainScaffoldState extends State<MainScaffold> {
   void stopListeningToUserData() {
     _userSubs?.cancel();
     _userSubs = null;
+    globals.currentUID = null;
+    globals.currentUserName = null;
+    globals.currentUserRole = null;
+    globals.currentUserEmail = null;
+    globals.isAdmin = false;
     for (var sub in _groupListeners.values) {
       sub.cancel();
     }
