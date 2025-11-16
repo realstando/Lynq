@@ -8,6 +8,7 @@ import 'package:coding_prog/globals.dart' as global;
 import 'package:flutter/material.dart';
 import 'package:coding_prog/Resources/AdminResources/resource_adminformat.dart';
 import 'package:coding_prog/Resources/resource.dart';
+import 'package:coding_prog/NavigationBar/custom_actionbutton.dart';
 
 class ResourcePage extends StatefulWidget {
   const ResourcePage({super.key, required this.onNavigate});
@@ -87,11 +88,11 @@ class _ResourcePageState extends State<ResourcePage> {
               child: TextButton(
                 onPressed: () async {
                   await FirebaseFirestore.instance
-                        .collection('groups')
-                        .doc(resource['code'])
-                        .collection('resources')
-                        .doc(resource['id'])
-                        .delete();
+                      .collection('groups')
+                      .doc(resource['code'])
+                      .collection('resources')
+                      .doc(resource['id'])
+                      .delete();
 
                   if (!mounted) return;
 
@@ -137,56 +138,16 @@ class _ResourcePageState extends State<ResourcePage> {
       appBar: CustomAppBar(
         onNavigate: widget.onNavigate,
         name: 'FBLA Resources',
-        color: Colors.blue,
+        color: Colors.green,
         scaffoldKey: _scaffoldKey,
       ),
-      floatingActionButton: _isAdvisor ? Padding(
-        padding: EdgeInsets.only(bottom: 20, right: 8),
-        child: Container(
-          height: 56,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF003B7E), Color(0xFF002856)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Color(0xFF003B7E).withOpacity(0.4),
-                blurRadius: 12,
-                offset: Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: _openAddResourceOverlay,
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.add, color: Color(0xFFE8B44C), size: 24),
-                    SizedBox(width: 12),
-                    Text(
-                      "New Resource",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ) : null,
+      floatingActionButton: _isAdvisor
+          ? CustomActionButton(
+              openAddPage: _openAddResourceOverlay,
+              name: "New Resource",
+              icon: Icons.folder_open,
+            )
+          : null,
       body: Column(
         children: [
           Expanded(
@@ -224,7 +185,8 @@ class _ResourcePageState extends State<ResourcePage> {
                     itemCount: global.resources!.length,
                     itemBuilder: (context, index) => ResourceFormat(
                       resource: global.resources![index],
-                      onDelete: () => _onRemoveResource(global.resources![index]),
+                      onDelete: () =>
+                          _onRemoveResource(global.resources![index]),
                     ),
                   ),
           ),

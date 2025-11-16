@@ -24,7 +24,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  // FBLA Official Colors
+  // Declaring the colors to be used for this screen
   static const fblaNavy = Color(0xFF0A2E7F);
   static const fblaGold = Color(0xFFF4AB19);
 
@@ -84,14 +84,15 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
+              // Creating the header for the home page
               Container(
                 color: fblaNavy,
                 padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment
+                      .spaceBetween, // Centering the welcome text and icon
                   children: [
-                    // Welcome text
+                    // The "Welcome back" text on the top of the home page
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -99,7 +100,7 @@ class _HomePageState extends State<HomePage> {
                           Text(
                             "Welcome back,",
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.85),
+                              color: Colors.white.withValues(alpha: 0.85),
                               fontSize: 15,
                               fontWeight: FontWeight.w500,
                             ),
@@ -403,15 +404,23 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
+
+        // Creating the "View All" button next to Announcements and Events
         GestureDetector(
-          onTap: onViewAll,
+          onTap: onViewAll, // Navigates to the announcement/calendar page
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: fblaGold.withOpacity(0.2),
+              // Creates the background for the button
+              color: fblaGold.withValues(
+                alpha: 0.2,
+              ), // FBLA Gold 20% transparent
               borderRadius: BorderRadius.circular(8),
+              // Adds a slightly less bolded border
               border: Border.all(
-                color: fblaGold.withOpacity(0.4),
+                color: fblaGold.withValues(
+                  alpha: 0.4,
+                ), // FBLA Gold 40% transparent
               ),
             ),
             child: const Text(

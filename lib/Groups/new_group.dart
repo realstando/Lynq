@@ -14,30 +14,55 @@ class NewGroup extends StatefulWidget {
 class _NewGroupState extends State<NewGroup> {
   final _titleController = TextEditingController();
 
-  // FBLA Colors
-  static const Color fblaBlue = Color.fromARGB(255, 1, 26, 167);
-  static const Color fblaDarkBlue = Color(0xFF1D52BC);
-  static const Color fblaGold = Color(0xFFF4AB19);
-
   void submitGroup() {
     final title = _titleController.text.trim();
 
     if (title.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.error, color: Colors.white),
-              SizedBox(width: 12),
-              Text('Please enter a group name'),
+      showDialog(
+        context: context,
+        builder: ((ctx) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Row(
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: Color(0xFFFFD700),
+                  size: 28,
+                ),
+                SizedBox(width: 12),
+                Text(
+                  "Missing Information",
+                  style: TextStyle(
+                    color: Color(0xFF003B7E),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            content: Text(
+              "Please enter a group name before creating.",
+              style: TextStyle(fontSize: 16),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: Color(0xFF003B7E),
+                ),
+                child: Text(
+                  "Got it!",
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
             ],
-          ),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+          );
+        }),
       );
       return;
     }
@@ -50,23 +75,21 @@ class _NewGroupState extends State<NewGroup> {
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
         ),
         title: Row(
           children: [
-            Container(
-              padding: EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.check_circle, color: Colors.green, size: 28),
+            Icon(
+              Icons.check_circle,
+              color: Colors.green,
+              size: 28,
             ),
             SizedBox(width: 12),
             Text(
               'Group Created!',
               style: TextStyle(
-                color: fblaDarkBlue,
+                color: Color(0xFF003B7E),
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -78,9 +101,9 @@ class _NewGroupState extends State<NewGroup> {
             Text(
               title,
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: fblaDarkBlue,
+                color: Color(0xFF003B7E),
               ),
               textAlign: TextAlign.center,
             ),
@@ -88,9 +111,9 @@ class _NewGroupState extends State<NewGroup> {
             Container(
               padding: EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: fblaGold.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: fblaGold, width: 2),
+                color: Color(0xFFFFD700).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Color(0xFFFFD700), width: 2),
               ),
               child: Column(
                 children: [
@@ -106,66 +129,51 @@ class _NewGroupState extends State<NewGroup> {
                   Text(
                     code,
                     style: TextStyle(
-                      fontSize: 36,
+                      fontSize: 32,
                       fontWeight: FontWeight.bold,
-                      letterSpacing: 6,
-                      color: fblaBlue,
+                      letterSpacing: 4,
+                      color: Color(0xFF003B7E),
                     ),
                   ),
                 ],
               ),
             ),
             SizedBox(height: 16),
-            Container(
-              padding: EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+            Text(
+              'Share this code with members to join your group',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
               ),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, color: fblaBlue, size: 20),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Share this code with members to join',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
         actions: [
-          ElevatedButton(
+          TextButton(
             onPressed: () async {
               try {
                 await FirebaseFirestore.instance
-                    .collection('groups').doc(code)
+                    .collection('groups')
+                    .doc(code)
                     .set({
                       'name': title,
+                      'code': code,
                       'advisor': FirebaseAuth.instance.currentUser!.displayName,
                       'email': FirebaseAuth.instance.currentUser!.email,
                     });
                 await FirebaseFirestore.instance
-                    .collection('advisors').doc(globals.currentUID)
-                    .collection('groups').doc(code).set({});
-              } catch (_) {
-              }
+                    .collection('advisors')
+                    .doc(globals.currentUID)
+                    .collection('groups')
+                    .doc(code)
+                    .set({});
+              } catch (_) {}
               Navigator.of(dialogContext).pop(); // Close dialog
-              Navigator.of(context).pop(); // Add the group
+              Navigator.of(context).pop(); // Close screen
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: fblaBlue,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
+            style: TextButton.styleFrom(
+              foregroundColor: Color(0xFF003B7E),
             ),
             child: Text(
               'Done',
@@ -183,172 +191,140 @@ class _NewGroupState extends State<NewGroup> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Create New Group'),
-        backgroundColor: fblaBlue,
+        title: Text(
+          "New Group",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        ),
+        centerTitle: true,
         foregroundColor: Colors.white,
+        backgroundColor: Color(0xFF003B7E),
         elevation: 0,
       ),
+      backgroundColor: Colors.grey[50],
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.all(24),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 20),
-
-              // Icon
-              Container(
-                padding: EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: fblaGold.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.group_add,
-                  size: 80,
-                  color: fblaGold,
-                ),
-              ),
-
-              SizedBox(height: 32),
-
-              // Title
+              SizedBox(height: 8),
               Text(
-                'Create a New Group',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: fblaDarkBlue,
-                ),
-                textAlign: TextAlign.center,
-              ),
-
-              SizedBox(height: 12),
-
-              // Subtitle
-              Text(
-                'Enter a name for your FBLA chapter or group. A unique join code will be generated automatically.',
+                "Group Name",
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey[600],
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-
-              SizedBox(height: 40),
-
-              // Input Card
-              Container(
-                padding: EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: fblaBlue.withOpacity(0.1),
-                      blurRadius: 20,
-                      offset: Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Group Name',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: fblaDarkBlue,
-                      ),
-                    ),
-                    SizedBox(height: 12),
-                    TextField(
-                      controller: _titleController,
-                      decoration: InputDecoration(
-                        hintText: 'e.g., North Creek FBLA',
-                        prefixIcon: Icon(Icons.group, color: fblaBlue),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: Colors.grey[300]!,
-                            width: 2,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: fblaBlue, width: 2),
-                        ),
-                      ),
-                      textCapitalization: TextCapitalization.words,
-                      autofocus: true,
-                    ),
-                  ],
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF003B7E),
                 ),
               ),
-
-              SizedBox(height: 32),
-
-              // Create Button
-              SizedBox(
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: submitGroup,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: fblaBlue,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 2,
+              SizedBox(height: 8),
+              TextField(
+                controller: _titleController,
+                maxLength: 50,
+                onTapOutside: (event) {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                },
+                decoration: InputDecoration(
+                  hintText: "Enter group name...",
+                  hintStyle: TextStyle(color: Colors.grey[400]),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.add_circle_outline, size: 24),
-                      SizedBox(width: 12),
-                      Text(
-                        'Create Group',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Color(0xFF003B7E), width: 2),
+                  ),
+                  counter: Offstage(),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
                   ),
                 ),
+                textCapitalization: TextCapitalization.words,
               ),
-
-              SizedBox(height: 24),
-
-              // Info Box
+              SizedBox(height: 16),
               Container(
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.05),
+                  color: Colors.blue[50],
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue.withOpacity(0.2)),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.lightbulb_outline, color: fblaBlue, size: 24),
+                    Icon(
+                      Icons.info_outline,
+                      color: Color(0xFF003B7E),
+                      size: 20,
+                    ),
                     SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Members will use the generated join code to connect to your group',
+                        'A unique join code will be generated for members to join your group',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 14,
                           color: Colors.grey[700],
                         ),
                       ),
                     ),
                   ],
+                ),
+              ),
+              SizedBox(height: 40),
+              Center(
+                child: Container(
+                  width: double.infinity,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF003B7E), Color(0xFF002856)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0xFF003B7E).withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: submitGroup,
+                      borderRadius: BorderRadius.circular(16),
+                      child: Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.add_circle_outline,
+                              color: Color(0xFFFFD700),
+                              size: 22,
+                            ),
+                            SizedBox(width: 12),
+                            Text(
+                              "Create Group",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -374,6 +350,4 @@ class _NewGroupState extends State<NewGroup> {
       (index) => chars[random.nextInt(chars.length)],
     ).join();
   }
-  
 }
-

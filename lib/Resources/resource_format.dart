@@ -207,11 +207,11 @@ class ResourceFormat extends StatelessWidget {
                   final messenger = ScaffoldMessenger.of(context);
 
                   await FirebaseFirestore.instance
-                        .collection('groups')
-                        .doc(resource['code'])
-                        .collection('resources')
-                        .doc(resource['id'])
-                        .delete();
+                      .collection('groups')
+                      .doc(resource['code'])
+                      .collection('resources')
+                      .doc(resource['id'])
+                      .delete();
 
                   // Close the dialog using the captured navigator
                   navigator.pop();
@@ -282,14 +282,14 @@ class ResourceFormat extends StatelessWidget {
                 ),
                 if (_isAdvisor)
                   IconButton(
-                      onPressed: () => _onRemoveResource(context, resource),
-                      icon: Icon(
-                        Icons.delete_outline,
-                        color: Colors.red[300],
-                        size: 26,
-                      ),
-                      tooltip: 'Delete Resource',
+                    onPressed: () => _onRemoveResource(context, resource),
+                    icon: Icon(
+                      Icons.delete_outline,
+                      color: Colors.red[300],
+                      size: 26,
                     ),
+                    tooltip: 'Delete Resource',
+                  ),
               ],
             ),
 

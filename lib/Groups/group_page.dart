@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:coding_prog/NavigationBar/custom_appbar.dart';
 import 'package:coding_prog/NavigationBar/drawer_page.dart';
 import 'package:coding_prog/Groups/group_format.dart';
+import 'package:coding_prog/NavigationBar/custom_actionbutton.dart';
 
 class GroupPage extends StatefulWidget {
   final Function(int) onNavigate;
@@ -248,18 +249,10 @@ class _GroupPageState extends State<GroupPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: _isAdvisor
-          ? FloatingActionButton.extended(
-              onPressed: _addGroup,
-              backgroundColor: fblaBlue,
-              icon: const Icon(Icons.add, color: Colors.white),
-              label: const Text(
-                "New Group",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                ),
-              ),
+          ? CustomActionButton(
+              openAddPage: _addGroup,
+              name: "New Group",
+              icon: Icons.people_outlined,
             )
           : null,
       backgroundColor: Colors.grey[50],

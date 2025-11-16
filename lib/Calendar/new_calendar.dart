@@ -13,8 +13,6 @@ class NewCalendar extends StatefulWidget {
   }
 }
 
-// List<String> items = ['Washington', 'Oregon', 'North Creek'];
-
 class _NewCalendarState extends State<NewCalendar> {
   final _titleController = TextEditingController();
   final _locationController = TextEditingController();
@@ -50,16 +48,27 @@ class _NewCalendarState extends State<NewCalendar> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
-            title: Text(
-              'Invalid Input',
-              style: TextStyle(
-                color: Color(0xFF003B7E),
-                fontWeight: FontWeight.bold,
-              ),
+            title: Row(
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: Color(0xFFFFD700),
+                  size: 28,
+                ),
+                SizedBox(width: 12),
+                Text(
+                  "Missing Information",
+                  style: TextStyle(
+                    color: Color(0xFF003B7E),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
             content: Text(
-              "Please make sure to fill in all fields",
-              style: TextStyle(color: Colors.grey[700]),
+              "Please fill in all fields before creating the event.",
+              style: TextStyle(fontSize: 16),
             ),
             actions: [
               TextButton(
@@ -70,7 +79,7 @@ class _NewCalendarState extends State<NewCalendar> {
                   foregroundColor: Color(0xFF003B7E),
                 ),
                 child: Text(
-                  "Okay",
+                  "Got it!",
                   style: TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
@@ -136,252 +145,202 @@ class _NewCalendarState extends State<NewCalendar> {
   @override
   Widget build(context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: Text(
           "New Event",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.5,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
         centerTitle: true,
         foregroundColor: Colors.white,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF003B7E), Color(0xFF002856)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
+        backgroundColor: Color(0xFF003B7E),
         elevation: 0,
       ),
+      backgroundColor: Colors.grey[50],
       body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.all(20),
+          padding: EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Recipient Selector Card
-              Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Color(0xFFE8B44C).withOpacity(0.3),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 8,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.people_outline,
-                      color: Color(0xFF003B7E),
-                      size: 24,
-                    ),
-                    SizedBox(width: 12),
-                    Text(
-                      "To:",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF003B7E),
-                      ),
-                    ),
-                    Spacer(),
-                    DropdownButton(
-                      hint: Text(
-                        'Select group',
-                        style: TextStyle(color: Colors.grey[400]),
-                      ),
-                      items: groupItems.map((String item) {
-                        return DropdownMenuItem<String>(
-                          value: item,
-                          child: Text(
-                            item,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF003B7E),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        if (value == null) {
-                          return;
-                        }
-                        setState(() {
-                          _selectedValue = value;
-                        });
-                      },
-                      value: _selectedValue,
-                      underline: SizedBox(),
-                      icon: Icon(
-                        Icons.arrow_drop_down,
-                        color: Color(0xFFE8B44C),
-                      ),
-                    ),
-                  ],
+              SizedBox(height: 8),
+              Text(
+                "Group",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF003B7E),
                 ),
               ),
-
-              SizedBox(height: 20),
-
-              // Title Input
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Color(0xFFE8B44C).withOpacity(0.3),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 8,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
+              SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: _selectedValue,
+                hint: Text(
+                  'Select a group',
+                  style: TextStyle(color: Colors.grey[400]),
                 ),
-                child: TextField(
-                  controller: _titleController,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Color(0xFF003B7E),
-                    fontWeight: FontWeight.w500,
+                items: groupItems.map((String item) {
+                  return DropdownMenuItem<String>(
+                    value: item,
+                    child: Text(item),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedValue = newValue;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: 'Select a group',
+                  hintStyle: TextStyle(color: Colors.grey[400]),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
                   ),
-                  decoration: InputDecoration(
-                    hintText: "Event Title",
-                    hintStyle: TextStyle(
-                      color: Colors.grey[400],
-                      fontWeight: FontWeight.w500,
-                    ),
-                    prefixIcon: Icon(
-                      Icons.event_note,
-                      color: Color(0xFF003B7E),
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Color(0xFF003B7E), width: 2),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
                   ),
                 ),
               ),
-
-              SizedBox(height: 16),
-
-              // Location Input
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Color(0xFFE8B44C).withOpacity(0.3),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 8,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
+              SizedBox(height: 24),
+              Text(
+                "Event Title",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF003B7E),
                 ),
-                child: TextField(
-                  controller: _locationController,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Color(0xFF003B7E),
-                    fontWeight: FontWeight.w500,
+              ),
+              SizedBox(height: 8),
+              TextField(
+                controller: _titleController,
+                maxLength: 75,
+                onTapOutside: (event) {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                },
+                decoration: InputDecoration(
+                  hintText: "Enter event title...",
+                  hintStyle: TextStyle(color: Colors.grey[400]),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
                   ),
-                  decoration: InputDecoration(
-                    hintText: "Location",
-                    hintStyle: TextStyle(
-                      color: Colors.grey[400],
-                      fontWeight: FontWeight.w500,
-                    ),
-                    prefixIcon: Icon(
-                      Icons.location_on_outlined,
-                      color: Color(0xFFE8B44C),
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Color(0xFF003B7E), width: 2),
+                  ),
+                  counter: Offstage(),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
                   ),
                 ),
               ),
-
-              SizedBox(height: 16),
-
-              // Date Picker
+              SizedBox(height: 24),
+              Text(
+                "Location",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF003B7E),
+                ),
+              ),
+              SizedBox(height: 8),
+              TextField(
+                controller: _locationController,
+                maxLength: 100,
+                onTapOutside: (event) {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                },
+                decoration: InputDecoration(
+                  hintText: "Enter location...",
+                  hintStyle: TextStyle(color: Colors.grey[400]),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Color(0xFF003B7E), width: 2),
+                  ),
+                  counter: Offstage(),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                ),
+              ),
+              SizedBox(height: 24),
+              Text(
+                "Date",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF003B7E),
+                ),
+              ),
+              SizedBox(height: 8),
               InkWell(
                 onTap: _presentDatePicker,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(12),
                 child: Container(
-                  padding: EdgeInsets.all(16),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Color(0xFFE8B44C).withOpacity(0.3),
-                      width: 1.5,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[300]!),
                   ),
                   child: Row(
                     children: [
                       Icon(
                         Icons.calendar_today,
                         color: Color(0xFF003B7E),
-                        size: 22,
+                        size: 20,
                       ),
                       SizedBox(width: 12),
                       Text(
-                        DateFormat.yMd().format(selectedDate),
+                        DateFormat.yMMMd().format(selectedDate),
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.w600,
                           color: Color(0xFF003B7E),
                         ),
                       ),
                       Spacer(),
                       Icon(
-                        Icons.arrow_forward_ios,
-                        color: Color(0xFFE8B44C),
-                        size: 16,
+                        Icons.arrow_drop_down,
+                        color: Colors.grey[600],
                       ),
                     ],
                   ),
                 ),
               ),
-
-              SizedBox(height: 32),
-
-              // Submit Button
-              SizedBox(
-                width: double.infinity,
-                height: 56,
+              SizedBox(height: 40),
+              Center(
                 child: Container(
+                  width: double.infinity,
+                  height: 56,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [Color(0xFF003B7E), Color(0xFF002856)],
@@ -391,7 +350,7 @@ class _NewCalendarState extends State<NewCalendar> {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Color(0xFF003B7E).withOpacity(0.4),
+                        color: Color(0xFF003B7E).withOpacity(0.3),
                         blurRadius: 12,
                         offset: Offset(0, 6),
                       ),
@@ -404,20 +363,20 @@ class _NewCalendarState extends State<NewCalendar> {
                       borderRadius: BorderRadius.circular(16),
                       child: Center(
                         child: Row(
-                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              Icons.check_circle_outline,
-                              color: Color(0xFFE8B44C),
-                              size: 24,
+                              Icons.add_circle_outline,
+                              color: Color(0xFFFFD700),
+                              size: 22,
                             ),
                             SizedBox(width: 12),
                             Text(
                               "Create Event",
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
                                 letterSpacing: 0.5,
                               ),
                             ),

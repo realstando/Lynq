@@ -92,7 +92,6 @@ class _NewAnnouncementState extends State<NewResource> {
         Navigator.pop(context);
       }
     } catch (_) {}
-    
   }
 
   void _validateLink() {
@@ -180,7 +179,7 @@ class _NewAnnouncementState extends State<NewResource> {
             children: [
               Icon(
                 Icons.warning_amber_rounded,
-                color: Color(0xFFE8B44C),
+                color: Color(0xFFFFD700),
                 size: 28,
               ),
               SizedBox(width: 12),
@@ -239,80 +238,57 @@ class _NewAnnouncementState extends State<NewResource> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Target Audience Section
-              Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Color(0xFFE8B44C).withOpacity(0.3),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 8,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.people_outline,
-                      color: Color(0xFF003B7E),
-                      size: 24,
-                    ),
-                    SizedBox(width: 12),
-                    Text(
-                      "To:",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF003B7E),
-                      ),
-                    ),
-                    Spacer(),
-                    DropdownButton(
-                      hint: Text(
-                        'Select group',
-                        style: TextStyle(color: Colors.grey[400]),
-                      ),
-                      items: groupItems.map((String item) {
-                        return DropdownMenuItem<String>(
-                          value: item,
-                          child: Text(
-                            item,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF003B7E),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        if (value == null) {
-                          return;
-                        }
-                        setState(() {
-                          _selectedValue = value;
-                        });
-                      },
-                      value: _selectedValue,
-                      underline: SizedBox(),
-                      icon: Icon(
-                        Icons.arrow_drop_down,
-                        color: Color(0xFFE8B44C),
-                      ),
-                    ),
-                  ],
+              SizedBox(height: 8),
+              Text(
+                "Group",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF003B7E),
                 ),
               ),
-
+              SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: _selectedValue,
+                hint: Text(
+                  'Select a group',
+                  style: TextStyle(color: Colors.grey[400]),
+                ),
+                items: groupItems.map((String item) {
+                  return DropdownMenuItem<String>(
+                    value: item,
+                    child: Text(item),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedValue = newValue;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: 'Select a group',
+                  hintStyle: TextStyle(color: Colors.grey[400]),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Color(0xFF003B7E), width: 2),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                ),
+              ),
               SizedBox(height: 24),
-
-              // Title Field
               Text(
                 "Resource Title",
                 style: TextStyle(
@@ -329,11 +305,10 @@ class _NewAnnouncementState extends State<NewResource> {
                   FocusManager.instance.primaryFocus?.unfocus();
                 },
                 decoration: InputDecoration(
-                  hintText: "e.g., Competitive Events Guide",
+                  hintText: "Enter resource title...",
                   hintStyle: TextStyle(color: Colors.grey[400]),
                   filled: true,
                   fillColor: Colors.white,
-                  prefixIcon: Icon(Icons.title, color: Color(0xFF003B7E)),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Colors.grey[300]!),
@@ -353,10 +328,7 @@ class _NewAnnouncementState extends State<NewResource> {
                   ),
                 ),
               ),
-
-              SizedBox(height: 20),
-
-              // Description Field
+              SizedBox(height: 24),
               Text(
                 "Description",
                 style: TextStyle(
@@ -369,7 +341,7 @@ class _NewAnnouncementState extends State<NewResource> {
               TextField(
                 controller: _informationController,
                 maxLength: 200,
-                maxLines: 3,
+                maxLines: 4,
                 onTapOutside: (event) {
                   FocusManager.instance.primaryFocus?.unfocus();
                 },
@@ -378,10 +350,6 @@ class _NewAnnouncementState extends State<NewResource> {
                   hintStyle: TextStyle(color: Colors.grey[400]),
                   filled: true,
                   fillColor: Colors.white,
-                  prefixIcon: Padding(
-                    padding: EdgeInsets.only(bottom: 40),
-                    child: Icon(Icons.description, color: Color(0xFF003B7E)),
-                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Colors.grey[300]!),
@@ -396,12 +364,10 @@ class _NewAnnouncementState extends State<NewResource> {
                   ),
                   counter: Offstage(),
                   contentPadding: EdgeInsets.all(16),
+                  alignLabelWithHint: true,
                 ),
               ),
-
-              SizedBox(height: 20),
-
-              // Link Field
+              SizedBox(height: 24),
               Text(
                 "Resource Link",
                 style: TextStyle(
@@ -417,36 +383,22 @@ class _NewAnnouncementState extends State<NewResource> {
                 onTapOutside: (event) {
                   FocusManager.instance.primaryFocus?.unfocus();
                 },
-
-                // In your TextField decoration for the link field:
                 decoration: InputDecoration(
                   hintText: "https://example.com or example.com",
                   hintStyle: TextStyle(color: Colors.grey[400]),
                   filled: true,
                   fillColor: Colors.white,
-
-                  // ✅ PREFIX ICON - Changes color based on error
-                  prefixIcon: Icon(
-                    Icons.link,
-                    color: _linkError != null ? Colors.red : Color(0xFF003B7E),
-                  ),
-
-                  // ✅ SUFFIX ICON - Shows check or error icon
                   suffixIcon: _linkController.text.isNotEmpty
                       ? Icon(
                           _linkError == null ? Icons.check_circle : Icons.error,
                           color: _linkError == null ? Colors.green : Colors.red,
                         )
                       : null,
-
-                  // ✅ ERROR TEXT - Shows below field
                   errorText: _linkError,
                   errorStyle: TextStyle(
                     color: Colors.red,
                     fontSize: 12,
                   ),
-
-                  // ✅ BORDER COLOR - Changes based on error
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Colors.grey[300]!),
@@ -477,7 +429,6 @@ class _NewAnnouncementState extends State<NewResource> {
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Colors.red, width: 2),
                   ),
-
                   counter: Offstage(),
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 16,
@@ -485,10 +436,7 @@ class _NewAnnouncementState extends State<NewResource> {
                   ),
                 ),
               ),
-
               SizedBox(height: 40),
-
-              // Submit Button
               Center(
                 child: Container(
                   width: double.infinity,
@@ -518,8 +466,8 @@ class _NewAnnouncementState extends State<NewResource> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              Icons.save,
-                              color: Color(0xFFE8B44C),
+                              Icons.cloud_upload,
+                              color: Color(0xFFFFD700),
                               size: 22,
                             ),
                             SizedBox(width: 12),

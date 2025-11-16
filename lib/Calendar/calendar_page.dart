@@ -7,6 +7,7 @@ import 'calendar.dart';
 import 'calendar_card.dart';
 import 'package:coding_prog/Calendar/new_calendar.dart';
 import 'package:coding_prog/NavigationBar/drawer_page.dart';
+import 'package:coding_prog/NavigationBar/custom_actionbutton.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({
@@ -116,48 +117,10 @@ class CalendarPageState extends State<CalendarPage> {
         onNavigate: widget.onNavigate,
       ),
       floatingActionButton: _isAdvisor
-          ? Padding(
-              padding: EdgeInsets.only(bottom: 20, right: 8),
-              child: Container(
-                height: 56,
-                decoration: BoxDecoration(
-                  color: fblaNavy,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {
-                      _openAddResourceOverlay();
-                      print("Button tapped!");
-                    },
-                    borderRadius: BorderRadius.circular(12),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.add_circle_outline,
-                            color: fblaGold,
-                            size: 24,
-                          ),
-                          SizedBox(width: 12),
-                          Text(
-                            "New Event",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+          ? CustomActionButton(
+              openAddPage: _openAddResourceOverlay,
+              name: "New Event",
+              icon: Icons.calendar_month_outlined,
             )
           : null,
       body: Column(
