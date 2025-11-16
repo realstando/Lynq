@@ -23,52 +23,68 @@ class DrawerPage extends StatelessWidget {
         color: Colors.white,
         child: Column(
           children: [
-            // Drawer Header
+            // Drawer Header - Blue Professional Design
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(24, 60, 24, 24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    color,
-                    color.withOpacity(0.8),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+              padding: const EdgeInsets.fromLTRB(20, 48, 20, 28),
+              decoration: const BoxDecoration(
+                color: Color(0xFF0f172a), // Dark blue-gray background
+                border: Border(
+                  bottom: BorderSide(
+                    color: Color(0xFF3b82f6), // Blue accent border
+                    width: 3,
+                  ),
                 ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Logo instead of icon
+                  // Icon wrapper with gradient
                   Container(
-                    height: 80,
-                    width: 80,
-                    padding: const EdgeInsets.all(12),
+                    width: 56,
+                    height: 56,
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFF3b82f6), // Bright blue
+                          Color(0xFF2563eb), // Deeper blue
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Image(
-                      image: AssetImage('assets/Lynq_Logo.png'),
-                      fit: BoxFit.contain,
+                    child: Icon(
+                      icon,
+                      size: 28,
+                      color: Colors.white,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Navigate your experience',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
-                      fontSize: 14,
+                  const SizedBox(width: 16),
+                  // Text content
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Navigate your experience',
+                          style: TextStyle(
+                            color: Color(0xFF94a3b8), // Light gray-blue
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -84,8 +100,8 @@ class DrawerPage extends StatelessWidget {
                     icon: Icons.home_rounded,
                     title: 'Home',
                     onTap: () {
-                      Navigator.pop(context); // Close drawer first
-                      onNavigate(0); // Then navigate
+                      Navigator.pop(context);
+                      onNavigate(0);
                     },
                     color: color,
                   ),
@@ -107,7 +123,6 @@ class DrawerPage extends StatelessWidget {
                     },
                     color: color,
                   ),
-
                   DrawerItem(
                     icon: Icons.calendar_today_rounded,
                     title: 'Calendar',
@@ -144,7 +159,7 @@ class DrawerPage extends StatelessWidget {
                     },
                     color: color,
                   ),
-                  if (globals.isAdmin!)
+                  if (globals.isAdmin == true)
                     DrawerItem(
                       icon: Icons.lock_rounded,
                       title: 'Admin',
@@ -158,7 +173,7 @@ class DrawerPage extends StatelessWidget {
               ),
             ),
 
-            // Footer with logo branding
+            // Footer
             Container(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -178,9 +193,6 @@ class DrawerPage extends StatelessWidget {
                       onNavigate(5);
                     },
                   ),
-                  const SizedBox(height: 8),
-
-                  // Small logo in footer
                 ],
               ),
             ),
