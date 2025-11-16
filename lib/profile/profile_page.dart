@@ -37,12 +37,6 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       backgroundColor: Colors.white,
       key: _scaffoldKey,
-      drawer: DrawerPage(
-        icon: Icons.campaign_rounded,
-        name: 'Profile',
-        color: const Color(0xFF0A2E7F),
-        onNavigate: widget.onNavigate,
-      ),
       appBar: AppBar(
         title: const Text(
           'Profile',
@@ -55,6 +49,12 @@ class _ProfilePageState extends State<ProfilePage> {
         backgroundColor: fblaNavy,
         foregroundColor: Colors.white,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            widget.onNavigate(0); // Navigate to home page
+          },
+        ),
         actions: [
           PopupMenuButton<MenuAction>(
             icon: const Icon(Icons.more_vert, color: Colors.white),

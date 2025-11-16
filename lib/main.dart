@@ -15,14 +15,9 @@ import 'package:coding_prog/Competive_Events/events_page.dart';
 import 'package:coding_prog/Resources/resource_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'package:coding_prog/Resources/AdminResources/resources_adminpage.dart';
 import 'package:coding_prog/Calendar/calendar_page.dart';
-import 'package:coding_prog/Calendar/AdminCalendar/calendar_adminpage.dart';
 import 'package:coding_prog/Resources/resource_page.dart';
-import 'package:coding_prog/Homepage/admin_home_page.dart';
 import 'package:coding_prog/Calendar/calendar_page.dart';
-import 'package:coding_prog/Annoucements/announcement.dart';
-import 'package:coding_prog/Calendar/calendar.dart';
 import 'package:coding_prog/Groups/group_page.dart';
 import 'globals.dart' as globals;
 import 'package:coding_prog/SocialMedia/mediahub.dart';
@@ -133,6 +128,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   final Map<String, StreamSubscription> _groupListeners = {};
   final Map<String, StreamSubscription> _announcementListeners = {};
   final Map<String, StreamSubscription> _calendarListeners = {};
+  final Map<String, StreamSubscription> _resourcesListeners = {};
 
   List<Widget> get _pages {
     List<Widget> pages = [
@@ -443,12 +439,14 @@ class _MainScaffoldState extends State<MainScaffold> {
                     _groupListeners.remove(code)?.cancel();
                     _announcementListeners.remove(code)?.cancel();
                     _calendarListeners.remove(code)?.cancel();
+                    _resourcesListeners.remove(code)?.cancel();
                     setState(() {
                       globals.groups?.removeWhere((g) => g['code'] == code);
                       globals.announcements?.removeWhere(
                         (a) => a['code'] == code,
                       );
                       globals.calendar?.removeWhere((a) => a['code'] == code);
+                      globals.resources?.removeWhere((a) => a['code'] == code);
                     });
                   });
 
@@ -516,6 +514,26 @@ class _MainScaffoldState extends State<MainScaffold> {
                       onError: (error) {
                         print(
                           'Error listening to calendar for group $code: $error',
+                        );
+                      },
+                      cancelOnError: false,
+                    );
+                _resourcesListeners[code] = firestore
+                    .collection('groups')
+                    .doc(code)
+                    .collection('resources')
+                    .snapshots()
+                    .listen(
+                      (resourcesSnapshot) {
+                        try {
+                          _updateGroupresources(code, resourcesSnapshot);
+                        } catch (e) {
+                          print('Error updating resources for group $code: $e');
+                        }
+                      },
+                      onError: (error) {
+                        print(
+                          'Error listening to resources for group $code: $error',
                         );
                       },
                       cancelOnError: false,
@@ -638,6 +656,35 @@ class _MainScaffoldState extends State<MainScaffold> {
     print('Updated ${calendarSnapshot.docs.length} calendar for group $code');
   }
 
+  void _updateGroupresources(String code, QuerySnapshot resourcesSnapshot) {
+    setState(() {
+      globals.resources ??= [];
+
+      // Remove old resources for this group
+      globals.resources!.removeWhere((a) => a['code'] == code);
+
+      // Find the group to get its name
+      final group = globals.groups?.firstWhere(
+        (g) => g['code'] == code,
+        orElse: () => {'name': 'Unknown Group'},
+      );
+      final name = group?['name']?.toString() ?? 'Unknown Group';
+      print('Group name for $code: $name');
+
+      // Add new resources for this group
+      for (var doc in resourcesSnapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id; // Store document ID
+        data['code'] = code; // Store which group this is from
+        data['name'] = name;
+
+        globals.resources!.add(data);
+      }
+    });
+
+    print('Updated ${resourcesSnapshot.docs.length} resources for group $code');
+  }
+
   void stopListeningToUserData() {
     _userSubs?.cancel();
     _userSubs = null;
@@ -648,10 +695,14 @@ class _MainScaffoldState extends State<MainScaffold> {
     for (var sub in _announcementListeners.values) {
       sub.cancel();
     }
-    _calendarListeners.clear();
+    _announcementListeners.clear();
     for (var sub in _calendarListeners.values) {
       sub.cancel();
     }
     _calendarListeners.clear();
+     for (var sub in _resourcesListeners.values) {
+      sub.cancel();
+    }
+    _resourcesListeners.clear();
   }
 }
