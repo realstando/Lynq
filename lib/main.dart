@@ -346,6 +346,16 @@ class _MainScaffoldState extends State<MainScaffold> {
       // Fetch user role from Firestore
       await _fetchUserRole();
 
+      FirebaseFirestore.instance
+      .collection(globals.currentUserRole!)
+      .doc(globals.currentUID)
+      .collection('events')
+      .snapshots()
+      .listen((snapshot) {
+        globals.events = snapshot.docs.map((doc) => doc.id).toList();
+      });
+      print("Events: "+ globals.events.toString());
+
       // Special case for admin email
       if (globals.currentUserEmail == "rryanwwang@gmail.com") {
         globals.currentUserRole = 'advisors';

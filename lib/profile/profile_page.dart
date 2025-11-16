@@ -29,10 +29,10 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final String name = globals.currentUserName ?? 'Member';
     final String email = globals.currentUserEmail ?? 'Member';
-    final List<String> events = [
-      'MAD',
-      'Test',
-    ];
+    // final List<String> events = [
+    //   'MAD',
+    //   'Test',
+    // ];
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -194,14 +194,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 children: [
                   _buildSectionHeader('My Events'),
                   const SizedBox(height: 14),
-                  if (events.isEmpty)
+                  if (global.events!.isEmpty)
                     _buildEmptyState(
                       'No events yet',
                       'Join events to see them here',
                       Icons.event_busy,
                     )
                   else
-                    ...events.map((event) => _buildEventCard(event)).toList(),
+                    ...global.events!.map((event) => _buildEventCard(event)),
                 ],
               ),
             ),
