@@ -138,7 +138,7 @@ class _ResourcePageState extends State<ResourcePage> {
       appBar: CustomAppBar(
         onNavigate: widget.onNavigate,
         name: 'FBLA Resources',
-        color: Colors.blue,
+        color: Colors.green,
         scaffoldKey: _scaffoldKey,
       ),
       floatingActionButton: _isAdvisor

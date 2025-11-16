@@ -43,7 +43,7 @@ class _AdminPageState extends State<AdminPage> {
         onNavigate: widget.onNavigate,
       ),
       appBar: CustomAppBar(
-        color: Colors.blue,
+        color: Colors.black,
         name: "Admin Page",
         scaffoldKey: _scaffoldKey,
         onNavigate: widget.onNavigate,

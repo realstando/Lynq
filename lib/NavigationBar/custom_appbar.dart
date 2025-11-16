@@ -18,16 +18,41 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.onProfileTap,
   });
 
+  Color _darkenColor(Color color, [double amount = 0.2]) {
+    assert(amount >= 0 && amount <= 1);
+    final hsl = HSLColor.fromColor(color);
+    final darkened = hsl.withLightness(
+      (hsl.lightness - amount).clamp(0.0, 1.0),
+    );
+    return darkened.toColor();
+  }
+
+  Color _accentColor(Color color) {
+    final hsl = HSLColor.fromColor(color);
+    final accent = hsl.withSaturation((hsl.saturation + 0.1).clamp(0.0, 1.0));
+    return accent.toColor();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final Color darkColor = _darkenColor(color, 0.15);
+    final Color accentColor = _accentColor(color);
+
     return AppBar(
       toolbarHeight: 80,
-      backgroundColor: const Color(
-        0xFF0f172a,
-      ), // Dark blue-gray to match drawer
+      backgroundColor: color,
       elevation: 0,
       shadowColor: Colors.black.withOpacity(0.3),
       scrolledUnderElevation: 4,
+      flexibleSpace: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [color, darkColor],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+      ),
       leading: IconButton(
         icon: const Icon(Icons.menu_rounded, size: 28, color: Colors.white),
         onPressed: () {
@@ -53,13 +78,15 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               width: 60,
               height: 3,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [
-                    Color(0xFF3b82f6), // Bright blue
-                    Color(0xFF2563eb), // Deeper blue
-                  ],
-                ),
+                color: Colors.white.withOpacity(0.9),
                 borderRadius: BorderRadius.circular(2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.white.withOpacity(0.5),
+                    blurRadius: 4,
+                    spreadRadius: 1,
+                  ),
+                ],
               ),
             ),
           ],
@@ -74,15 +101,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [
-                    Color(0xFF3b82f6),
-                    Color(0xFF2563eb),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                color: Colors.white.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.5),
+                  width: 2,
+                ),
               ),
               child: const Icon(
                 Icons.person_rounded,
@@ -94,7 +118,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             onPressed:
                 onProfileTap ??
                 () {
-                  onNavigate(5); // Navigate to profile page
+                  onNavigate(5);
                 },
           ),
         ),
