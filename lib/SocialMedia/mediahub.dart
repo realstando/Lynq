@@ -52,82 +52,35 @@ class _SocialMediaHubState extends State<SocialMediaHub> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ========== Header Section ==========
-              // Gradient header with page title and description
               Container(
+                width: double.infinity,
                 decoration: BoxDecoration(
-                  // Navy blue gradient background
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [fblaNavy, Color(0xFF00528a)],
+                    colors: [fblaNavy, Color(0xFF0d3a94)],
                   ),
-                  // Subtle shadow for depth
-                  boxShadow: [
-                    BoxShadow(
-                      color: fblaNavy.withOpacity(0.3),
-                      blurRadius: 20,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
                 ),
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        // Icon container with semi-transparent background
-                        Container(
-                          padding: EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            Icons.share,
-                            color: Colors.white,
-                            size: 28,
-                          ),
-                        ),
-                        SizedBox(width: 12),
-                        // Header text content
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Subtitle text
-                              Text(
-                                'Stay Connected',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.85),
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              SizedBox(height: 4),
-                              // Main title text
-                              Text(
-                                'FBLA Social Media',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: -0.5,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                    // Main title text
+                    Text(
+                      'FBLA Social Media',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    SizedBox(height: 12),
+                    SizedBox(height: 8),
                     // Description text
                     Text(
                       'Connect with FBLA on your favorite platforms',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.75),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 15,
                       ),
                     ),
                   ],
@@ -161,10 +114,6 @@ class _SocialMediaHubState extends State<SocialMediaHub> {
                           'Watch FBLA videos, competitions, and tutorials',
                       icon: Icons.play_circle_filled,
                       backgroundColor: Color(0xFFFF0000), // YouTube red
-                      stats: [
-                        {'icon': Icons.video_library, 'text': '500+ Videos'},
-                        {'icon': Icons.people, 'text': '50K+ Subscribers'},
-                      ],
                       onTap: () {
                         // Navigate to YouTube screen (index 9)
                         widget.onNavigate(9);
@@ -179,10 +128,6 @@ class _SocialMediaHubState extends State<SocialMediaHub> {
                       subtitle: 'Follow FBLA photos, stories, and updates',
                       icon: Icons.camera_alt,
                       backgroundColor: Color(0xFFE1306C), // Instagram pink
-                      stats: [
-                        {'icon': Icons.photo_library, 'text': '1000+ Posts'},
-                        {'icon': Icons.favorite, 'text': '75K+ Followers'},
-                      ],
                       onTap: () {
                         // Navigate to Instagram screen (index 8)
                         widget.onNavigate(8);
@@ -207,14 +152,12 @@ class _SocialMediaHubState extends State<SocialMediaHub> {
   /// - [subtitle]: Brief description of the platform content
   /// - [icon]: Icon to display in the platform badge
   /// - [backgroundColor]: Brand color for the platform icon
-  /// - [stats]: List of statistics to display (icon and text pairs)
   /// - [onTap]: Callback when the card is tapped
   Widget _buildPlatformCard({
     required String title,
     required String subtitle,
     required IconData icon,
     required Color backgroundColor,
-    required List<Map<String, dynamic>> stats,
     required VoidCallback onTap,
   }) {
     return Container(
@@ -239,98 +182,57 @@ class _SocialMediaHubState extends State<SocialMediaHub> {
           borderRadius: BorderRadius.circular(18),
           child: Padding(
             padding: EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    // ========== Platform Icon Badge ==========
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: backgroundColor, // Platform-specific color
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Icon(
-                        icon,
-                        color: Colors.white,
-                        size: 32,
-                      ),
-                    ),
-                    SizedBox(width: 16),
-                    // ========== Platform Info ==========
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Platform name
-                          Text(
-                            title,
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w800,
-                              color: fblaNavy,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          // Platform description
-                          Text(
-                            subtitle,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey.shade600,
-                              fontWeight: FontWeight.w500,
-                              height: 1.3,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Arrow indicator for navigation
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      size: 18,
-                      color: Colors.grey.shade400,
-                    ),
-                  ],
+                // ========== Platform Icon Badge ==========
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: backgroundColor, // Platform-specific color
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: Colors.white,
+                    size: 32,
+                  ),
                 ),
-                SizedBox(height: 16),
-                // Divider line
-                Divider(color: Colors.grey.shade200),
-                SizedBox(height: 12),
-                // ========== Platform Statistics ==========
-                // Display stats like follower count, video count, etc.
-                Row(
-                  children: stats.map((stat) {
-                    return Expanded(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Stat icon
-                          Icon(
-                            stat['icon'] as IconData,
-                            size: 16,
-                            color: Colors.grey.shade600,
-                          ),
-                          SizedBox(width: 6),
-                          // Stat text
-                          Flexible(
-                            child: Text(
-                              stat['text'] as String,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey.shade700,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
+                SizedBox(width: 16),
+                // ========== Platform Info ==========
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Platform name
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: fblaNavy,
+                          letterSpacing: -0.5,
+                        ),
                       ),
-                    );
-                  }).toList(),
+                      SizedBox(height: 4),
+                      // Platform description
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w500,
+                          height: 1.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Arrow indicator for navigation
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 18,
+                  color: Colors.grey.shade400,
                 ),
               ],
             ),
