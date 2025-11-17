@@ -1,35 +1,142 @@
+import 'package:coding_prog/Calendar/new_calendar.dart';
+import 'package:coding_prog/globals.dart' as globals;
+import 'package:coding_prog/globals.dart' as global;
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'calendar.dart';
 import 'calendar_card.dart';
+import 'package:coding_prog/NavigationBar/drawer_page.dart';
+import 'package:coding_prog/NavigationBar/custom_actionbutton.dart';
 
+/// Calendar page featuring a resizable split view layout
+/// Top section: Interactive calendar widget with date selection and filter controls
+/// Bottom section: List of events based on current filter
+/// Features a draggable divider allowing users to adjust the size ratio between sections
+/// Only advisors can add new events via the floating action button
 class CalendarPage extends StatefulWidget {
-  const CalendarPage({super.key});
+  const CalendarPage({
+    super.key,
+    required this.onNavigate,
+  });
+
+  /// Callback function to navigate to other pages by index
+  final void Function(int) onNavigate;
 
   @override
   State<CalendarPage> createState() {
-    return _CalendarPageState();
+    return CalendarPageState();
   }
 }
 
-class _CalendarPageState extends State<CalendarPage> {
-  DateTime focused = DateTime.now();
-  DateTime? selected;
-  double _topHeight = 620.0;
-  String _filterMode = 'all'; // 'all', 'upcoming', 'today', 'selected'
+class CalendarPageState extends State<CalendarPage> {
+  /// Scaffold key for controlling the navigation drawer programmatically
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  final List<Calendar> calendars = [
-    Calendar(
-      "Washington SBLC",
-      DateTime.utc(2025, 4, 26),
-      "Bellevue Washington",
-    ),
-    Calendar(
-      "Anaheim NLC",
-      DateTime.utc(2025, 6, 26),
-      "Anaheim California",
-    ),
-  ];
+  /// Check if current user is an advisor (advisors can add events)
+  final bool _isAdvisor = globals.currentUserRole == 'advisors';
+
+  /// The currently focused month/year in the calendar
+  DateTime focused = DateTime.now();
+
+  /// The date selected by the user (null if none selected)
+  DateTime? selected;
+
+  /// Height of the top section containing the calendar
+  /// User can drag the divider to adjust this value
+  double _topHeight = 620.0;
+
+  /// Current filter mode: 'all', 'upcoming', 'today', or 'selected'
+  /// Determines which events are shown in the bottom list
+  String _filterMode = 'all';
+
+  // FBLA Official Brand Colors
+  static const fblaNavy = Color(0xFF0A2E7F);
+  static const fblaGold = Color(0xFFF4AB19);
+
+  /// Filters the calendar events based on the current filter mode
+  /// Returns a list of events that match the selected criteria
+  /// Events are sorted chronologically for 'upcoming' mode
+  List<Map<String, dynamic>> get _filteredCalendars {
+    final now = DateTime.now();
+    // Normalize today to midnight for accurate day comparisons
+    final today = DateTime(now.year, now.month, now.day);
+
+    switch (_filterMode) {
+      case 'upcoming':
+        // Get all future events (including today)
+        final futureEvents = global.calendar!.where((calendar) {
+          final eventDate = calendar['date'].toDate();
+          final eventDay = DateTime(
+            eventDate.year,
+            eventDate.month,
+            eventDate.day,
+          );
+          // Include events from today onwards
+          return eventDay.isAfter(today.subtract(Duration(days: 1)));
+        }).toList();
+
+        // Sort events chronologically (earliest first)
+        futureEvents.sort(
+          (a, b) => a['date'].toDate().compareTo(b['date'].toDate()),
+        );
+
+        // If 5 or fewer events exist, show them all
+        if (futureEvents.length <= 5) {
+          return futureEvents;
+        }
+
+        // Otherwise, limit to events within the next month
+        final oneMonthFromNow = DateTime(now.year, now.month + 1, now.day);
+        return futureEvents.where((calendar) {
+          final eventDate = calendar['date'].toDate();
+          final eventDay = DateTime(
+            eventDate.year,
+            eventDate.month,
+            eventDate.day,
+          );
+          return eventDay.isBefore(oneMonthFromNow.add(Duration(days: 1)));
+        }).toList();
+
+      case 'today':
+        // Show only events happening today
+        return global.calendar!.where((calendar) {
+          final eventDate = calendar['date'].toDate();
+          final eventDay = DateTime(
+            eventDate.year,
+            eventDate.month,
+            eventDate.day,
+          );
+          return isSameDay(eventDay, today);
+        }).toList();
+
+      case 'selected':
+        // Show events for the user-selected date
+        // Return empty list if no date is selected
+        if (selected == null) {
+          return [];
+        }
+        return global.calendar!.where((calendar) {
+          return isSameDay(calendar['date'].toDate(), selected);
+        }).toList();
+
+      default: // 'all' mode
+        // Show all events without filtering
+        return global.calendar!;
+    }
+  }
+
+  /// Opens the overlay/dialog for adding a new calendar event
+  /// Only available to advisors
+  /// Refreshes the page after the event is added
+  void _openAddResourceOverlay() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => NewCalendar(() {
+          setState(() {}); // Refresh to show new event
+          Navigator.pop(context); // Close the add event dialog
+        }),
+      ),
+    );
+  }
 
   @override
   Widget build(context) {
@@ -37,44 +144,96 @@ class _CalendarPageState extends State<CalendarPage> {
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
+      key: _scaffoldKey,
+      // Navigation drawer with calendar branding
+      drawer: DrawerPage(
+        icon: Icons.campaign_rounded,
+        name: 'Calendar',
+        color: fblaGold,
+        onNavigate: widget.onNavigate,
+      ),
+      // Floating action button - only shown for advisors
+      floatingActionButton: _isAdvisor
+          ? CustomActionButton(
+              openAddPage: _openAddResourceOverlay,
+              name: "New Event",
+              icon: Icons.calendar_month_outlined,
+            )
+          : null,
+      // Split layout: fixed top (calendar) + draggable divider + expandable bottom (events)
       body: Column(
         children: [
-          // Top section - FIXED HEIGHT
+          // ===== TOP SECTION - CALENDAR =====
+          // Fixed height container (user-adjustable via drag)
           SizedBox(
             height: _topHeight,
             child: SingleChildScrollView(
-              physics: ClampingScrollPhysics(),
+              physics: ClampingScrollPhysics(), // Prevent overscroll bounce
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Header
+                  // Header with title and navigation
                   Container(
                     width: double.infinity,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Color(0xFF003B7E), Color(0xFF002856)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
+                    color: fblaNavy,
                     child: Column(
                       children: [
-                        SizedBox(height: 40),
-                        Text(
-                          "FBLA Calendar",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 28,
-                            color: Colors.white,
-                            letterSpacing: 0.5,
+                        SizedBox(height: 40), // Top padding for status bar
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              // Menu button to open drawer
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.menu_rounded,
+                                  size: 28,
+                                  color: Colors.white,
+                                ),
+                                onPressed: () {
+                                  _scaffoldKey.currentState?.openDrawer();
+                                },
+                              ),
+                              SizedBox(width: 10),
+                              // Centered title
+                              Expanded(
+                                child: Center(
+                                  child: Text(
+                                    "FBLA Calendar",
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 28,
+                                      color: Colors.white,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              // Profile button
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.account_circle,
+                                  size: 40,
+                                ),
+                                color: Colors.white,
+                                tooltip: 'Profile',
+                                onPressed: (() {
+                                  widget.onNavigate(
+                                    5,
+                                  ); // Navigate to profile page
+                                }),
+                              ),
+                            ],
                           ),
                         ),
                         SizedBox(height: 12),
+                        // Decorative gold underline
                         Container(
-                          width: 80,
+                          width: 200,
                           height: 3,
                           decoration: BoxDecoration(
-                            color: Color(0xFFE8B44C),
+                            color: fblaGold,
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
@@ -83,54 +242,66 @@ class _CalendarPageState extends State<CalendarPage> {
                     ),
                   ),
 
-                  // Calendar Container
+                  // Calendar Widget Container with custom styling
                   Container(
                     margin: EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.grey.shade300,
+                        width: 1,
+                      ),
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(12),
                       child: TableCalendar(
-                        rowHeight: 55,
-                        firstDay: DateTime.utc(2024, 10, 16),
-                        lastDay: DateTime.utc(2026, 10, 16),
-                        focusedDay: focused,
+                        rowHeight: 55, // Height of each week row
+                        firstDay: DateTime.utc(
+                          2024,
+                          10,
+                          16,
+                        ), // Calendar start date
+                        lastDay: DateTime.utc(
+                          2026,
+                          10,
+                          16,
+                        ), // Calendar end date
+                        focusedDay: focused, // Currently displayed month/year
+                        // Header styling (month/year display and navigation arrows)
                         headerStyle: HeaderStyle(
-                          formatButtonVisible: false,
+                          formatButtonVisible:
+                              false, // Hide week/month format toggle
                           titleCentered: true,
                           titleTextStyle: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF003B7E),
+                            color: fblaNavy,
                           ),
                           leftChevronIcon: Icon(
                             Icons.chevron_left,
-                            color: Color(0xFF003B7E),
+                            color: fblaNavy,
                           ),
                           rightChevronIcon: Icon(
                             Icons.chevron_right,
-                            color: Color(0xFF003B7E),
+                            color: fblaNavy,
                           ),
                           decoration: BoxDecoration(
-                            color: Color(0xFFE8B44C).withOpacity(0.1),
+                            color: fblaGold.withOpacity(
+                              0.1,
+                            ), // Light gold background
                           ),
                         ),
+                        // Day cell styling
                         calendarStyle: CalendarStyle(
+                          // Today's date styling (gold circle)
                           todayDecoration: BoxDecoration(
-                            color: Color(0xFFE8B44C),
+                            color: fblaGold,
                             shape: BoxShape.circle,
                           ),
+                          // Selected date styling (navy circle)
                           selectedDecoration: BoxDecoration(
-                            color: Color(0xFF003B7E),
+                            color: fblaNavy,
                             shape: BoxShape.circle,
                           ),
                           todayTextStyle: TextStyle(
@@ -141,13 +312,15 @@ class _CalendarPageState extends State<CalendarPage> {
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
+                          // Weekend dates in red
                           weekendTextStyle: TextStyle(
                             color: Colors.red[400],
                           ),
                         ),
+                        // Day of week labels (Mon, Tue, etc.)
                         daysOfWeekStyle: DaysOfWeekStyle(
                           weekdayStyle: TextStyle(
-                            color: Color(0xFF003B7E),
+                            color: fblaNavy,
                             fontWeight: FontWeight.w600,
                           ),
                           weekendStyle: TextStyle(
@@ -155,8 +328,11 @@ class _CalendarPageState extends State<CalendarPage> {
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        availableGestures: AvailableGestures.all,
+                        availableGestures:
+                            AvailableGestures.all, // Allow swipe navigation
+                        // Determine if a day should be highlighted as selected
                         selectedDayPredicate: (day) => isSameDay(day, selected),
+                        // Handle day selection
                         onDaySelected: (selectedDate, focusedDate) {
                           setState(() {
                             selected = selectedDate;
@@ -167,19 +343,21 @@ class _CalendarPageState extends State<CalendarPage> {
                     ),
                   ),
 
-                  // Filter Buttons
+                  // Filter Buttons Row
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
                       children: [
+                        // "All" filter button
                         Expanded(
                           child: _buildFilterButton(
-                            "Upcoming",
-                            Icons.upcoming,
-                            'upcoming',
+                            "All",
+                            Icons.calendar_month,
+                            'all',
                           ),
                         ),
                         SizedBox(width: 8),
+                        // "Today" filter button
                         Expanded(
                           child: _buildFilterButton(
                             "Today",
@@ -188,6 +366,7 @@ class _CalendarPageState extends State<CalendarPage> {
                           ),
                         ),
                         SizedBox(width: 8),
+                        // "Selected" filter button
                         Expanded(
                           child: _buildFilterButton(
                             "Selected",
@@ -204,41 +383,34 @@ class _CalendarPageState extends State<CalendarPage> {
             ),
           ),
 
-          // DRAGGABLE DIVIDER
+          // ===== DRAGGABLE DIVIDER =====
+          // User can drag up/down to resize the top and bottom sections
           GestureDetector(
-            behavior: HitTestBehavior.opaque,
+            behavior: HitTestBehavior.opaque, // Entire area is draggable
             onPanUpdate: (details) {
               setState(() {
+                // Adjust top height based on drag distance
                 _topHeight += details.delta.dy;
-                _topHeight = _topHeight.clamp(200.0, screenHeight - 150.0);
+                // Clamp to prevent sections from becoming too small
+                // Min: 200px for calendar, Max: screen height - 270px for events list
+                _topHeight = _topHeight.clamp(200.0, screenHeight - 270.0);
               });
             },
             child: Container(
               width: double.infinity,
-              height: 40,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFFE8B44C), Color(0xFFD4A035)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
+              height: 38,
+              color: fblaGold, // Gold bar for visibility
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  // Drag handle icon
                   Icon(
                     Icons.drag_handle_rounded,
                     color: Colors.white.withOpacity(0.9),
                     size: 22,
                   ),
                   SizedBox(height: 2),
+                  // Instruction text
                   Text(
                     "DRAG TO RESIZE",
                     style: TextStyle(
@@ -254,29 +426,21 @@ class _CalendarPageState extends State<CalendarPage> {
             ),
           ),
 
-          // Bottom section - EXPANDED
+          // ===== BOTTOM SECTION - EVENTS LIST =====
+          // Expanded to fill remaining screen space
           Expanded(
             child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.grey[100]!,
-                    Colors.grey[50]!,
-                  ],
-                ),
-              ),
+              color: Colors.grey[50],
               child: Column(
                 children: [
-                  // Events Header
+                  // Events header with count badge
                   Container(
                     padding: EdgeInsets.all(16),
                     child: Row(
                       children: [
                         Icon(
                           Icons.event,
-                          color: Color(0xFF003B7E),
+                          color: fblaNavy,
                           size: 24,
                         ),
                         SizedBox(width: 8),
@@ -285,21 +449,22 @@ class _CalendarPageState extends State<CalendarPage> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF003B7E),
+                            color: fblaNavy,
                           ),
                         ),
                         Spacer(),
+                        // Badge showing number of filtered events
                         Container(
                           padding: EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: Color(0xFFE8B44C),
+                            color: fblaGold,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            "${calendars.length}",
+                            "${_filteredCalendars.length}",
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -311,10 +476,11 @@ class _CalendarPageState extends State<CalendarPage> {
                     ),
                   ),
 
-                  // Events List
+                  // Events List or Empty State
                   Expanded(
-                    child: calendars.isEmpty
-                        ? Center(
+                    child: _filteredCalendars.isEmpty
+                        ? // Empty state when no events match filter
+                          Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -334,11 +500,12 @@ class _CalendarPageState extends State<CalendarPage> {
                               ],
                             ),
                           )
-                        : ListView.builder(
+                        : // Scrollable list of event cards
+                          ListView.builder(
                             padding: EdgeInsets.symmetric(horizontal: 16),
-                            itemCount: calendars.length,
+                            itemCount: _filteredCalendars.length,
                             itemBuilder: (context, index) =>
-                                CalendarCard(calendars[index]),
+                                CalendarCard(_filteredCalendars[index]),
                           ),
                   ),
                 ],
@@ -350,6 +517,12 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
+  /// Builds a filter button with icon and label
+  /// Highlights the button if it matches the current filter mode
+  ///
+  /// [label] - Text to display on the button
+  /// [icon] - Icon to show before the label
+  /// [mode] - The filter mode this button represents
   Widget _buildFilterButton(String label, IconData icon, String mode) {
     final isSelected = _filterMode == mode;
     return Container(
@@ -357,18 +530,18 @@ class _CalendarPageState extends State<CalendarPage> {
       child: ElevatedButton(
         onPressed: () {
           setState(() {
-            _filterMode = mode;
+            _filterMode = mode; // Update filter mode
           });
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: isSelected ? Color(0xFF003B7E) : Colors.white,
-          foregroundColor: isSelected ? Colors.white : Color(0xFF003B7E),
-          elevation: isSelected ? 4 : 1,
+          // Inverted colors when selected: navy background, white text
+          backgroundColor: isSelected ? fblaNavy : Colors.white,
+          foregroundColor: isSelected ? Colors.white : fblaNavy,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
             side: BorderSide(
-              color: isSelected ? Color(0xFF003B7E) : Colors.grey[300]!,
-              width: isSelected ? 2 : 1,
+              color: isSelected ? fblaNavy : Colors.grey[300]!,
+              width: 1.5,
             ),
           ),
           padding: EdgeInsets.symmetric(horizontal: 8),
@@ -386,7 +559,7 @@ class _CalendarPageState extends State<CalendarPage> {
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
-                overflow: TextOverflow.ellipsis,
+                overflow: TextOverflow.ellipsis, // Truncate if too long
               ),
             ),
           ],

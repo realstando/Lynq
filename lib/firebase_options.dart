@@ -15,10 +15,19 @@ import 'package:flutter/foundation.dart'
 /// );
 /// ```
 class DefaultFirebaseOptions {
+  /// Returns the appropriate [FirebaseOptions] based on the current platform.
+  ///
+  /// This getter automatically detects the platform your app is running on
+  /// and returns the corresponding Firebase configuration.
+  ///
+  /// Throws [UnsupportedError] if the platform is not configured or not supported.
   static FirebaseOptions get currentPlatform {
+    // Check if the app is running on web
     if (kIsWeb) {
       return web;
     }
+
+    // Determine the platform for native applications
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
@@ -29,17 +38,22 @@ class DefaultFirebaseOptions {
       case TargetPlatform.windows:
         return windows;
       case TargetPlatform.linux:
+        // Linux is not configured - would need to run FlutterFire CLI to add support
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
           'you can reconfigure this by running the FlutterFire CLI again.',
         );
       default:
+        // Fallback for any unsupported platforms
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
         );
     }
   }
 
+  // Firebase configuration for web platform.
+  // Contains API keys, project IDs, and other settings specific to web deployment.
+  // Includes measurementId for Google Analytics tracking on web.
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyDYDjtP6JdmJrRuYEBKwXZ1JSgxioldi6E',
     appId: '1:98975695485:web:f7e1e5502c2c44ca08e714',
@@ -50,6 +64,9 @@ class DefaultFirebaseOptions {
     measurementId: 'G-DEYS8RH72L',
   );
 
+  // Firebase configuration for Android platform.
+  // Contains Android-specific API key and app ID.
+  // Note: Android uses a different API key than web for security purposes.
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDhajBVtOMYyPgTG2CLPBuFASozt8mZ01I',
     appId: '1:98975695485:android:7913dc65c7f6b9ad08e714',
@@ -58,6 +75,9 @@ class DefaultFirebaseOptions {
     storageBucket: 'lynq-a91d1.firebasestorage.app',
   );
 
+  // Firebase configuration for iOS platform.
+  // Contains iOS-specific API key, app ID, and bundle identifier.
+  // The iosBundleId must match the bundle ID in your Xcode project.
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyAoNP1u9QOd64k34I3vmpC1aYbvN1jD7RY',
     appId: '1:98975695485:ios:08e374776eaa0a4c08e714',
@@ -67,6 +87,9 @@ class DefaultFirebaseOptions {
     iosBundleId: 'com.example.expenseTracker',
   );
 
+  // Firebase configuration for macOS platform.
+  // Uses the same configuration as iOS since macOS apps can share
+  // the same Firebase project settings with iOS apps.
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyAoNP1u9QOd64k34I3vmpC1aYbvN1jD7RY',
     appId: '1:98975695485:ios:08e374776eaa0a4c08e714',
@@ -76,6 +99,9 @@ class DefaultFirebaseOptions {
     iosBundleId: 'com.example.expenseTracker',
   );
 
+  // Firebase configuration for Windows platform.
+  // Uses web-based Firebase configuration since Windows is treated
+  // similarly to web in terms of Firebase integration.
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'AIzaSyDYDjtP6JdmJrRuYEBKwXZ1JSgxioldi6E',
     appId: '1:98975695485:web:e83134185a96fc1908e714',

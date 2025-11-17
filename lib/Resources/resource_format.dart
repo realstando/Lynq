@@ -1,16 +1,28 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:coding_prog/globals.dart' as globals;
 import 'package:flutter/material.dart';
-import 'package:coding_prog/Resources/resource.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+/// A StatelessWidget that displays a resource card with title, body, and link
+/// Advisors have additional permission to delete resources
 class ResourceFormat extends StatelessWidget {
-  const ResourceFormat({required this.resource, super.key});
+  ResourceFormat({required this.resource, required this.onDelete, super.key});
 
-  final Resource resource;
+  /// Map containing resource data (title, body, link, code, id)
+  final Map<String, dynamic> resource;
 
+  /// Callback function triggered when resource is deleted
+  final VoidCallback onDelete;
+
+  /// Flag to check if current user is an advisor (has delete permissions)
+  final bool _isAdvisor = globals.currentUserRole == 'advisors';
+
+  /// Launches the resource URL in an external browser
+  /// Automatically adds https:// protocol if missing
   Future<void> _launchURL() async {
-    String urlToLaunch = resource.link;
+    String urlToLaunch = resource['link'];
 
-    // Add https:// if no scheme is present
+    // Add https:// protocol if URL doesn't have any protocol
     if (!urlToLaunch.startsWith('http://') &&
         !urlToLaunch.startsWith('https://') &&
         !urlToLaunch.contains('://')) {
@@ -18,48 +30,45 @@ class ResourceFormat extends StatelessWidget {
     }
 
     final Uri url = Uri.parse(urlToLaunch);
+
+    // Attempt to launch URL in external browser
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       throw Exception('Could not launch $url');
     }
   }
 
+  /// Shows a confirmation dialog before opening the resource link
+  /// Displays the URL and provides cancel/open options
   void _showLinkDialog(BuildContext context) {
+    const primaryBlue = Color(0xFF2563EB);
+
     showDialog(
       context: context,
       builder: (ctx) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(12),
           ),
-          title: Row(
+          // Dialog header with globe icon
+          title: const Row(
             children: [
-              Container(
-                padding: EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF003B7E), Color(0xFF002856)],
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.language_rounded,
-                  color: Color(0xFFE8B44C),
-                  size: 24,
-                ),
+              Icon(
+                Icons.language_rounded,
+                color: primaryBlue,
+                size: 24,
               ),
               SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  "Open Resource",
-                  style: TextStyle(
-                    color: Color(0xFF003B7E),
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+              Text(
+                "Open Resource",
+                style: TextStyle(
+                  color: Color(0xFF0F172A),
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
+          // Dialog content showing URL preview
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,27 +81,27 @@ class ResourceFormat extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
+              // Container displaying the URL with styling
               Container(
-                padding: EdgeInsets.all(12),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: primaryBlue.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey[300]!),
+                  border: Border.all(
+                    color: primaryBlue.withOpacity(0.3),
+                    width: 1.5,
+                  ),
                 ),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.link,
-                      color: Color(0xFF003B7E),
-                      size: 18,
-                    ),
-                    SizedBox(width: 8),
+                    const Icon(Icons.link, color: primaryBlue, size: 18),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        resource.link,
-                        style: TextStyle(
-                          color: Color(0xFF003B7E),
+                        resource['link'],
+                        style: const TextStyle(
+                          color: Color(0xFF0F172A),
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
                         ),
@@ -103,7 +112,8 @@ class ResourceFormat extends StatelessWidget {
                   ],
                 ),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
+              // Info text about browser opening
               Text(
                 "This will open in your browser.",
                 style: TextStyle(
@@ -114,51 +124,144 @@ class ResourceFormat extends StatelessWidget {
               ),
             ],
           ),
+          // Action buttons: Cancel and Open Link
           actions: [
+            // Cancel button
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              style: TextButton.styleFrom(foregroundColor: Colors.grey[600]),
+              child: const Text(
+                "Cancel",
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+              ),
+            ),
+            // Open Link button
             TextButton(
               onPressed: () {
-                Navigator.pop(ctx);
+                Navigator.pop(ctx); // Close dialog
+                _launchURL(); // Launch URL
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: primaryBlue,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "Open Link",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                  ),
+                  SizedBox(width: 6),
+                  Icon(Icons.open_in_new, size: 16),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Shows a confirmation dialog before deleting a resource
+  /// Only accessible to advisors
+  /// Deletes from Firestore and shows success snackbar
+  void _onRemoveResource(BuildContext context, Map<String, dynamic> resource) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          // Dialog header with delete icon
+          title: Row(
+            children: [
+              Icon(
+                Icons.delete_outline,
+                color: Colors.red,
+                size: 28,
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  "Delete Resource",
+                  style: TextStyle(
+                    color: Color(0xFF003B7E),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          // Confirmation message with resource title
+          content: Text(
+            "Are you sure you want to delete '${resource['title']}'? This action cannot be undone.",
+            style: TextStyle(fontSize: 16),
+          ),
+          // Action buttons: Cancel and Delete
+          actions: [
+            // Cancel button
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
               },
               style: TextButton.styleFrom(
                 foregroundColor: Colors.grey[600],
               ),
               child: Text(
                 "Cancel",
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                ),
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
+            // Delete button with red styling
             Container(
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF003B7E), Color(0xFF002856)],
-                ),
+                color: Colors.red,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: TextButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  _launchURL();
+                onPressed: () async {
+                  // Capture navigator and messenger synchronously
+                  // This avoids BuildContext usage after async operations
+                  final navigator = Navigator.of(ctx);
+                  final messenger = ScaffoldMessenger.of(context);
+
+                  // Delete resource from Firestore
+                  await FirebaseFirestore.instance
+                      .collection('groups')
+                      .doc(resource['code']) // Group code
+                      .collection('resources')
+                      .doc(resource['id']) // Resource document ID
+                      .delete();
+
+                  // Close the dialog
+                  navigator.pop();
+
+                  // Show success confirmation snackbar
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text('Resource deleted successfully'),
+                      backgroundColor: Colors.red,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
                 },
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      "Open Link",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
-                    ),
-                    SizedBox(width: 6),
-                    Icon(Icons.open_in_new, size: 16),
-                  ],
+                child: Text(
+                  "Delete",
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -170,236 +273,116 @@ class ResourceFormat extends StatelessWidget {
 
   @override
   Widget build(context) {
+    const Color primaryBlue = Color(0xFF2563EB);
+
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      // Card styling with blue border and background
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Color(0xFF5FFBAE),
-            Color(0xFF8FFF9E),
-            Color(0xFFB0FFD1),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+        color: primaryBlue.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: primaryBlue.withOpacity(0.3),
+          width: 1.5,
         ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0xFF4DD9A5).withOpacity(0.4),
-            blurRadius: 20,
-            offset: Offset(0, 10),
-            spreadRadius: -5,
-          ),
-          BoxShadow(
-            color: Colors.white.withOpacity(0.8),
-            blurRadius: 15,
-            offset: Offset(-5, -5),
-            spreadRadius: -10,
-          ),
-        ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header section with glass morphism effect
-            Container(
-              padding: EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Color(0xFF0A2E7F),
-                    Color(0xFF1345B6),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+            // Header row with title and optional delete button
+            Row(
+              children: [
+                // Book icon
+                const Icon(
+                  Icons.auto_stories_rounded,
+                  color: primaryBlue,
+                  size: 24,
                 ),
-              ),
-              child: Row(
-                children: [
-                  // Icon with gradient background
-                  Container(
-                    padding: EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.amber.shade400,
-                          Colors.amber.shade600,
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.amber.withOpacity(0.5),
-                          blurRadius: 8,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
+                const SizedBox(width: 12),
+                // Resource title
+                Expanded(
+                  child: Text(
+                    resource['title'],
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: Color(0xFF0F172A),
                     ),
-                    child: Icon(
-                      Icons.auto_stories_rounded,
-                      color: Colors.white,
-                      size: 28,
-                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(width: 15),
-                  // Title
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          resource.title,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Container(
-                              height: 2,
-                              width: 30,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Colors.amber,
-                                    Colors.orange,
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                ),
+                // Delete button (only visible to advisors)
+                if (_isAdvisor)
+                  IconButton(
+                    onPressed: () => _onRemoveResource(context, resource),
+                    icon: Icon(
+                      Icons.delete_outline,
+                      color: Colors.red[300],
+                      size: 26,
                     ),
+                    tooltip: 'Delete Resource',
                   ),
-                  // Star badge
-                  Container(
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.amber,
-                        width: 2,
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.star,
-                      color: Colors.amber,
-                      size: 20,
-                    ),
-                  ),
-                ],
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            // Resource description/body text
+            Text(
+              resource['body'],
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[700],
+                height: 1.4, // Line height for better readability
               ),
             ),
 
-            // Body content with sophisticated styling
-            Container(
-              width: MediaQuery.of(context).size.width,
-              padding: EdgeInsets.all(25),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Body text with better typography
-                  Container(
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.7),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.5),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Text(
-                      resource.body,
-                      style: TextStyle(
-                        color: Color(0xFF1A1A1A),
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                        height: 1.6,
-                        letterSpacing: 0.2,
-                      ),
-                      textAlign: TextAlign.left,
-                    ),
-                  ),
-                  SizedBox(height: 25),
+            const SizedBox(height: 16),
 
-                  // Sophisticated hyperlink button
-                  Center(
-                    child: GestureDetector(
-                      onTap: () =>
-                          _showLinkDialog(context), // Changed this line
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 28,
-                          vertical: 14,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Color(0xFF0A2E7F),
-                              Color(0xFF1345B6),
-                            ],
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                          ),
-                          borderRadius: BorderRadius.circular(30),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Color(0xFF0A2E7F).withOpacity(0.5),
-                              blurRadius: 15,
-                              offset: Offset(0, 6),
-                            ),
-                            BoxShadow(
-                              color: Colors.white.withOpacity(0.5),
-                              blurRadius: 8,
-                              offset: Offset(-2, -2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.language_rounded,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                            SizedBox(width: 12),
-                            Text(
-                              'View Resource',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                            SizedBox(width: 12),
-                            Container(
-                              padding: EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.arrow_forward_rounded,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ),
-                          ],
+            // "View Resource" button centered at bottom
+            Center(
+              child: GestureDetector(
+                onTap: () => _showLinkDialog(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: primaryBlue,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Globe icon
+                      Icon(
+                        Icons.language_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                      SizedBox(width: 10),
+                      // Button text
+                      Text(
+                        'View Resource',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
+                      SizedBox(width: 8),
+                      // Forward arrow icon
+                      Icon(
+                        Icons.arrow_forward_rounded,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ],

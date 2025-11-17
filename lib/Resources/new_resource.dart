@@ -1,9 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:coding_prog/globals.dart' as globals;
 import 'package:flutter/material.dart';
-import 'package:coding_prog/Resources/resource.dart';
 
+/// StatefulWidget for creating a new resource
+/// Allows users to add educational resources with title, description, and link to a selected group
 class NewResource extends StatefulWidget {
-  const NewResource({required this.addResource, super.key});
-  final void Function(Resource resource) addResource;
+  const NewResource(void setState, {super.key});
 
   @override
   State<NewResource> createState() {
@@ -11,24 +13,41 @@ class NewResource extends StatefulWidget {
   }
 }
 
-List<String> items = ['Washington', 'Oregon', 'North Creek'];
-
 class _NewAnnouncementState extends State<NewResource> {
+  // Text controllers for form inputs
   final _titleController = TextEditingController();
   final _informationController = TextEditingController();
   final _linkController = TextEditingController();
 
-  String _selectedValue = items[0];
+  // Error message for link validation
   String? _linkError;
+
+  // Currently selected group from dropdown
+  String? _selectedValue;
+
+  /// Generates a list of group names with codes for the dropdown
+  /// Format: "Group Name (CODE)"
+  List<String> get groupItems {
+    if (globals.groups == null || globals.groups!.isEmpty) {
+      return [];
+    }
+    return globals.groups!.map((group) {
+      final name = group['name']?.toString() ?? '';
+      final code = group['code']?.toString() ?? '';
+      return '$name ($code)';
+    }).toList();
+  }
 
   @override
   void initState() {
     super.initState();
+    // Add listener to validate link as user types
     _linkController.addListener(_validateLink);
   }
 
   @override
   void dispose() {
+    // Clean up controllers and listeners
     _titleController.dispose();
     _informationController.dispose();
     _linkController.removeListener(_validateLink);
@@ -36,8 +55,10 @@ class _NewAnnouncementState extends State<NewResource> {
     super.dispose();
   }
 
-  void submitResource() {
-    // Trim all inputs
+  /// Submits the resource to Firebase Firestore
+  /// Validates all fields before submission and shows error dialogs if validation fails
+  Future<void> submitResource() async {
+    // Trim all inputs to remove leading/trailing whitespace
     final title = _titleController.text.trim();
     final information = _informationController.text.trim();
     final link = _linkController.text.trim();
@@ -48,7 +69,7 @@ class _NewAnnouncementState extends State<NewResource> {
       return;
     }
 
-    // Validate URL
+    // Validate URL format
     if (!_isValidUrl(link)) {
       _showErrorDialog(
         'Invalid Link',
@@ -57,19 +78,46 @@ class _NewAnnouncementState extends State<NewResource> {
       return;
     }
 
-    // If everything is valid, add the resource
-    widget.addResource(
-      Resource(
-        body: information,
-        title: title,
-        link: link,
-      ),
-    );
+    try {
+      // Extract group code from selected value (e.g., "Group Name (CODE)" -> "CODE")
+      print(
+        _selectedValue!.substring(
+          _selectedValue!.indexOf("(") + 1,
+          _selectedValue!.indexOf(")"),
+        ),
+      );
+
+      // Add resource to Firestore under the selected group's resources collection
+      await FirebaseFirestore.instance
+          .collection('groups')
+          .doc(
+            _selectedValue!.substring(
+              _selectedValue!.indexOf("(") + 1,
+              _selectedValue!.indexOf(")"),
+            ),
+          )
+          .collection('resources')
+          .add({
+            'body': information,
+            'title': title,
+            'link': link,
+          });
+
+      // Close the form if widget is still mounted
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } catch (_) {
+      // Silently catch errors (could be improved with error handling)
+    }
   }
 
+  /// Validates the link input in real-time as user types
+  /// Updates _linkError state to show/hide error message
   void _validateLink() {
     final link = _linkController.text.trim();
 
+    // Clear error if field is empty
     if (link.isEmpty) {
       if (mounted) {
         setState(() {
@@ -79,6 +127,7 @@ class _NewAnnouncementState extends State<NewResource> {
       return;
     }
 
+    // Check if URL is valid and update error state
     if (!_isValidUrl(link)) {
       if (mounted) {
         setState(() {
@@ -94,12 +143,19 @@ class _NewAnnouncementState extends State<NewResource> {
     }
   }
 
+  /// Validates if a string is a valid URL
+  /// Checks for:
+  /// - No spaces in URL
+  /// - Valid URI format
+  /// - HTTP/HTTPS scheme
+  /// - Valid domain structure with TLD
+  /// Returns true if URL is valid, false otherwise
   bool _isValidUrl(String url) {
     try {
       // Remove whitespace
       url = url.trim();
 
-      // Check for spaces (URLs shouldn't have spaces)
+      // URLs shouldn't contain spaces
       if (url.isEmpty || url.contains(' ')) return false;
 
       // Add https:// if no scheme is present
@@ -110,28 +166,29 @@ class _NewAnnouncementState extends State<NewResource> {
         urlToValidate = 'https://$url';
       }
 
+      // Try to parse the URL
       final uri = Uri.tryParse(urlToValidate);
       if (uri == null) return false;
 
-      // Must have scheme and authority
+      // URL must have both scheme (http/https) and authority (domain)
       if (!uri.hasScheme || !uri.hasAuthority) return false;
 
-      // Must be http or https
+      // Only allow http and https protocols
       if (uri.scheme != 'http' && uri.scheme != 'https') return false;
 
-      // Host must contain at least one dot
+      // Host must contain at least one dot (for TLD)
       if (!uri.host.contains('.')) return false;
 
-      // Check that there's content before and after the dot
+      // Split host into parts (e.g., "example.com" -> ["example", "com"])
       List<String> parts = uri.host.split('.');
       if (parts.length < 2) return false;
 
-      // Each part must not be empty
+      // Each part must not be empty (e.g., "example..com" is invalid)
       for (String part in parts) {
         if (part.isEmpty) return false;
       }
 
-      // The last part (TLD) must be at least 2 characters
+      // The last part (TLD like .com, .org) must be at least 2 characters
       if (parts.last.length < 2) return false;
 
       return true;
@@ -140,6 +197,8 @@ class _NewAnnouncementState extends State<NewResource> {
     }
   }
 
+  /// Shows an error dialog with a custom title and message
+  /// Used for validation errors and missing information
   void _showErrorDialog(String title, String message) {
     showDialog(
       context: context,
@@ -148,11 +207,12 @@ class _NewAnnouncementState extends State<NewResource> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
+          // Title with warning icon
           title: Row(
             children: [
               Icon(
                 Icons.warning_amber_rounded,
-                color: Color(0xFFE8B44C),
+                color: Color(0xFFFFD700),
                 size: 28,
               ),
               SizedBox(width: 12),
@@ -168,10 +228,12 @@ class _NewAnnouncementState extends State<NewResource> {
               ),
             ],
           ),
+          // Error message content
           content: Text(
             message,
             style: TextStyle(fontSize: 16),
           ),
+          // Dismiss button
           actions: [
             TextButton(
               onPressed: () {
@@ -195,6 +257,7 @@ class _NewAnnouncementState extends State<NewResource> {
   Widget build(context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
+      // App bar with title
       appBar: AppBar(
         title: Text(
           "New Resource",
@@ -211,73 +274,63 @@ class _NewAnnouncementState extends State<NewResource> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Target Audience Section
-              Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[300]!),
+              SizedBox(height: 8),
+
+              // Group Selection Section
+              Text(
+                "Group",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF003B7E),
                 ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.group,
-                      color: Color(0xFF003B7E),
-                      size: 24,
-                    ),
-                    SizedBox(width: 12),
-                    Text(
-                      "Target Audience:",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF003B7E),
-                      ),
-                    ),
-                    Spacer(),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Color(0xFFE8B44C).withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: DropdownButton<String>(
-                        value: _selectedValue,
-                        underline: SizedBox(),
-                        icon: Icon(
-                          Icons.arrow_drop_down,
-                          color: Color(0xFF003B7E),
-                        ),
-                        style: TextStyle(
-                          color: Color(0xFF003B7E),
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
-                        items: items.map((String item) {
-                          return DropdownMenuItem<String>(
-                            value: item,
-                            child: Text(item),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          if (value == null) return;
-                          setState(() {
-                            _selectedValue = value;
-                          });
-                        },
-                      ),
-                    ),
-                  ],
+              ),
+              SizedBox(height: 8),
+              // Dropdown to select which group the resource belongs to
+              DropdownButtonFormField<String>(
+                value: _selectedValue,
+                hint: Text(
+                  'Select a group',
+                  style: TextStyle(color: Colors.grey[400]),
+                ),
+                items: groupItems.map((String item) {
+                  return DropdownMenuItem<String>(
+                    value: item,
+                    child: Text(item),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedValue = newValue;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: 'Select a group',
+                  hintStyle: TextStyle(color: Colors.grey[400]),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Color(0xFF003B7E), width: 2),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
                 ),
               ),
 
               SizedBox(height: 24),
 
-              // Title Field
+              // Resource Title Section
               Text(
                 "Resource Title",
                 style: TextStyle(
@@ -287,18 +340,19 @@ class _NewAnnouncementState extends State<NewResource> {
                 ),
               ),
               SizedBox(height: 8),
+              // Input field for resource title (max 75 characters)
               TextField(
                 controller: _titleController,
                 maxLength: 75,
                 onTapOutside: (event) {
+                  // Dismiss keyboard when tapping outside
                   FocusManager.instance.primaryFocus?.unfocus();
                 },
                 decoration: InputDecoration(
-                  hintText: "e.g., Competitive Events Guide",
+                  hintText: "Enter resource title...",
                   hintStyle: TextStyle(color: Colors.grey[400]),
                   filled: true,
                   fillColor: Colors.white,
-                  prefixIcon: Icon(Icons.title, color: Color(0xFF003B7E)),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Colors.grey[300]!),
@@ -311,7 +365,7 @@ class _NewAnnouncementState extends State<NewResource> {
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Color(0xFF003B7E), width: 2),
                   ),
-                  counter: Offstage(),
+                  counter: Offstage(), // Hide character counter
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 16,
@@ -319,9 +373,9 @@ class _NewAnnouncementState extends State<NewResource> {
                 ),
               ),
 
-              SizedBox(height: 20),
+              SizedBox(height: 24),
 
-              // Description Field
+              // Description Section
               Text(
                 "Description",
                 style: TextStyle(
@@ -331,10 +385,11 @@ class _NewAnnouncementState extends State<NewResource> {
                 ),
               ),
               SizedBox(height: 8),
+              // Multi-line input field for resource description (max 200 characters)
               TextField(
                 controller: _informationController,
                 maxLength: 200,
-                maxLines: 3,
+                maxLines: 4,
                 onTapOutside: (event) {
                   FocusManager.instance.primaryFocus?.unfocus();
                 },
@@ -343,10 +398,6 @@ class _NewAnnouncementState extends State<NewResource> {
                   hintStyle: TextStyle(color: Colors.grey[400]),
                   filled: true,
                   fillColor: Colors.white,
-                  prefixIcon: Padding(
-                    padding: EdgeInsets.only(bottom: 40),
-                    child: Icon(Icons.description, color: Color(0xFF003B7E)),
-                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Colors.grey[300]!),
@@ -359,14 +410,15 @@ class _NewAnnouncementState extends State<NewResource> {
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Color(0xFF003B7E), width: 2),
                   ),
-                  counter: Offstage(),
+                  counter: Offstage(), // Hide character counter
                   contentPadding: EdgeInsets.all(16),
+                  alignLabelWithHint: true,
                 ),
               ),
 
-              SizedBox(height: 20),
+              SizedBox(height: 24),
 
-              // Link Field
+              // Resource Link Section
               Text(
                 "Resource Link",
                 style: TextStyle(
@@ -376,42 +428,31 @@ class _NewAnnouncementState extends State<NewResource> {
                 ),
               ),
               SizedBox(height: 8),
+              // Input field for resource URL with real-time validation
               TextField(
                 controller: _linkController,
                 maxLength: 500,
                 onTapOutside: (event) {
                   FocusManager.instance.primaryFocus?.unfocus();
                 },
-
-                // In your TextField decoration for the link field:
                 decoration: InputDecoration(
                   hintText: "https://example.com or example.com",
                   hintStyle: TextStyle(color: Colors.grey[400]),
                   filled: true,
                   fillColor: Colors.white,
-
-                  // ✅ PREFIX ICON - Changes color based on error
-                  prefixIcon: Icon(
-                    Icons.link,
-                    color: _linkError != null ? Colors.red : Color(0xFF003B7E),
-                  ),
-
-                  // ✅ SUFFIX ICON - Shows check or error icon
+                  // Show check or error icon based on validation
                   suffixIcon: _linkController.text.isNotEmpty
                       ? Icon(
                           _linkError == null ? Icons.check_circle : Icons.error,
                           color: _linkError == null ? Colors.green : Colors.red,
                         )
                       : null,
-
-                  // ✅ ERROR TEXT - Shows below field
                   errorText: _linkError,
                   errorStyle: TextStyle(
                     color: Colors.red,
                     fontSize: 12,
                   ),
-
-                  // ✅ BORDER COLOR - Changes based on error
+                  // Dynamic border colors based on validation state
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Colors.grey[300]!),
@@ -442,8 +483,7 @@ class _NewAnnouncementState extends State<NewResource> {
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Colors.red, width: 2),
                   ),
-
-                  counter: Offstage(),
+                  counter: Offstage(), // Hide character counter
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 16,
@@ -459,6 +499,7 @@ class _NewAnnouncementState extends State<NewResource> {
                   width: double.infinity,
                   height: 56,
                   decoration: BoxDecoration(
+                    // Gradient background for visual appeal
                     gradient: LinearGradient(
                       colors: [Color(0xFF003B7E), Color(0xFF002856)],
                       begin: Alignment.topLeft,
@@ -482,12 +523,14 @@ class _NewAnnouncementState extends State<NewResource> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            // Upload icon
                             Icon(
-                              Icons.save,
-                              color: Color(0xFFE8B44C),
+                              Icons.cloud_upload,
+                              color: Color(0xFFFFD700),
                               size: 22,
                             ),
                             SizedBox(width: 12),
+                            // Button text
                             Text(
                               "Save Resource",
                               style: TextStyle(

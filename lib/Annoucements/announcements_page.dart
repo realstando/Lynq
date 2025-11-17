@@ -1,142 +1,128 @@
 import 'package:coding_prog/Annoucements/new_announcement.dart';
+import 'package:coding_prog/globals.dart' as globals;
+import 'package:coding_prog/globals.dart' as global;
 import 'package:flutter/material.dart';
 import 'package:coding_prog/Annoucements/announcement_format.dart';
-import 'package:coding_prog/Annoucements/announcement.dart';
+import 'package:coding_prog/NavigationBar/custom_appbar.dart';
+import 'package:coding_prog/NavigationBar/drawer_page.dart';
+import 'package:coding_prog/NavigationBar/custom_actionbutton.dart';
 
+/// StatefulWidget for displaying all announcements
+/// Shows a scrollable list of announcements or an empty state when none exist
+/// Advisors can create new announcements via a floating action button
 class AnnouncementsPage extends StatefulWidget {
-  const AnnouncementsPage({super.key});
+  const AnnouncementsPage({
+    super.key,
+    required this.onNavigate,
+  });
+
+  /// Callback function to handle navigation to different pages
+  final void Function(int) onNavigate;
 
   @override
-  State<AnnouncementsPage> createState() {
-    return _AnnouncementsPageState();
-  }
+  State<AnnouncementsPage> createState() => _AnnouncementsPageState();
 }
 
 class _AnnouncementsPageState extends State<AnnouncementsPage> {
+  // Global key to control the Scaffold state (used for opening drawer)
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  /// Flag to check if current user is an advisor
+  /// Only advisors can create new announcements
+  final bool _isAdvisor = globals.currentUserRole == 'advisors';
+
+  /// Opens the new announcement form as a modal screen
+  /// After creating an announcement, refreshes the page and closes the form
   void _openAddAnnouncementOverlay() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) =>
-            NewAnnouncement(addAnnouncement: _onAddAnnouncement),
+        builder: (context) => NewAnnouncement(() {
+          setState(() {}); // Refresh the announcements list
+          Navigator.pop(context); // Close the form
+        }),
       ),
     );
   }
 
-  void _onAddAnnouncement(Announcement announcement) {
-    setState(() {
-      announcements.insert(0, announcement);
-    });
-    Navigator.pop(context);
-  }
-
-  final List<Announcement> announcements = [
-    Announcement(
-      initial: "WA",
-      name: "Washington FBLA",
-      title: "Time Change for Network Design ",
-      content:
-          "Hey students! There will be a time change for the roleplay event Network Design as a result of the xyz. Thanks!",
-      date: DateTime.now(),
-    ),
-    Announcement(
-      initial: "Naur",
-      name: "Georgia FBLA",
-      title: "I HATE PUSHKAL ",
-      content: "Hey students! Let us kill pushkal now!",
-      date: DateTime.now(),
-    ),
-  ];
-
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    // Check if there are any announcements to display
+    final hasAnnouncements =
+        global.announcements != null && global.announcements!.isNotEmpty;
+
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      floatingActionButton: Padding(
-        padding: EdgeInsets.only(bottom: 20, right: 8),
-        child: Container(
-          height: 58,
-          decoration: BoxDecoration(
-            color: Color(0xFFE8B44C),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Color(0xFFE8B44C).withOpacity(0.3),
-                blurRadius: 12,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: _openAddAnnouncementOverlay,
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.edit_note, color: Color(0xFF003B7E), size: 26),
-                    SizedBox(width: 10),
-                    Text(
-                      "New Post",
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 0, 0, 0),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+      key: _scaffoldKey,
+      // Navigation drawer
+      drawer: DrawerPage(
+        icon: Icons.campaign_rounded,
+        name: 'Announcements',
+        color: const Color(0xFF0A2E7F),
+        onNavigate: widget.onNavigate,
+      ),
+      // Custom app bar
+      appBar: CustomAppBar(
+        onNavigate: widget.onNavigate,
+        name: 'Announcements',
+        color: const Color(0xFF1E3A8A),
+        scaffoldKey: _scaffoldKey,
+      ),
+      backgroundColor: const Color(0xFFF7F9FC), // Light blue-grey background
+      // Floating action button - only shown for advisors
+      floatingActionButton: _isAdvisor
+          ? CustomActionButton(
+              openAddPage: _openAddAnnouncementOverlay,
+              name: "New Announcement",
+              icon: Icons.campaign_rounded,
+            )
+          : null,
+      body: hasAnnouncements
+          // List of announcements when data exists
+          ? ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+              itemCount: global.announcements!.length,
+              itemBuilder: (context, index) {
+                final announcement = global.announcements![index];
+                // Display each announcement using AnnouncementFormat widget
+                return AnnouncementFormat(announcement: announcement);
+              },
+            )
+          // Empty state when no announcements exist
+          : Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Logo container with light background
+                  Container(
+                    height: 100,
+                    width: 100,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0A2E7F).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Padding(
+                      padding: EdgeInsets.all(20.0),
+                      child: Image(
+                        image: AssetImage('assets/Lynq_Logo.png'),
+                        fit: BoxFit.contain,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 24),
+                  // Empty state message
+                  const Text(
+                    'No announcements yet',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF0F172A),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
               ),
             ),
-          ),
-        ),
-      ),
-      body: Column(
-        children: [
-          SizedBox(height: 60),
-          Text(
-            "Announcements",
-            style: TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.bold,
-              fontSize: 32,
-              letterSpacing: 0.5,
-            ),
-          ),
-          SizedBox(height: 16),
-          Container(
-            width: 100,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.black,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          SizedBox(height: 24),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Color(0xFFE8F0FF),
-                    Color(0xFFD6E4FF),
-                  ],
-                ),
-              ),
-              child: ListView.builder(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                itemCount: announcements.length,
-                itemBuilder: (context, index) =>
-                    AnnouncementFormat(announcement: announcements[index]),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

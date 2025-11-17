@@ -1,10 +1,7 @@
 plugins {
     id("com.android.application")
-    // START: FlutterFire Configuration
     id("com.google.gms.google-services")
-    // END: FlutterFire Configuration
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -23,10 +20,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.expense_tracker"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = 34
         versionCode = flutter.versionCode
@@ -36,8 +30,6 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
         }
     }
@@ -45,4 +37,22 @@ android {
 
 flutter {
     source = "../.."
+}
+
+// Simple copy tasks to fix APK location issue
+tasks.register<Copy>("copyApkToFlutterLocation") {
+    dependsOn("assembleDebug", "assembleRelease")
+    from("build/outputs/flutter-apk")
+    into(File(rootProject.projectDir.parent, "build/app/outputs/flutter-apk"))
+    include("*.apk")
+}
+
+afterEvaluate {
+    tasks.named("assembleDebug") {
+        finalizedBy("copyApkToFlutterLocation")
+    }
+    
+    tasks.named("assembleRelease") {
+        finalizedBy("copyApkToFlutterLocation")
+    }
 }
