@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:coding_prog/Groups/new_group.dart';
 import 'package:coding_prog/globals.dart' as globals;
-import 'package:coding_prog/globals.dart' as global;
 import 'package:flutter/material.dart';
 import 'package:coding_prog/NavigationBar/custom_appbar.dart';
 import 'package:coding_prog/NavigationBar/drawer_page.dart';
@@ -189,8 +188,8 @@ class _GroupPageState extends State<GroupPage> {
                         .get();
 
                     // Check if student has already joined this group
-                    final studentDoc = await FirebaseFirestore.instance
-                        .collection('students')
+                    final userDoc = await FirebaseFirestore.instance
+                        .collection(globals.currentUserRole)
                         .doc(globals.currentUID)
                         .collection('groups')
                         .doc(code)
@@ -221,7 +220,7 @@ class _GroupPageState extends State<GroupPage> {
                     }
 
                     // Validation: Check if already joined
-                    if (studentDoc.exists) {
+                    if (userDoc.exists) {
                       setDialogState(() {
                         _errorMessage = 'Already joined this group';
                       });
@@ -229,7 +228,7 @@ class _GroupPageState extends State<GroupPage> {
                     } else {
                       // Add student to the group
                       await FirebaseFirestore.instance
-                          .collection('students')
+                          .collection(globals.currentUserRole)
                           .doc(globals.currentUID)
                           .collection('groups')
                           .doc(code)
@@ -456,7 +455,7 @@ class _GroupPageState extends State<GroupPage> {
                   SizedBox(height: 16),
 
                   // Groups List - displays all joined groups or empty state
-                  global.groups!.isEmpty
+                  globals.groups.isEmpty
                       ? Container(
                           padding: EdgeInsets.all(40),
                           decoration: BoxDecoration(
@@ -508,7 +507,7 @@ class _GroupPageState extends State<GroupPage> {
                           ),
                         )
                       : Column(
-                          children: global.groups!.map((group) {
+                          children: globals.groups.map((group) {
                             return Padding(
                               padding: EdgeInsets.only(bottom: 12),
                               child: GroupFormat(group),

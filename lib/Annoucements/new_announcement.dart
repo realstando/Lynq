@@ -34,13 +34,13 @@ class _NewAnnouncementState extends State<NewAnnouncement> {
   /// Combines group name and code for display: "Chapter Name (ABC123)"
   /// Returns empty list if no groups are available in global state
   List<String> get groupItems {
-    if (globals.groups == null || globals.groups!.isEmpty) {
+    if (globals.groups.isEmpty) {
       return [];
     }
     // Map each group to a formatted string with name and code
-    return globals.groups!.map((group) {
-      final name = group['name']?.toString() ?? '';
-      final code = group['code']?.toString() ?? '';
+    return globals.groups.map((group) {
+      final name = group.name.toString();
+      final code = group.code.toString();
       return '$name ($code)'; // Format: "Washington FBLA (WA2025)"
     }).toList();
   }
@@ -134,9 +134,10 @@ class _NewAnnouncementState extends State<NewAnnouncement> {
             ),
           )
           .collection('announcements')
-          .add({
-            'content': _informationController.text.trim(),
+          .doc(_titleController.text.trim())
+          .set({
             'title': _titleController.text.trim(),
+            'content': _informationController.text.trim(),
             'date': DateTime.now(), // Timestamp for sorting announcements
           });
 

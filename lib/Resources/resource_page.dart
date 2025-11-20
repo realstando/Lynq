@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:coding_prog/NavigationBar/custom_appbar.dart';
 import 'package:coding_prog/NavigationBar/drawer_page.dart';
 import 'package:coding_prog/Resources/new_resource.dart';
+import 'package:coding_prog/Resources/resource.dart';
 import 'package:coding_prog/Resources/resource_format.dart';
 import 'package:coding_prog/globals.dart' as globals;
 import 'package:coding_prog/globals.dart' as global;
@@ -45,7 +46,7 @@ class _ResourcePageState extends State<ResourcePage> {
 
   /// Handles the deletion of a resource with confirmation dialog
   /// @param resource The resource to be deleted
-  void _onRemoveResource(Map<String, dynamic> resource) {
+  void _onRemoveResource(Resource resource) {
     showDialog(
       context: context,
       builder: (ctx) {
@@ -76,7 +77,7 @@ class _ResourcePageState extends State<ResourcePage> {
           ),
           // Confirmation message showing the resource title
           content: Text(
-            "Are you sure you want to delete '${resource['title']}'? This action cannot be undone.",
+            "Are you sure you want to delete '${resource.title}'? This action cannot be undone.",
             style: TextStyle(fontSize: 16),
           ),
           actions: [
@@ -104,9 +105,9 @@ class _ResourcePageState extends State<ResourcePage> {
                   // Delete the resource from Firestore
                   await FirebaseFirestore.instance
                       .collection('groups')
-                      .doc(resource['code'])
+                      .doc(resource.code)
                       .collection('resources')
-                      .doc(resource['id'])
+                      .doc(resource.title)
                       .delete();
 
                   // Check if widget is still mounted before updating state
@@ -171,7 +172,7 @@ class _ResourcePageState extends State<ResourcePage> {
       body: Column(
         children: [
           Expanded(
-            child: global.resources!.isEmpty
+            child: global.resources.isEmpty
                 // Empty state when no resources exist
                 ? Center(
                     child: Column(
@@ -204,11 +205,11 @@ class _ResourcePageState extends State<ResourcePage> {
                   )
                 // List view displaying all resources
                 : ListView.builder(
-                    itemCount: global.resources!.length,
+                    itemCount: global.resources.length,
                     itemBuilder: (context, index) => ResourceFormat(
-                      resource: global.resources![index],
+                      resource: global.resources[index],
                       onDelete: () =>
-                          _onRemoveResource(global.resources![index]),
+                          _onRemoveResource(global.resources[index]),
                     ),
                   ),
           ),

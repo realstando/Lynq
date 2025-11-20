@@ -1,3 +1,5 @@
+import 'package:coding_prog/Annoucements/announcement.dart';
+import 'package:coding_prog/Calendar/calendar.dart';
 import 'package:coding_prog/globals.dart' as globals;
 import 'package:coding_prog/globals.dart' as global;
 import 'package:flutter/material.dart';
@@ -30,21 +32,21 @@ class _HomePageState extends State<HomePage> {
   static const fblaGold = Color(0xFFF4AB19);
 
   /// Current user's name displayed in the welcome header
-  final String userName = globals.currentUserName ?? "Member";
+  final String userName = globals.currentUserName;
 
   /// Gets the first 3 most recent announcements to display on the home page
   /// Returns an empty list if no announcements are available
-  List<Map<String, dynamic>> get recentAnnouncements {
-    if (global.announcements == null || global.announcements!.isEmpty) {
+  List<Announcement> get recentAnnouncements {
+    if (global.announcements.isEmpty) {
       return [];
     }
-    return global.announcements!.take(3).toList();
+    return global.announcements.take(3).toList();
   }
 
   /// Gets all events scheduled for the current month, sorted by date
   /// Filters calendar events by current month and year, then sorts chronologically
-  List<Map<String, dynamic>> get monthEvents {
-    if (global.calendar == null || global.calendar!.isEmpty) {
+  List<Calendar> get monthEvents {
+    if (global.calendar.isEmpty) {
       return [];
     }
 
@@ -53,14 +55,14 @@ class _HomePageState extends State<HomePage> {
     final currentYear = now.year;
 
     // Filter events that occur in the current month and year
-    final filteredEvents = global.calendar!.where((cal) {
-      return cal['date'].toDate().month == currentMonth &&
-          cal['date'].toDate().year == currentYear;
+    final filteredEvents = global.calendar.where((cal) {
+      return cal.date.month == currentMonth &&
+          cal.date.year == currentYear;
     }).toList();
 
     // Sort events by date (earliest first)
     filteredEvents.sort(
-      (a, b) => a['date'].toDate().compareTo(b['date'].toDate()),
+      (a, b) => a.date.compareTo(b.date),
     );
 
     return filteredEvents;
@@ -283,9 +285,9 @@ class _HomePageState extends State<HomePage> {
 
   /// Builds a card displaying a single announcement with author, title, and date
   /// @param announcement The announcement data containing name, title, and date
-  Widget _buildAnnouncementCard(Map<String, dynamic> announcement) {
+  Widget _buildAnnouncementCard(Announcement announcement) {
     const Color primaryBlue = Color(0xFF1D52BC);
-    const Color gold = Color(0xFFFFD54F);
+    // const Color gold = Color(0xFFFFD54F);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -310,7 +312,7 @@ class _HomePageState extends State<HomePage> {
                 radius: 18,
                 backgroundColor: primaryBlue,
                 child: Text(
-                  announcement['name'][0].toUpperCase(),
+                  announcement.name[0].toUpperCase(),
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -329,7 +331,7 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         Expanded(
                           child: Text(
-                            announcement['name'],
+                            announcement.name,
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
@@ -347,7 +349,7 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(height: 4),
                     // Announcement title (truncated if too long)
                     Text(
-                      announcement['title'],
+                      announcement.title,
                       style: TextStyle(
                         color: Colors.grey.shade700,
                         fontSize: 13,
@@ -369,7 +371,7 @@ class _HomePageState extends State<HomePage> {
                         const SizedBox(width: 4),
                         Text(
                           DateFormat.yMd().format(
-                            announcement['date'].toDate(),
+                            announcement.date,
                           ),
                           style: TextStyle(
                             color: primaryBlue.withOpacity(0.7),

@@ -28,12 +28,12 @@ class _NewAnnouncementState extends State<NewResource> {
   /// Generates a list of group names with codes for the dropdown
   /// Format: "Group Name (CODE)"
   List<String> get groupItems {
-    if (globals.groups == null || globals.groups!.isEmpty) {
+    if (globals.groups.isEmpty) {
       return [];
     }
-    return globals.groups!.map((group) {
-      final name = group['name']?.toString() ?? '';
-      final code = group['code']?.toString() ?? '';
+    return globals.groups.map((group) {
+      final name = group.name.toString();
+      final code = group.code.toString();
       return '$name ($code)';
     }).toList();
   }
@@ -97,7 +97,7 @@ class _NewAnnouncementState extends State<NewResource> {
             ),
           )
           .collection('resources')
-          .add({
+          .doc(title).set({
             'body': information,
             'title': title,
             'link': link,

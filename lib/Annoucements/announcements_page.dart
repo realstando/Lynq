@@ -46,11 +46,11 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    // final theme = Theme.of(context);
 
     // Check if there are any announcements to display
     final hasAnnouncements =
-        global.announcements != null && global.announcements!.isNotEmpty;
+        global.announcements.isNotEmpty;
 
     return Scaffold(
       key: _scaffoldKey,
@@ -81,9 +81,9 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
           // List of announcements when data exists
           ? ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
-              itemCount: global.announcements!.length,
+              itemCount: global.announcements.length,
               itemBuilder: (context, index) {
-                final announcement = global.announcements![index];
+                final announcement = global.announcements[index];
                 // Display each announcement using AnnouncementFormat widget
                 return AnnouncementFormat(announcement: announcement);
               },
