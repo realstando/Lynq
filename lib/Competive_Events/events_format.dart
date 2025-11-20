@@ -19,6 +19,7 @@ class EventsFormat extends StatefulWidget {
 }
 
 class _EventsFormatState extends State<EventsFormat> {
+  final bool _isAdvisor = globals.currentUserRole == 'advisors';
   // FBLA Official Brand Colors for consistent theming
   static const fblaNavy = Color(0xFF0B1F3F);
   static const fblaBlue = Color(0xFF4A7BC8);
@@ -320,53 +321,48 @@ class _EventsFormatState extends State<EventsFormat> {
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      // Category-themed background and border
       decoration: BoxDecoration(
-        color: categoryColor.withOpacity(0.08), // Light tinted background
+        color: categoryColor.withOpacity(0.08),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: categoryColor.withOpacity(0.3),
           width: 1.5,
         ),
       ),
-      // Material wrapper for ripple effect on tap
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          // Tapping the card opens the link dialog
-          onTap: () => _showLinkDialog(context),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header row with category badge and action buttons
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center, // ✅ Add this
               children: [
-                // Header row with category badge and action buttons
-                Row(
-                  children: [
-                    // Category icon
-                    Icon(
-                      _getCategoryIcon(),
-                      size: 18,
-                      color: categoryColor,
-                    ),
-                    const SizedBox(width: 8),
-                    // Category label in uppercase
-                    Text(
-                      widget.event.category.name.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: categoryColor,
-                        letterSpacing: 0.5, // Wide spacing for emphasis
-                      ),
-                    ),
-                    const Spacer(), // Push buttons to the right
-                    // Star/favorite button with animation
-                    IconButton(
-                      icon: AnimatedSwitcher(
-                        // Smooth transition when toggling star
+                // Category icon
+                Icon(
+                  _getCategoryIcon(),
+                  size: 18,
+                  color: categoryColor,
+                ),
+                const SizedBox(width: 8),
+                // Category label in uppercase
+                Text(
+                  widget.event.category.name.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: categoryColor,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const Spacer(),
+                // Star button only for students
+                if (!_isAdvisor) ...[
+                  GestureDetector(
+                    onTap: _toggleStar,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4), // ✅ Only horizontal padding
+                      child: AnimatedSwitcher(
                         duration: const Duration(milliseconds: 200),
                         transitionBuilder: (child, animation) {
                           return ScaleTransition(
@@ -374,56 +370,52 @@ class _EventsFormatState extends State<EventsFormat> {
                             child: child,
                           );
                         },
-                        // Key ensures animation triggers on state change
                         child: Icon(
                           _isStarred ? Icons.star : Icons.star_border,
                           key: ValueKey(_isStarred),
                           color: _isStarred ? fblaGold : Colors.grey[600],
-                          size: 24,
+                          size: 20,
                         ),
                       ),
-                      onPressed: _toggleStar,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      splashRadius: 20, // Small ripple effect
                     ),
-                    const SizedBox(width: 8),
-                    // External link indicator icon
-                    Icon(
-                      Icons.open_in_new,
-                      color: Colors.grey[600],
-                      size: 18,
-                    ),
-                  ],
-                ),
-
-                // Event title - main identifier
-                Text(
-                  widget.event.title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: fblaNavy,
                   ),
-                ),
-
-                const SizedBox(height: 8),
-
-                // Event description with ellipsis for long text
-                Text(
-                  widget.event.description,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[700],
-                    height: 1.4, // Line height for readability
-                  ),
-                  maxLines: 3, // Limit to 3 lines
-                  overflow:
-                      TextOverflow.ellipsis, // Show ... if text is cut off
+                  const SizedBox(width: 8),
+                ],
+                // External link icon
+                Icon(
+                  Icons.open_in_new,
+                  color: Colors.grey[600],
+                  size: 18,
                 ),
               ],
             ),
-          ),
+
+            const SizedBox(height: 8), // Reduced spacing
+
+            // Event title
+            Text(
+              widget.event.title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: fblaNavy,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // Event description
+            Text(
+              widget.event.description,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[700],
+                height: 1.4,
+              ),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       ),
     );

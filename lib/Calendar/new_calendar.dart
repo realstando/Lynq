@@ -22,12 +22,12 @@ class _NewCalendarState extends State<NewCalendar> {
   /// Generates a list of group names with codes for the dropdown
   /// Format: "Group Name (CODE)"
   List<String> get groupItems {
-    if (globals.groups == null || globals.groups!.isEmpty) {
+    if (globals.groups.isEmpty) {
       return [];
     }
-    return globals.groups!.map((group) {
-      final name = group['name']?.toString() ?? '';
-      final code = group['code']?.toString() ?? '';
+    return globals.groups.map((group) {
+      final name = group.name.toString();
+      final code = group.code.toString();
       return '$name ($code)';
     }).toList();
   }
@@ -114,7 +114,7 @@ class _NewCalendarState extends State<NewCalendar> {
             ),
           )
           .collection('calendar')
-          .add({
+          .doc(_titleController.text.trim()).set({
             'event': _titleController.text.trim(),
             'location': _locationController.text.trim(),
             'date': selectedDate,

@@ -22,6 +22,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   /// Key for accessing the Scaffold state (e.g., for drawer)
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final bool _isAdvisor = globals.currentUserRole == 'advisors';
 
   // FBLA Official Brand Colors
   static const fblaNavy = Color(0xFF0A2E7F);
@@ -31,8 +32,8 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     // Get current user information from global state
-    final String name = globals.currentUserName ?? 'Member';
-    final String email = globals.currentUserEmail ?? 'Member';
+    final String name = globals.currentUserName;
+    final String email = globals.currentUserEmail;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -195,28 +196,29 @@ class _ProfilePageState extends State<ProfilePage> {
 
             const SizedBox(height: 28),
 
-            // My Events Section - displays events user is enrolled in
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: [
-                  _buildSectionHeader('My Events'),
-                  const SizedBox(height: 14),
-                  // Show empty state if no events, otherwise display event cards
-                  if (global.events!.isEmpty)
-                    _buildEmptyState(
-                      'No events yet',
-                      'Join events to see them here',
-                      Icons.event_busy,
-                    )
-                  else
-                    ...global.events!.map((event) => _buildEventCard(event)),
-                ],
+            if (!_isAdvisor) ...[
+              // My Events Section - displays events user is enrolled in
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: [
+                    _buildSectionHeader('My Events'),
+                    const SizedBox(height: 14),
+                    // Show empty state if no events, otherwise display event cards
+                    if (global.events.isEmpty)
+                      _buildEmptyState(
+                        'No events yet',
+                        'Join events to see them here',
+                        Icons.event_busy,
+                      )
+                    else
+                      ...global.events.map((event) => _buildEventCard(event.name)),
+                  ],
+                ),
               ),
-            ),
 
-            const SizedBox(height: 32),
-
+              const SizedBox(height: 32),
+            ],
             // Scheduled Activities Section - displays upcoming calendar events
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -225,7 +227,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   _buildSectionHeader('Scheduled Events'),
                   const SizedBox(height: 14),
                   // Show empty state if no scheduled events
-                  if (global.calendar == null || global.calendar!.isEmpty)
+                  if (global.calendar.isEmpty)
                     _buildEmptyState(
                       'No scheduled events',
                       'Check back later for upcoming activities',
@@ -233,14 +235,14 @@ class _ProfilePageState extends State<ProfilePage> {
                     )
                   else
                     // Display each scheduled event with formatted date/time
-                    ...global.calendar!
+                    ...global.calendar
                         .map(
                           (cal) => _buildActivityCard(
-                            cal['name'],
+                            cal.event,
                             // Format: "Mon, Jan 1 @ 3:00 PM"
                             DateFormat(
                               'E, MMM d \'@\' h:mm a',
-                            ).format(cal['date'].toDate()),
+                            ).format(cal.date),
                           ),
                         )
                         .toList(),

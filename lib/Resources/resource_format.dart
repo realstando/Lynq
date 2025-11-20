@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:coding_prog/Resources/resource.dart';
 import 'package:coding_prog/globals.dart' as globals;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -9,7 +10,7 @@ class ResourceFormat extends StatelessWidget {
   ResourceFormat({required this.resource, required this.onDelete, super.key});
 
   /// Map containing resource data (title, body, link, code, id)
-  final Map<String, dynamic> resource;
+  final Resource resource;
 
   /// Callback function triggered when resource is deleted
   final VoidCallback onDelete;
@@ -20,7 +21,7 @@ class ResourceFormat extends StatelessWidget {
   /// Launches the resource URL in an external browser
   /// Automatically adds https:// protocol if missing
   Future<void> _launchURL() async {
-    String urlToLaunch = resource['link'];
+    String urlToLaunch = resource.link;
 
     // Add https:// protocol if URL doesn't have any protocol
     if (!urlToLaunch.startsWith('http://') &&
@@ -99,7 +100,7 @@ class ResourceFormat extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        resource['link'],
+                        resource.link,
                         style: const TextStyle(
                           color: Color(0xFF0F172A),
                           fontSize: 13,
@@ -173,7 +174,7 @@ class ResourceFormat extends StatelessWidget {
   /// Shows a confirmation dialog before deleting a resource
   /// Only accessible to advisors
   /// Deletes from Firestore and shows success snackbar
-  void _onRemoveResource(BuildContext context, Map<String, dynamic> resource) {
+  void _onRemoveResource(BuildContext context, Resource resource) {
     showDialog(
       context: context,
       builder: (ctx) {
@@ -204,7 +205,7 @@ class ResourceFormat extends StatelessWidget {
           ),
           // Confirmation message with resource title
           content: Text(
-            "Are you sure you want to delete '${resource['title']}'? This action cannot be undone.",
+            "Are you sure you want to delete '${resource.title}'? This action cannot be undone.",
             style: TextStyle(fontSize: 16),
           ),
           // Action buttons: Cancel and Delete
@@ -238,9 +239,9 @@ class ResourceFormat extends StatelessWidget {
                   // Delete resource from Firestore
                   await FirebaseFirestore.instance
                       .collection('groups')
-                      .doc(resource['code']) // Group code
+                      .doc(resource.code) // Group code
                       .collection('resources')
-                      .doc(resource['id']) // Resource document ID
+                      .doc(resource.title) // Resource document ID
                       .delete();
 
                   // Close the dialog
@@ -304,7 +305,7 @@ class ResourceFormat extends StatelessWidget {
                 // Resource title
                 Expanded(
                   child: Text(
-                    resource['title'],
+                    resource.title,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
@@ -331,7 +332,7 @@ class ResourceFormat extends StatelessWidget {
 
             // Resource description/body text
             Text(
-              resource['body'],
+              resource.body,
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey[700],

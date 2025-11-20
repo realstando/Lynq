@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:coding_prog/Annoucements/announcement.dart';
 import 'package:coding_prog/globals.dart' as globals;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -15,7 +16,7 @@ class AnnouncementFormat extends StatelessWidget {
 
   /// The announcement data to display
   /// Expected fields: 'name' (group), 'title', 'content', 'date', 'code', 'id'
-  final Map<String, dynamic> announcement;
+  final Announcement announcement;
 
   /// Check if current user has advisor privileges
   /// Only advisors can delete announcements
@@ -30,7 +31,7 @@ class AnnouncementFormat extends StatelessWidget {
   /// [announcement] - The announcement to delete (needs 'code' and 'id' fields)
   void _onRemoveAnnouncement(
     BuildContext context,
-    Map<String, dynamic> announcement,
+    Announcement announcement,
   ) {
     showDialog(
       context: context,
@@ -62,7 +63,7 @@ class AnnouncementFormat extends StatelessWidget {
           ),
           // Warning message showing which announcement will be deleted
           content: Text(
-            "Are you sure you want to delete '${announcement['title']}'? This action cannot be undone.",
+            "Are you sure you want to delete '${announcement.title}'? This action cannot be undone.",
             style: TextStyle(fontSize: 16),
           ),
           actions: [
@@ -96,9 +97,9 @@ class AnnouncementFormat extends StatelessWidget {
                   // Path: groups/{groupCode}/announcements/{announcementId}
                   await FirebaseFirestore.instance
                       .collection('groups')
-                      .doc(announcement['code']) // Group identifier
+                      .doc(announcement.code) // Group identifier
                       .collection('announcements')
-                      .doc(announcement['id']) // Announcement identifier
+                      .doc(announcement.name) // Announcement identifier
                       .delete();
 
                   // Close the confirmation dialog using captured navigator
@@ -163,7 +164,7 @@ class AnnouncementFormat extends StatelessWidget {
                     radius: 22,
                     backgroundColor: primaryBlue,
                     child: Text(
-                      announcement['name'][0].toUpperCase(), // First letter
+                      announcement.name[0].toUpperCase(), // First letter
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -175,7 +176,7 @@ class AnnouncementFormat extends StatelessWidget {
                   // Group/chapter name
                   Expanded(
                     child: Text(
-                      announcement['name'],
+                      announcement.name,
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
@@ -198,7 +199,7 @@ class AnnouncementFormat extends StatelessWidget {
               // ===== TITLE =====
               // Main announcement subject/heading
               Text(
-                announcement['title'],
+                announcement.title,
                 style: const TextStyle(
                   color: Color(0xFF0F172A),
                   fontSize: 18,
@@ -212,7 +213,7 @@ class AnnouncementFormat extends StatelessWidget {
               // ===== CONTENT =====
               // Full announcement message body
               Text(
-                announcement['content'],
+                announcement.content,
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey[700],
@@ -236,7 +237,7 @@ class AnnouncementFormat extends StatelessWidget {
                   // Formatted date (e.g., "12/25/2024")
                   Expanded(
                     child: Text(
-                      DateFormat.yMd().format((announcement['date'].toDate())),
+                      announcement.formattedDate,
                       style: TextStyle(
                         color: primaryBlue.withOpacity(0.7),
                         fontSize: 13,

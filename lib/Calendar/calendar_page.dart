@@ -1,3 +1,4 @@
+import 'package:coding_prog/Calendar/calendar.dart';
 import 'package:coding_prog/Calendar/new_calendar.dart';
 import 'package:coding_prog/globals.dart' as globals;
 import 'package:coding_prog/globals.dart' as global;
@@ -55,7 +56,7 @@ class CalendarPageState extends State<CalendarPage> {
   /// Filters the calendar events based on the current filter mode
   /// Returns a list of events that match the selected criteria
   /// Events are sorted chronologically for 'upcoming' mode
-  List<Map<String, dynamic>> get _filteredCalendars {
+  List<Calendar> get _filteredCalendars {
     final now = DateTime.now();
     // Normalize today to midnight for accurate day comparisons
     final today = DateTime(now.year, now.month, now.day);
@@ -63,8 +64,8 @@ class CalendarPageState extends State<CalendarPage> {
     switch (_filterMode) {
       case 'upcoming':
         // Get all future events (including today)
-        final futureEvents = global.calendar!.where((calendar) {
-          final eventDate = calendar['date'].toDate();
+        final futureEvents = global.calendar.where((calendar) {
+          final eventDate = calendar.date;
           final eventDay = DateTime(
             eventDate.year,
             eventDate.month,
@@ -76,7 +77,7 @@ class CalendarPageState extends State<CalendarPage> {
 
         // Sort events chronologically (earliest first)
         futureEvents.sort(
-          (a, b) => a['date'].toDate().compareTo(b['date'].toDate()),
+          (a, b) => a.date.compareTo(b.date),
         );
 
         // If 5 or fewer events exist, show them all
@@ -87,7 +88,7 @@ class CalendarPageState extends State<CalendarPage> {
         // Otherwise, limit to events within the next month
         final oneMonthFromNow = DateTime(now.year, now.month + 1, now.day);
         return futureEvents.where((calendar) {
-          final eventDate = calendar['date'].toDate();
+          final eventDate = calendar.date;
           final eventDay = DateTime(
             eventDate.year,
             eventDate.month,
@@ -98,8 +99,8 @@ class CalendarPageState extends State<CalendarPage> {
 
       case 'today':
         // Show only events happening today
-        return global.calendar!.where((calendar) {
-          final eventDate = calendar['date'].toDate();
+        return global.calendar.where((calendar) {
+          final eventDate = calendar.date;
           final eventDay = DateTime(
             eventDate.year,
             eventDate.month,
@@ -114,13 +115,13 @@ class CalendarPageState extends State<CalendarPage> {
         if (selected == null) {
           return [];
         }
-        return global.calendar!.where((calendar) {
-          return isSameDay(calendar['date'].toDate(), selected);
+        return global.calendar.where((calendar) {
+          return isSameDay(calendar.date, selected);
         }).toList();
 
       default: // 'all' mode
         // Show all events without filtering
-        return global.calendar!;
+        return global.calendar;
     }
   }
 

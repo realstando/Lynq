@@ -1,3 +1,4 @@
+import 'package:coding_prog/Groups/group.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -5,9 +6,8 @@ import 'package:flutter/services.dart';
 /// Shows group name, join code, and provides copy functionality
 /// Designed with FBLA branding colors and modern Material Design principles
 class GroupFormat extends StatelessWidget {
-  /// The group data containing 'name' and 'code' fields
-  /// Expected structure: {'name': String, 'code': String}
-  final Map<String, dynamic> group;
+
+  final Group group;
 
   // FBLA Official Brand Colors for consistent styling
   static const Color fblaBlue = Color(0xFF1D52BC);
@@ -74,7 +74,7 @@ class GroupFormat extends StatelessWidget {
                     children: [
                       // Group name - primary text
                       Text(
-                        group['name'],
+                        group.name,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -102,7 +102,7 @@ class GroupFormat extends StatelessWidget {
                           ),
                           // Actual join code - emphasized styling
                           Text(
-                            group['code'],
+                            group.code,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -121,7 +121,7 @@ class GroupFormat extends StatelessWidget {
                 IconButton(
                   onPressed: () {
                     // Copy join code to clipboard
-                    Clipboard.setData(ClipboardData(text: group['code']));
+                    Clipboard.setData(ClipboardData(text: group.code));
 
                     // Show confirmation snackbar with success styling
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -135,7 +135,7 @@ class GroupFormat extends StatelessWidget {
                               size: 20,
                             ),
                             SizedBox(width: 12),
-                            Text('Code copied: ${group['code']}'),
+                            Text('Code copied: ${group.code}'),
                           ],
                         ),
                         backgroundColor: Colors.green, // Green for success

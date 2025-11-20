@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:coding_prog/Calendar/calendar.dart';
 import 'package:coding_prog/globals.dart' as globals;
 import 'package:flutter/material.dart';
 
@@ -8,7 +9,7 @@ class CalendarCard extends StatelessWidget {
   CalendarCard(this.calendar, {super.key});
 
   /// Map containing event data (event, location, date, code, id)
-  final Map<String, dynamic> calendar;
+  final Calendar calendar;
 
   /// Flag to check if current user is an advisor (only advisors can delete events)
   final bool _isAdvisor = globals.currentUserRole == 'advisors';
@@ -39,7 +40,7 @@ class CalendarCard extends StatelessWidget {
   /// Parameters:
   /// - [context]: BuildContext for showing dialog
   /// - [cal]: Map containing the event data to be deleted
-  void _onRemoveCal(BuildContext context, Map<String, dynamic> cal) {
+  void _onRemoveCal(BuildContext context, Calendar cal) {
     showDialog(
       context: context,
       builder: (ctx) {
@@ -70,7 +71,7 @@ class CalendarCard extends StatelessWidget {
           ),
           // Confirmation message showing event title
           content: Text(
-            "Are you sure you want to delete '${cal['title']}'? This action cannot be undone.",
+            "Are you sure you want to delete '${cal.event}'? This action cannot be undone.",
             style: TextStyle(fontSize: 16),
           ),
           actions: [
@@ -103,9 +104,9 @@ class CalendarCard extends StatelessWidget {
                   // Delete the event from Firestore
                   await FirebaseFirestore.instance
                       .collection('groups')
-                      .doc(cal['code'])
+                      .doc(cal.code)
                       .collection('calendar')
-                      .doc(cal['id'])
+                      .doc(cal.event)
                       .delete();
 
                   // Close the dialog using the captured navigator
@@ -170,7 +171,7 @@ class CalendarCard extends StatelessWidget {
                 children: [
                   // Day number (e.g., "15")
                   Text(
-                    calendar['date'].toDate().day.toString(),
+                    calendar.date.day.toString(),
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 26,
@@ -183,7 +184,7 @@ class CalendarCard extends StatelessWidget {
                   // Month abbreviation (e.g., "JAN")
                   Text(
                     _formatDate(
-                          calendar['date'].toDate(),
+                          calendar.date,
                         )
                         .split(' ')[0]
                         .toUpperCase(), // Extract month from formatted date
@@ -209,7 +210,7 @@ class CalendarCard extends StatelessWidget {
                 children: [
                   // Event Title
                   Text(
-                    calendar['event'],
+                    calendar.event,
                     style: TextStyle(
                       color: fblaNavy,
                       fontSize: 17,
@@ -234,7 +235,7 @@ class CalendarCard extends StatelessWidget {
                       SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          calendar['location'],
+                          calendar.location,
                           style: TextStyle(
                             color: Colors.grey[700],
                             fontSize: 13,

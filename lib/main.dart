@@ -2,6 +2,11 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:coding_prog/Annoucements/announcements_page.dart';
+import 'package:coding_prog/Annoucements/announcement.dart';
+import 'package:coding_prog/Calendar/calendar.dart';
+import 'package:coding_prog/Competive_Events/event.dart';
+import 'package:coding_prog/Groups/group.dart';
+import 'package:coding_prog/Resources/resource.dart';
 import 'package:coding_prog/Homepage/home_page.dart';
 import 'package:coding_prog/SocialMedia/Youtube/youtube_screen.dart';
 import 'package:coding_prog/SocialMedia/Instagram/instagram_page.dart';
@@ -47,7 +52,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'LYNQ',
       debugShowCheckedModeBanner: false,
-      home: const AuthWrapper(), // Start with auth check
+      home: const AuthWrapper(),
       routes: {
         '/login/': (context) => const LoginPage(),
         '/signup/': (context) => const SignupPage(),
@@ -65,18 +70,15 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
-      // Listen to Firebase auth state changes
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        // Show loading screen while checking authentication
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Scaffold(
-            backgroundColor: const Color(0xFF0A2E7F), // FBLA Navy
+            backgroundColor: const Color(0xFF0A2E7F),
             body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // App logo container
                   Container(
                     height: 120,
                     width: 120,
@@ -93,10 +95,9 @@ class AuthWrapper extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  // Loading indicator
                   const CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(0xFFF4AB19), // FBLA Gold
+                      Color(0xFFF4AB19),
                     ),
                     strokeWidth: 3,
                   ),
@@ -115,12 +116,12 @@ class AuthWrapper extends StatelessWidget {
           );
         }
 
-        // User is logged in - show main app
         if (snapshot.hasData) {
-          return const MainScaffold();
+          return MainScaffold(
+            key: ValueKey(snapshot.data!.uid), // Force rebuild on user change
+          );
         }
 
-        // User is not logged in - show login page
         return const LoginPage();
       },
     );
@@ -128,7 +129,6 @@ class AuthWrapper extends StatelessWidget {
 }
 
 /// Main scaffold containing navigation and page management
-/// Handles bottom navigation bar and page switching
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
 
@@ -137,21 +137,15 @@ class MainScaffold extends StatefulWidget {
 }
 
 class _MainScaffoldState extends State<MainScaffold> {
-  int _selectedIndex = 0; // Currently selected navigation index
-  bool isLoading = true; // Loading state for initial data fetch
+  int _selectedIndex = 0;
+  bool isLoading = true;
 
-  // Stream subscriptions for real-time Firestore updates
-  StreamSubscription? _userSubs; // User groups subscription
-  final Map<String, StreamSubscription> _groupListeners =
-      {}; // Group data listeners
-  final Map<String, StreamSubscription> _announcementListeners =
-      {}; // Announcement listeners
-  final Map<String, StreamSubscription> _calendarListeners =
-      {}; // Calendar event listeners
-  final Map<String, StreamSubscription> _resourcesListeners =
-      {}; // Resources listeners
+  StreamSubscription? _userSubs;
+  final Map<String, StreamSubscription> _groupListeners = {};
+  final Map<String, StreamSubscription> _announcementListeners = {};
+  final Map<String, StreamSubscription> _calendarListeners = {};
+  final Map<String, StreamSubscription> _resourcesListeners = {};
 
-  /// Returns list of all available pages in the app
   List<Widget> get _pages {
     List<Widget> pages = [
       HomePage(onNavigate: _navigateBar),
@@ -167,13 +161,9 @@ class _MainScaffoldState extends State<MainScaffold> {
       AdminPage(onNavigate: _navigateBar),
     ];
 
-    // Add admin page if user is an admin
     if (globals.isAdmin == true) {
       setState(() {
-        pages.insert(
-          10,
-          AdminPage(onNavigate: _navigateBar),
-        );
+        pages.insert(10, AdminPage(onNavigate: _navigateBar));
       });
     }
 
@@ -183,8 +173,6 @@ class _MainScaffoldState extends State<MainScaffold> {
   @override
   void initState() {
     super.initState();
-
-    // Fetch user data on initialization with error handling
     try {
       _fetchUser();
     } catch (e) {
@@ -197,17 +185,10 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   @override
   void dispose() {
-    // Clean up all listeners and global data
     stopListeningToUserData();
-    globals.currentUID = null;
-    globals.currentUserName = null;
-    globals.currentUserRole = null;
-    globals.currentUserEmail = null;
-    globals.isAdmin = false;
     super.dispose();
   }
 
-  /// Navigation callback for switching between pages
   void _navigateBar(int index) {
     setState(() {
       _selectedIndex = index;
@@ -216,7 +197,6 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    // Show loading screen while fetching initial user data
     if (isLoading) {
       return Scaffold(
         backgroundColor: const Color(0xFF0A2E7F),
@@ -261,7 +241,6 @@ class _MainScaffoldState extends State<MainScaffold> {
       );
     }
 
-    // Main app scaffold with bottom navigation
     return Scaffold(
       body: _pages[_selectedIndex],
       bottomNavigationBar: Container(
@@ -281,7 +260,6 @@ class _MainScaffoldState extends State<MainScaffold> {
             mainAxisSize: MainAxisSize.min,
             children: [
               NavigationBar(
-                // Clamp selected index to 0-3 for bottom nav items
                 selectedIndex: _selectedIndex > 3 ? 0 : _selectedIndex,
                 onDestinationSelected: _navigateBar,
                 backgroundColor: Colors.transparent,
@@ -295,60 +273,24 @@ class _MainScaffoldState extends State<MainScaffold> {
                 labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
                 animationDuration: const Duration(milliseconds: 400),
                 destinations: [
-                  // Home tab
                   NavigationDestination(
-                    icon: Icon(
-                      Icons.home_outlined,
-                      size: 24,
-                      color: Colors.grey[600],
-                    ),
-                    selectedIcon: const Icon(
-                      Icons.home_rounded,
-                      size: 26,
-                      color: Colors.white,
-                    ),
+                    icon: Icon(Icons.home_outlined, size: 24, color: Colors.grey[600]),
+                    selectedIcon: const Icon(Icons.home_rounded, size: 26, color: Colors.white),
                     label: 'Home',
                   ),
-                  // Announcements tab
                   NavigationDestination(
-                    icon: Icon(
-                      Icons.campaign_outlined,
-                      size: 24,
-                      color: Colors.grey[600],
-                    ),
-                    selectedIcon: const Icon(
-                      Icons.campaign_rounded,
-                      size: 26,
-                      color: Colors.white,
-                    ),
+                    icon: Icon(Icons.campaign_outlined, size: 24, color: Colors.grey[600]),
+                    selectedIcon: const Icon(Icons.campaign_rounded, size: 26, color: Colors.white),
                     label: 'Announcements',
                   ),
-                  // Events tab
                   NavigationDestination(
-                    icon: Icon(
-                      Icons.event_outlined,
-                      size: 24,
-                      color: Colors.grey[600],
-                    ),
-                    selectedIcon: const Icon(
-                      Icons.event_rounded,
-                      size: 26,
-                      color: Colors.white,
-                    ),
+                    icon: Icon(Icons.event_outlined, size: 24, color: Colors.grey[600]),
+                    selectedIcon: const Icon(Icons.event_rounded, size: 26, color: Colors.white),
                     label: 'Events',
                   ),
-                  // Calendar tab
                   NavigationDestination(
-                    icon: Icon(
-                      Icons.menu_book_outlined,
-                      size: 24,
-                      color: Colors.grey[600],
-                    ),
-                    selectedIcon: const Icon(
-                      Icons.calendar_month,
-                      size: 26,
-                      color: Colors.white,
-                    ),
+                    icon: Icon(Icons.menu_book_outlined, size: 24, color: Colors.grey[600]),
+                    selectedIcon: const Icon(Icons.calendar_month, size: 26, color: Colors.white),
                     label: 'Calendar',
                   ),
                 ],
@@ -360,35 +302,36 @@ class _MainScaffoldState extends State<MainScaffold> {
     );
   }
 
-  /// Fetches current user data from Firebase
-  /// Initializes user role, groups, and starts real-time listeners
   Future<void> _fetchUser() async {
     try {
       setState(() {
         isLoading = true;
       });
 
-      // Initialize basic user data from Firebase Auth
-      globals.currentUID = FirebaseAuth.instance.currentUser?.uid;
-      globals.currentUserName =
-          FirebaseAuth.instance.currentUser?.displayName ?? '';
-      globals.currentUserEmail = FirebaseAuth.instance.currentUser?.email;
-      globals.groups = [];
+      // Clear all previous user data
+      globals.groups.clear();
+      globals.announcements.clear();
+      globals.calendar.clear();
+      globals.resources.clear();
+      globals.events.clear();
 
-      // Set default name if empty
-      if (globals.currentUserName == null || globals.currentUserName!.isEmpty) {
-        globals.currentUserName = 'User';
+      // Initialize user data from Firebase Auth
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        throw Exception('No user logged in');
       }
 
-      // Fetch user role from Firestore (student or advisor)
+      globals.currentUID = currentUser.uid;
+      globals.currentUserName = currentUser.displayName ?? 'User';
+      globals.currentUserEmail = currentUser.email ?? '';
+
+      // Fetch user role
       await _fetchUserRole();
 
-      // Special admin role override for specific email
+      // Special admin overrides
       if (globals.currentUserEmail == "rryanwwang@gmail.com") {
         globals.currentUserRole = 'advisors';
       }
-
-      // Set admin flag for specific emails
       if (globals.currentUserEmail == "rryanwwang@gmail.com" ||
           globals.currentUserEmail == "gordon.zhang090321@gmail.com") {
         globals.isAdmin = true;
@@ -399,28 +342,26 @@ class _MainScaffoldState extends State<MainScaffold> {
       print('User Role: ${globals.currentUserRole}');
       print('User UID: ${globals.currentUID}');
 
-      // Start listening to user's events and groups if role and UID are set
-      if (globals.currentUserRole != null && globals.currentUID != null) {
-        // Listen to user's events
+      // Start listening to user data
+      if (globals.currentUserRole.isNotEmpty && globals.currentUID.isNotEmpty) {
+        // Listen to starred events
         FirebaseFirestore.instance
-            .collection(globals.currentUserRole!)
+            .collection(globals.currentUserRole)
             .doc(globals.currentUID)
             .collection('events')
             .snapshots()
             .listen((snapshot) {
-              setState(() {
-                globals.events = snapshot.docs.map((doc) => doc.id).toList();
-              });
-            });
-        print("Events: " + globals.events.toString());
+          setState(() {
+            globals.events = snapshot.docs
+                .map((doc) => Event(name: doc.id))
+                .toList();
+          });
+        });
 
-        // Start listening to all user data
         _listenToUserData();
       } else {
-        print('ERROR: User role or UID is null - cannot listen to groups');
+        print('ERROR: User role or UID is empty');
       }
-
-      print('Groups initialized: ${globals.groups}');
     } catch (e) {
       print('Error in _fetchUser: $e');
     } finally {
@@ -430,20 +371,11 @@ class _MainScaffoldState extends State<MainScaffold> {
     }
   }
 
-  /// Fetches user role from Firestore
-  /// Checks both 'students' and 'advisors' collections
   Future<void> _fetchUserRole() async {
     try {
-      final uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid == null) {
-        print('ERROR: UID is null in _fetchUserRole');
-        return;
-      }
-
-      // Check if user exists in students collection
       final studentDoc = await FirebaseFirestore.instance
           .collection('students')
-          .doc(uid)
+          .doc(globals.currentUID)
           .get();
 
       if (studentDoc.exists) {
@@ -451,10 +383,9 @@ class _MainScaffoldState extends State<MainScaffold> {
         return;
       }
 
-      // Check if user exists in advisors collection
       final advisorDoc = await FirebaseFirestore.instance
           .collection('advisors')
-          .doc(uid)
+          .doc(globals.currentUID)
           .get();
 
       if (advisorDoc.exists) {
@@ -468,58 +399,41 @@ class _MainScaffoldState extends State<MainScaffold> {
     }
   }
 
-  /// Sets up real-time listeners for user's groups and associated data
-  /// Listens to: groups, announcements, calendar events, and resources
   void _listenToUserData() {
-    // Cancel any existing listeners first
     stopListeningToUserData();
 
     final firestore = FirebaseFirestore.instance;
 
-    // Ensure globals.groups is initialized
-    globals.groups ??= [];
-
-    // Listen to user's groups collection
     _userSubs = firestore
-        .collection(globals.currentUserRole!)
+        .collection(globals.currentUserRole)
         .doc(globals.currentUID)
         .collection('groups')
         .snapshots()
         .listen(
           (userGroupsSnapshot) {
             try {
-              // Get set of all group codes user belongs to
-              final groupCodes = userGroupsSnapshot.docs
-                  .map((d) => d.id)
-                  .toSet();
+              final groupCodes = userGroupsSnapshot.docs.map((d) => d.id).toSet();
 
               // Remove listeners for groups the user left
               _groupListeners.keys
                   .where((code) => !groupCodes.contains(code))
                   .toList()
                   .forEach((code) {
-                    // Cancel all listeners for this group
-                    _groupListeners.remove(code)?.cancel();
-                    _announcementListeners.remove(code)?.cancel();
-                    _calendarListeners.remove(code)?.cancel();
-                    _resourcesListeners.remove(code)?.cancel();
+                _groupListeners.remove(code)?.cancel();
+                _announcementListeners.remove(code)?.cancel();
+                _calendarListeners.remove(code)?.cancel();
+                _resourcesListeners.remove(code)?.cancel();
 
-                    // Remove data from global state
-                    setState(() {
-                      globals.groups?.removeWhere((g) => g['code'] == code);
-                      globals.announcements?.removeWhere(
-                        (a) => a['code'] == code,
-                      );
-                      globals.calendar?.removeWhere((a) => a['code'] == code);
-                      globals.resources?.removeWhere((a) => a['code'] == code);
-                    });
-                  });
+                setState(() {
+                  globals.groups.removeWhere((g) => g.code == code);
+                  globals.announcements.removeWhere((a) => a.code == code);
+                  globals.calendar.removeWhere((c) => c.code == code);
+                  globals.resources.removeWhere((r) => r.code == code);
+                });
+              });
 
               // Add listeners for new groups
-              for (final code in groupCodes.where(
-                (c) => !_groupListeners.containsKey(c),
-              )) {
-                // Listen to group document
+              for (final code in groupCodes.where((c) => !_groupListeners.containsKey(c))) {
                 _groupListeners[code] = firestore
                     .collection('groups')
                     .doc(code)
@@ -532,82 +446,60 @@ class _MainScaffoldState extends State<MainScaffold> {
                           print('Error updating group $code: $e');
                         }
                       },
-                      onError: (error) {
-                        print('Error listening to group $code: $error');
-                      },
+                      onError: (error) => print('Error listening to group $code: $error'),
                       cancelOnError: false,
                     );
 
-                // Listen to group announcements
                 _announcementListeners[code] = firestore
                     .collection('groups')
                     .doc(code)
                     .collection('announcements')
-                    .orderBy('date', descending: true) // Most recent first
+                    .orderBy('date', descending: true)
                     .snapshots()
                     .listen(
-                      (announcementsSnapshot) {
+                      (snapshot) {
                         try {
-                          _updateGroupAnnouncements(
-                            code,
-                            announcementsSnapshot,
-                          );
+                          _updateGroupAnnouncements(code, snapshot);
                         } catch (e) {
-                          print(
-                            'Error updating announcements for group $code: $e',
-                          );
+                          print('Error updating announcements for group $code: $e');
                         }
                       },
-                      onError: (error) {
-                        print(
-                          'Error listening to announcements for group $code: $error',
-                        );
-                      },
+                      onError: (error) => print('Error listening to announcements for group $code: $error'),
                       cancelOnError: false,
                     );
 
-                // Listen to group calendar events
                 _calendarListeners[code] = firestore
                     .collection('groups')
                     .doc(code)
                     .collection('calendar')
-                    .orderBy('date', descending: true) // Most recent first
+                    .orderBy('date', descending: true)
                     .snapshots()
                     .listen(
-                      (calendarSnapshot) {
+                      (snapshot) {
                         try {
-                          _updateGroupCalendar(code, calendarSnapshot);
+                          _updateGroupCalendar(code, snapshot);
                         } catch (e) {
                           print('Error updating calendar for group $code: $e');
                         }
                       },
-                      onError: (error) {
-                        print(
-                          'Error listening to calendar for group $code: $error',
-                        );
-                      },
+                      onError: (error) => print('Error listening to calendar for group $code: $error'),
                       cancelOnError: false,
                     );
 
-                // Listen to group resources
                 _resourcesListeners[code] = firestore
                     .collection('groups')
                     .doc(code)
                     .collection('resources')
                     .snapshots()
                     .listen(
-                      (resourcesSnapshot) {
+                      (snapshot) {
                         try {
-                          _updateGroupresources(code, resourcesSnapshot);
+                          _updateGroupResources(code, snapshot);
                         } catch (e) {
                           print('Error updating resources for group $code: $e');
                         }
                       },
-                      onError: (error) {
-                        print(
-                          'Error listening to resources for group $code: $error',
-                        );
-                      },
+                      onError: (error) => print('Error listening to resources for group $code: $error'),
                       cancelOnError: false,
                     );
               }
@@ -625,176 +517,143 @@ class _MainScaffoldState extends State<MainScaffold> {
         );
   }
 
-  /// Updates group data in global state
-  /// Called when group document changes
   void _updateGroupData(String code, Map<String, dynamic>? groupData) {
     if (groupData != null) {
       setState(() {
-        groupData['code'] = code;
+        final name = groupData['name']?.toString() ?? 'Unknown Group';
+        final group = Group(name: name, code: code);
 
-        globals.groups ??= [];
-
-        // Update existing group or add new one
-        final existingIndex = globals.groups!.indexWhere(
-          (g) => g['code'] == code,
-        );
+        final existingIndex = globals.groups.indexWhere((g) => g.code == code);
         if (existingIndex != -1) {
-          globals.groups![existingIndex] = groupData;
+          globals.groups[existingIndex] = group;
         } else {
-          globals.groups!.add(groupData);
+          globals.groups.add(group);
         }
       });
 
       print('Updated group: $code');
     } else {
-      // Group was deleted
       setState(() {
-        globals.groups?.removeWhere((g) => g['code'] == code);
+        globals.groups.removeWhere((g) => g.code == code);
       });
       print('Group $code deleted');
     }
   }
 
-  /// Updates group announcements in global state
-  /// Called when announcements collection changes
-  void _updateGroupAnnouncements(
-    String code,
-    QuerySnapshot announcementsSnapshot,
-  ) {
+  void _updateGroupAnnouncements(String code, QuerySnapshot snapshot) {
     setState(() {
-      globals.announcements ??= [];
-
       // Remove old announcements for this group
-      globals.announcements!.removeWhere((a) => a['code'] == code);
+      globals.announcements.removeWhere((a) => a.code == code);
 
       // Find the group name
-      final group = globals.groups?.firstWhere(
-        (g) => g['code'] == code,
-        orElse: () => {'name': 'Unknown Group'},
+      final group = globals.groups.firstWhere(
+        (g) => g.code == code,
+        orElse: () => Group(name: 'Unknown Group', code: code),
       );
-      final name = group?['name']?.toString() ?? 'Unknown Group';
-      print('Group name for $code: $name');
 
-      // Add new announcements for this group
-      for (var doc in announcementsSnapshot.docs) {
-        final announcementData = doc.data() as Map<String, dynamic>;
-        announcementData['id'] = doc.id; // Store document ID
-        announcementData['code'] = code; // Store which group this is from
-        announcementData['name'] = name; // Store group name
+      // Add new announcements
+      for (var doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final timestamp = data['date'] as Timestamp?;
+        
+        final announcement = Announcement(
+          name: group.name,
+          title: data['title']?.toString() ?? 'No Title',
+          content: data['content']?.toString() ?? '',
+          date: timestamp?.toDate() ?? DateTime.now(),
+          initial: group.name.isNotEmpty ? group.name[0].toUpperCase() : '?',
+          code: code,
+        );
 
-        globals.announcements!.add(announcementData);
+        globals.announcements.add(announcement);
       }
 
-      // Sort all announcements by date (most recent first)
-      globals.announcements!.sort((a, b) {
-        final aDate = (a['date'] as Timestamp?)?.toDate() ?? DateTime(1970);
-        final bDate = (b['date'] as Timestamp?)?.toDate() ?? DateTime(1970);
-        return bDate.compareTo(aDate);
-      });
+      // Sort by date (most recent first)
+      globals.announcements.sort((a, b) => b.date.compareTo(a.date));
     });
 
-    print(
-      'Updated ${announcementsSnapshot.docs.length} announcements for group $code',
-    );
+    print('Updated ${snapshot.docs.length} announcements for group $code');
   }
 
-  /// Updates group calendar events in global state
-  /// Called when calendar collection changes
-  void _updateGroupCalendar(String code, QuerySnapshot calendarSnapshot) {
+  void _updateGroupCalendar(String code, QuerySnapshot snapshot) {
     setState(() {
-      globals.calendar ??= [];
-
       // Remove old calendar events for this group
-      globals.calendar!.removeWhere((a) => a['code'] == code);
+      globals.calendar.removeWhere((c) => c.code == code);
 
-      // Find the group name
-      final group = globals.groups?.firstWhere(
-        (g) => g['code'] == code,
-        orElse: () => {'name': 'Unknown Group'},
-      );
-      final name = group?['name']?.toString() ?? 'Unknown Group';
-      print('Group name for $code: $name');
-
-      // Add new calendar events for this group
-      for (var doc in calendarSnapshot.docs) {
+      // Add new calendar events
+      for (var doc in snapshot.docs) {
         final data = doc.data() as Map<String, dynamic>;
-        data['id'] = doc.id; // Store document ID
-        data['code'] = code; // Store which group this is from
-        data['name'] = name; // Store group name
+        final timestamp = data['date'] as Timestamp?;
 
-        globals.calendar!.add(data);
+        final calendarEvent = Calendar(
+          data['event']?.toString() ?? 'No Title',
+          timestamp?.toDate() ?? DateTime.now(),
+          data['location']?.toString() ?? 'No Location',
+          code,
+        );
+
+        globals.calendar.add(calendarEvent);
       }
 
-      // Sort all calendar events by date (most recent first)
-      globals.calendar!.sort((a, b) {
-        final aDate = (a['date'] as Timestamp?)?.toDate() ?? DateTime(1970);
-        final bDate = (b['date'] as Timestamp?)?.toDate() ?? DateTime(1970);
-        return bDate.compareTo(aDate);
-      });
+      // Sort by date (most recent first)
+      globals.calendar.sort((a, b) => b.date.compareTo(a.date));
     });
 
-    print('Updated ${calendarSnapshot.docs.length} calendar for group $code');
+    print('Updated ${snapshot.docs.length} calendar events for group $code');
   }
 
-  /// Updates group resources in global state
-  /// Called when resources collection changes
-  void _updateGroupresources(String code, QuerySnapshot resourcesSnapshot) {
+  void _updateGroupResources(String code, QuerySnapshot snapshot) {
     setState(() {
-      globals.resources ??= [];
-
       // Remove old resources for this group
-      globals.resources!.removeWhere((a) => a['code'] == code);
+      globals.resources.removeWhere((r) => r.code == code);
 
-      // Find the group name
-      final group = globals.groups?.firstWhere(
-        (g) => g['code'] == code,
-        orElse: () => {'name': 'Unknown Group'},
-      );
-      final name = group?['name']?.toString() ?? 'Unknown Group';
-      print('Group name for $code: $name');
-
-      // Add new resources for this group
-      for (var doc in resourcesSnapshot.docs) {
+      // Add new resources
+      for (var doc in snapshot.docs) {
         final data = doc.data() as Map<String, dynamic>;
-        data['id'] = doc.id; // Store document ID
-        data['code'] = code; // Store which group this is from
-        data['name'] = name; // Store group name
 
-        globals.resources!.add(data);
+        final resource = Resource(
+          title: data['title']?.toString() ?? 'No Title',
+          link: data['link']?.toString() ?? '',
+          body: data['body']?.toString() ?? '',
+          code: code,
+        );
+
+        globals.resources.add(resource);
       }
     });
 
-    print('Updated ${resourcesSnapshot.docs.length} resources for group $code');
+    print('Updated ${snapshot.docs.length} resources for group $code');
   }
 
-  /// Cancels all active Firestore listeners
-  /// Called on dispose to prevent memory leaks
   void stopListeningToUserData() {
     _userSubs?.cancel();
     _userSubs = null;
 
-    // Cancel all group listeners
     for (var sub in _groupListeners.values) {
       sub.cancel();
     }
     _groupListeners.clear();
 
-    // Cancel all announcement listeners
     for (var sub in _announcementListeners.values) {
       sub.cancel();
     }
     _announcementListeners.clear();
 
-    // Cancel all calendar listeners
     for (var sub in _calendarListeners.values) {
       sub.cancel();
     }
     _calendarListeners.clear();
 
-    // Cancel all resources listeners
     for (var sub in _resourcesListeners.values) {
       sub.cancel();
     }
     _resourcesListeners.clear();
+
+    // Clear all global data
+    globals.groups.clear();
+    globals.announcements.clear();
+    globals.calendar.clear();
+    globals.resources.clear();
+    globals.events.clear();
   }
 }
