@@ -162,9 +162,7 @@ class _MainScaffoldState extends State<MainScaffold> {
     ];
 
     if (globals.isAdmin == true) {
-      setState(() {
-        pages.insert(10, AdminPage(onNavigate: _navigateBar));
-      });
+      pages.insert(10, AdminPage(onNavigate: _navigateBar));
     }
 
     return pages;
@@ -280,23 +278,55 @@ class _MainScaffoldState extends State<MainScaffold> {
                 animationDuration: const Duration(milliseconds: 400),
                 destinations: [
                   NavigationDestination(
-                    icon: Icon(Icons.home_outlined, size: 24, color: Colors.grey[600]),
-                    selectedIcon: const Icon(Icons.home_rounded, size: 26, color: Colors.white),
+                    icon: Icon(
+                      Icons.home_outlined,
+                      size: 24,
+                      color: Colors.grey[600],
+                    ),
+                    selectedIcon: const Icon(
+                      Icons.home_rounded,
+                      size: 26,
+                      color: Colors.white,
+                    ),
                     label: 'Home',
                   ),
                   NavigationDestination(
-                    icon: Icon(Icons.campaign_outlined, size: 24, color: Colors.grey[600]),
-                    selectedIcon: const Icon(Icons.campaign_rounded, size: 26, color: Colors.white),
+                    icon: Icon(
+                      Icons.campaign_outlined,
+                      size: 24,
+                      color: Colors.grey[600],
+                    ),
+                    selectedIcon: const Icon(
+                      Icons.campaign_rounded,
+                      size: 26,
+                      color: Colors.white,
+                    ),
                     label: 'Announcements',
                   ),
                   NavigationDestination(
-                    icon: Icon(Icons.event_outlined, size: 24, color: Colors.grey[600]),
-                    selectedIcon: const Icon(Icons.event_rounded, size: 26, color: Colors.white),
+                    icon: Icon(
+                      Icons.event_outlined,
+                      size: 24,
+                      color: Colors.grey[600],
+                    ),
+                    selectedIcon: const Icon(
+                      Icons.event_rounded,
+                      size: 26,
+                      color: Colors.white,
+                    ),
                     label: 'Events',
                   ),
                   NavigationDestination(
-                    icon: Icon(Icons.menu_book_outlined, size: 24, color: Colors.grey[600]),
-                    selectedIcon: const Icon(Icons.calendar_month, size: 26, color: Colors.white),
+                    icon: Icon(
+                      Icons.menu_book_outlined,
+                      size: 24,
+                      color: Colors.grey[600],
+                    ),
+                    selectedIcon: const Icon(
+                      Icons.calendar_month,
+                      size: 26,
+                      color: Colors.white,
+                    ),
                     label: 'Calendar',
                   ),
                 ],
@@ -355,12 +385,12 @@ class _MainScaffoldState extends State<MainScaffold> {
             .collection('events')
             .snapshots()
             .listen((snapshot) {
-          setState(() {
-            globals.events = snapshot.docs
-                .map((doc) => Event(name: doc.id))
-                .toList();
-          });
-        });
+              setState(() {
+                globals.events = snapshot.docs
+                    .map((doc) => Event(name: doc.id))
+                    .toList();
+              });
+            });
 
         _listenToUserData();
       } else {
@@ -416,28 +446,32 @@ class _MainScaffoldState extends State<MainScaffold> {
         .listen(
           (userGroupsSnapshot) {
             try {
-              final groupCodes = userGroupsSnapshot.docs.map((d) => d.id).toSet();
+              final groupCodes = userGroupsSnapshot.docs
+                  .map((d) => d.id)
+                  .toSet();
 
               // Remove listeners for groups the user left
               _groupListeners.keys
                   .where((code) => !groupCodes.contains(code))
                   .toList()
                   .forEach((code) {
-                _groupListeners.remove(code)?.cancel();
-                _announcementListeners.remove(code)?.cancel();
-                _calendarListeners.remove(code)?.cancel();
-                _resourcesListeners.remove(code)?.cancel();
+                    _groupListeners.remove(code)?.cancel();
+                    _announcementListeners.remove(code)?.cancel();
+                    _calendarListeners.remove(code)?.cancel();
+                    _resourcesListeners.remove(code)?.cancel();
 
-                setState(() {
-                  globals.groups.removeWhere((g) => g.code == code);
-                  globals.announcements.removeWhere((a) => a.code == code);
-                  globals.calendar.removeWhere((c) => c.code == code);
-                  globals.resources.removeWhere((r) => r.code == code);
-                });
-              });
+                    setState(() {
+                      globals.groups.removeWhere((g) => g.code == code);
+                      globals.announcements.removeWhere((a) => a.code == code);
+                      globals.calendar.removeWhere((c) => c.code == code);
+                      globals.resources.removeWhere((r) => r.code == code);
+                    });
+                  });
 
               // Add listeners for new groups
-              for (final code in groupCodes.where((c) => !_groupListeners.containsKey(c))) {
+              for (final code in groupCodes.where(
+                (c) => !_groupListeners.containsKey(c),
+              )) {
                 _groupListeners[code] = firestore
                     .collection('groups')
                     .doc(code)
@@ -450,7 +484,8 @@ class _MainScaffoldState extends State<MainScaffold> {
                           print('Error updating group $code: $e');
                         }
                       },
-                      onError: (error) => print('Error listening to group $code: $error'),
+                      onError: (error) =>
+                          print('Error listening to group $code: $error'),
                       cancelOnError: false,
                     );
 
@@ -465,10 +500,14 @@ class _MainScaffoldState extends State<MainScaffold> {
                         try {
                           _updateGroupAnnouncements(code, snapshot);
                         } catch (e) {
-                          print('Error updating announcements for group $code: $e');
+                          print(
+                            'Error updating announcements for group $code: $e',
+                          );
                         }
                       },
-                      onError: (error) => print('Error listening to announcements for group $code: $error'),
+                      onError: (error) => print(
+                        'Error listening to announcements for group $code: $error',
+                      ),
                       cancelOnError: false,
                     );
 
@@ -486,7 +525,9 @@ class _MainScaffoldState extends State<MainScaffold> {
                           print('Error updating calendar for group $code: $e');
                         }
                       },
-                      onError: (error) => print('Error listening to calendar for group $code: $error'),
+                      onError: (error) => print(
+                        'Error listening to calendar for group $code: $error',
+                      ),
                       cancelOnError: false,
                     );
 
@@ -503,7 +544,9 @@ class _MainScaffoldState extends State<MainScaffold> {
                           print('Error updating resources for group $code: $e');
                         }
                       },
-                      onError: (error) => print('Error listening to resources for group $code: $error'),
+                      onError: (error) => print(
+                        'Error listening to resources for group $code: $error',
+                      ),
                       cancelOnError: false,
                     );
               }
@@ -559,7 +602,7 @@ class _MainScaffoldState extends State<MainScaffold> {
       for (var doc in snapshot.docs) {
         final data = doc.data() as Map<String, dynamic>;
         final timestamp = data['date'] as Timestamp?;
-        
+
         final announcement = Announcement(
           name: group.name,
           title: data['title']?.toString() ?? 'No Title',
