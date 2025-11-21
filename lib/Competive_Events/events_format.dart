@@ -329,93 +329,111 @@ class _EventsFormatState extends State<EventsFormat> {
           width: 1.5,
         ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header row with category badge and action buttons
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center, // ✅ Add this
+      // Material wrapper for ripple effect on tap
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          // Tapping the card opens the link dialog
+          onTap: () => _showLinkDialog(context),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              16, 
+              16, 
+              16, 
+              16
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Category icon
-                Icon(
-                  _getCategoryIcon(),
-                  size: 18,
-                  color: categoryColor,
-                ),
-                const SizedBox(width: 8),
-                // Category label in uppercase
-                Text(
-                  widget.event.category.name.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: categoryColor,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const Spacer(),
-                // Star button only for students
-                if (!_isAdvisor) ...[
-                  GestureDetector(
-                    onTap: _toggleStar,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4), // ✅ Only horizontal padding
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 200),
-                        transitionBuilder: (child, animation) {
-                          return ScaleTransition(
-                            scale: animation,
-                            child: child,
-                          );
-                        },
-                        child: Icon(
-                          _isStarred ? Icons.star : Icons.star_border,
-                          key: ValueKey(_isStarred),
-                          color: _isStarred ? fblaGold : Colors.grey[600],
-                          size: 20,
-                        ),
+                // Header row with category badge and action buttons
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Category icon
+                    Icon(
+                      _getCategoryIcon(),
+                      size: 18,
+                      color: categoryColor,
+                    ),
+                    const SizedBox(width: 8),
+                    // Category label in uppercase
+                    Text(
+                      widget.event.category.name.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: categoryColor,
+                        letterSpacing: 0.5, // Wide spacing for emphasis
                       ),
                     ),
+                    const Spacer(), // Push buttons to the right
+                    if (!_isAdvisor) ...[
+                      SizedBox(
+                        height: 18, // Same as category icon height
+                        child: GestureDetector(
+                          onTap: _toggleStar,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 200),
+                              transitionBuilder: (child, animation) {
+                                return ScaleTransition(
+                                  scale: animation,
+                                  child: child,
+                                );
+                              },
+                              child: Icon(
+                                _isStarred ? Icons.star : Icons.star_border,
+                                key: ValueKey(_isStarred),
+                                color: _isStarred ? fblaGold : Colors.grey[600],
+                                size: 18, // ✅ Match category icon size
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+
+                    // External link indicator icon
+                    Icon(
+                      Icons.open_in_new,
+                      color: Colors.grey[600],
+                      size: 18,
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 8),
+                // Event title - main identifier
+                Text(
+                  widget.event.title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: fblaNavy,
                   ),
-                  const SizedBox(width: 8),
-                ],
-                // External link icon
-                Icon(
-                  Icons.open_in_new,
-                  color: Colors.grey[600],
-                  size: 18,
+                ),
+
+                const SizedBox(height: 8),
+
+                // Event description with ellipsis for long text
+                Text(
+                  widget.event.description,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[700],
+                    height: 1.4, // Line height for readability
+                  ),
+                  maxLines: 3, // Limit to 3 lines
+                  overflow:
+                      TextOverflow.ellipsis, // Show ... if text is cut off
                 ),
               ],
             ),
-
-            const SizedBox(height: 8), // Reduced spacing
-
-            // Event title
-            Text(
-              widget.event.title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: fblaNavy,
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            // Event description
-            Text(
-              widget.event.description,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[700],
-                height: 1.4,
-              ),
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+          ),
         ),
       ),
     );
