@@ -597,6 +597,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   }
 
   void stopListeningToUserData() {
+    // stop all data subscriptions
     _userSubs?.cancel();
     _userSubs = null;
 
