@@ -99,7 +99,7 @@ class AnnouncementFormat extends StatelessWidget {
                       .collection('groups')
                       .doc(announcement.code) // Group identifier
                       .collection('announcements')
-                      .doc(announcement.name) // Announcement identifier
+                      .doc(announcement.title) // Announcement identifier
                       .delete();
 
                   // Close the confirmation dialog using captured navigator

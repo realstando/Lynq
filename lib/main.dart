@@ -184,6 +184,12 @@ class _MainScaffoldState extends State<MainScaffold> {
   @override
   void dispose() {
     stopListeningToUserData();
+    // Clear all previous user data
+    globals.groups.clear();
+    globals.announcements.clear();
+    globals.calendar.clear();
+    globals.resources.clear();
+    globals.events.clear();
     super.dispose();
   }
 
@@ -332,18 +338,14 @@ class _MainScaffoldState extends State<MainScaffold> {
     );
   }
 
+  /// Fetches current user data from Firebase
+  /// Initializes user role, groups, and starts real-time listeners
   Future<void> _fetchUser() async {
     try {
+      // Set loading state
       setState(() {
         isLoading = true;
       });
-
-      // Clear all previous user data
-      globals.groups.clear();
-      globals.announcements.clear();
-      globals.calendar.clear();
-      globals.resources.clear();
-      globals.events.clear();
 
       // Initialize user data from Firebase Auth
       final currentUser = FirebaseAuth.instance.currentUser;
@@ -366,6 +368,8 @@ class _MainScaffoldState extends State<MainScaffold> {
           globals.currentUserEmail == "gordon.zhang090321@gmail.com") {
         globals.isAdmin = true;
         print("admin");
+      } else {
+        globals.isAdmin = false;
       }
 
       print('User Name: ${globals.currentUserName}');
