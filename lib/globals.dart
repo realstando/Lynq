@@ -8,7 +8,7 @@ import 'package:coding_prog/Resources/resource.dart';
 
 // Identifiers of what the user is
 late String currentUserRole;
-late bool isAdmin;
+bool isAdmin = false;
 late String currentUserName;
 late String currentUserEmail;
 late String currentUID;
