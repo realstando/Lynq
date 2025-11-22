@@ -100,7 +100,7 @@ class _EventsPageState extends State<EventsPage> {
       key: _scaffoldKey,
       // Navigation drawer
       drawer: DrawerPage(
-        icon: Icons.menu_book_rounded,
+        icon: Icons.sports_score,
         name: 'Competitive Events',
         color: fblaNavyDark,
         onNavigate: widget.onNavigate,
