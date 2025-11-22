@@ -33,7 +33,7 @@ class _SocialMediaHubState extends State<SocialMediaHub> {
       key: _scaffoldKey,
       // Custom drawer with social media icon and styling
       drawer: DrawerPage(
-        icon: Icons.share_rounded,
+        icon: Icons.mobile_friendly_rounded,
         name: 'Social Media',
         color: Color(0xFFDD2A7B), // Pink/magenta accent color
         onNavigate: widget.onNavigate,

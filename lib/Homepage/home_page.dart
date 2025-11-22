@@ -56,8 +56,7 @@ class _HomePageState extends State<HomePage> {
 
     // Filter events that occur in the current month and year
     final filteredEvents = global.calendar.where((cal) {
-      return cal.date.month == currentMonth &&
-          cal.date.year == currentYear;
+      return cal.date.month == currentMonth && cal.date.year == currentYear;
     }).toList();
 
     // Sort events by date (earliest first)
@@ -74,7 +73,7 @@ class _HomePageState extends State<HomePage> {
       key: _scaffoldKey,
       // Navigation drawer
       drawer: DrawerPage(
-        icon: Icons.menu_book_rounded,
+        icon: Icons.home_rounded,
         name: 'Home',
         color: Colors.black,
         onNavigate: widget.onNavigate,

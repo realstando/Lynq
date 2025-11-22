@@ -129,7 +129,7 @@ class DrawerPage extends StatelessWidget {
                   ),
                   // Events navigation item
                   DrawerItem(
-                    icon: Icons.event_rounded,
+                    icon: Icons.sports_score,
                     title: 'Events',
                     onTap: () {
                       Navigator.pop(context);
