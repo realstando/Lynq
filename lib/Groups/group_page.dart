@@ -441,7 +441,7 @@ class _GroupPageState extends State<GroupPage> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            'Admin',
+                            'Advisor',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,

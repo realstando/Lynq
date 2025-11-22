@@ -70,58 +70,22 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
+      // Listen to Firebase auth state changes
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
+        // Show loading screen while checking authentication
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Scaffold(
-            backgroundColor: const Color(0xFF0A2E7F),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    height: 120,
-                    width: 120,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: const Padding(
-                      padding: EdgeInsets.all(20.0),
-                      child: Image(
-                        image: AssetImage('assets/Lynq_Logo.png'),
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  const CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(0xFFF4AB19),
-                    ),
-                    strokeWidth: 3,
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Loading LYNQ...',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
+          return LoadingScreen();
         }
 
+        // User is logged in - show main app
         if (snapshot.hasData) {
           return MainScaffold(
             key: ValueKey(snapshot.data!.uid), // Force rebuild on user change
           );
         }
 
+        // User is not logged in - show login page
         return const LoginPage();
       },
     );
@@ -137,15 +101,17 @@ class MainScaffold extends StatefulWidget {
 }
 
 class _MainScaffoldState extends State<MainScaffold> {
-  int _selectedIndex = 0;
-  bool isLoading = true;
+  int _selectedIndex = 0; // Current page index
+  bool isLoading = true; // Initial loading state
 
+  // Firestore listeners for real-time data
   StreamSubscription? _userSubs;
   final Map<String, StreamSubscription> _groupListeners = {};
   final Map<String, StreamSubscription> _announcementListeners = {};
   final Map<String, StreamSubscription> _calendarListeners = {};
   final Map<String, StreamSubscription> _resourcesListeners = {};
 
+  // Returns list of all app pages
   List<Widget> get _pages {
     List<Widget> pages = [
       HomePage(onNavigate: _navigateBar),
@@ -161,6 +127,7 @@ class _MainScaffoldState extends State<MainScaffold> {
       AdminPage(onNavigate: _navigateBar),
     ];
 
+    // Add admin page if user is admin
     if (globals.isAdmin == true) {
       pages.insert(10, AdminPage(onNavigate: _navigateBar));
     }
@@ -172,7 +139,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   void initState() {
     super.initState();
     try {
-      _fetchUser();
+      _fetchUser(); // Load user data on start
     } catch (e) {
       print('Error in initState: $e');
       setState(() {
@@ -183,8 +150,8 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   @override
   void dispose() {
-    stopListeningToUserData();
-    // Clear all previous user data
+    stopListeningToUserData(); // Cancel all Firestore listeners
+    // Clear global data
     globals.groups.clear();
     globals.announcements.clear();
     globals.calendar.clear();
@@ -193,6 +160,7 @@ class _MainScaffoldState extends State<MainScaffold> {
     super.dispose();
   }
 
+  // Navigate to different page
   void _navigateBar(int index) {
     setState(() {
       _selectedIndex = index;
@@ -201,48 +169,9 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   @override
   Widget build(BuildContext context) {
+    // Show loading screen while fetching user data
     if (isLoading) {
-      return Scaffold(
-        backgroundColor: const Color(0xFF0A2E7F),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                height: 120,
-                width: 120,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: const Padding(
-                  padding: EdgeInsets.all(20.0),
-                  child: Image(
-                    image: AssetImage('assets/Lynq_Logo.png'),
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-              const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  Color(0xFFF4AB19),
-                ),
-                strokeWidth: 3,
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Setting up your experience...',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+      return LoadingScreen();
     }
 
     return Scaffold(
@@ -264,11 +193,15 @@ class _MainScaffoldState extends State<MainScaffold> {
             mainAxisSize: MainAxisSize.min,
             children: [
               NavigationBar(
+                // Clamp to valid index, default to 0 if on other pages
                 selectedIndex: _selectedIndex > 3 ? 0 : _selectedIndex,
                 onDestinationSelected: _navigateBar,
                 backgroundColor: Colors.transparent,
                 surfaceTintColor: Colors.transparent,
-                indicatorColor: const Color(0xFF0A2E7F),
+                // Hide indicator when not on main 4 pages
+                indicatorColor: _selectedIndex <= 3 
+                  ? const Color(0xFF0A2E7F) 
+                  : Colors.transparent,
                 indicatorShape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -277,19 +210,26 @@ class _MainScaffoldState extends State<MainScaffold> {
                 labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
                 animationDuration: const Duration(milliseconds: 400),
                 destinations: [
+                  // Home tab
                   NavigationDestination(
                     icon: Icon(
                       Icons.home_outlined,
                       size: 24,
                       color: Colors.grey[600],
                     ),
-                    selectedIcon: const Icon(
-                      Icons.home_rounded,
-                      size: 26,
-                      color: Colors.white,
+                    selectedIcon: Icon(
+                      // Show filled icon only when actually on Home
+                      _selectedIndex == 0 && _selectedIndex <= 3 
+                          ? Icons.home_rounded 
+                          : Icons.home_outlined,
+                      size: _selectedIndex == 0 && _selectedIndex <= 3 ? 26 : 24,
+                      color: _selectedIndex == 0 && _selectedIndex <= 3 
+                          ? Colors.white 
+                          : Colors.grey[600],
                     ),
                     label: 'Home',
                   ),
+                  // Announcements tab
                   NavigationDestination(
                     icon: Icon(
                       Icons.campaign_outlined,
@@ -303,6 +243,7 @@ class _MainScaffoldState extends State<MainScaffold> {
                     ),
                     label: 'Announcements',
                   ),
+                  // Events tab
                   NavigationDestination(
                     icon: Icon(
                       Icons.event_outlined,
@@ -316,6 +257,7 @@ class _MainScaffoldState extends State<MainScaffold> {
                     ),
                     label: 'Events',
                   ),
+                  // Calendar tab
                   NavigationDestination(
                     icon: Icon(
                       Icons.menu_book_outlined,
@@ -353,6 +295,7 @@ class _MainScaffoldState extends State<MainScaffold> {
         throw Exception('No user logged in');
       }
 
+      // Store user info in globals
       globals.currentUID = currentUser.uid;
       globals.currentUserName = currentUser.displayName ?? 'User';
       globals.currentUserEmail = currentUser.email ?? '';
@@ -405,8 +348,10 @@ class _MainScaffoldState extends State<MainScaffold> {
     }
   }
 
+  // Checks if user exists in students or advisors collection
   Future<void> _fetchUserRole() async {
     try {
+      // Check students collection
       final studentDoc = await FirebaseFirestore.instance
           .collection('students')
           .doc(globals.currentUID)
@@ -417,6 +362,7 @@ class _MainScaffoldState extends State<MainScaffold> {
         return;
       }
 
+      // Check advisors collection
       final advisorDoc = await FirebaseFirestore.instance
           .collection('advisors')
           .doc(globals.currentUID)
@@ -433,11 +379,13 @@ class _MainScaffoldState extends State<MainScaffold> {
     }
   }
 
+  // Sets up real-time listeners for user's groups and related data
   void _listenToUserData() {
-    stopListeningToUserData();
+    stopListeningToUserData(); // Cancel existing listeners first
 
     final firestore = FirebaseFirestore.instance;
 
+    // Listen to user's groups subcollection
     _userSubs = firestore
         .collection(globals.currentUserRole)
         .doc(globals.currentUID)
@@ -446,20 +394,23 @@ class _MainScaffoldState extends State<MainScaffold> {
         .listen(
           (userGroupsSnapshot) {
             try {
+              // Get all group codes user belongs to
               final groupCodes = userGroupsSnapshot.docs
                   .map((d) => d.id)
                   .toSet();
 
-              // Remove listeners for groups the user left
+              // Remove listeners for groups user left
               _groupListeners.keys
                   .where((code) => !groupCodes.contains(code))
                   .toList()
                   .forEach((code) {
+                    // Cancel all listeners for this group
                     _groupListeners.remove(code)?.cancel();
                     _announcementListeners.remove(code)?.cancel();
                     _calendarListeners.remove(code)?.cancel();
                     _resourcesListeners.remove(code)?.cancel();
 
+                    // Remove data from globals
                     setState(() {
                       globals.groups.removeWhere((g) => g.code == code);
                       globals.announcements.removeWhere((a) => a.code == code);
@@ -472,6 +423,7 @@ class _MainScaffoldState extends State<MainScaffold> {
               for (final code in groupCodes.where(
                 (c) => !_groupListeners.containsKey(c),
               )) {
+                // Listen to group document
                 _groupListeners[code] = firestore
                     .collection('groups')
                     .doc(code)
@@ -489,6 +441,7 @@ class _MainScaffoldState extends State<MainScaffold> {
                       cancelOnError: false,
                     );
 
+                // Listen to group's announcements
                 _announcementListeners[code] = firestore
                     .collection('groups')
                     .doc(code)
@@ -511,6 +464,7 @@ class _MainScaffoldState extends State<MainScaffold> {
                       cancelOnError: false,
                     );
 
+                // Listen to group's calendar events
                 _calendarListeners[code] = firestore
                     .collection('groups')
                     .doc(code)
@@ -531,6 +485,7 @@ class _MainScaffoldState extends State<MainScaffold> {
                       cancelOnError: false,
                     );
 
+                // Listen to group's resources
                 _resourcesListeners[code] = firestore
                     .collection('groups')
                     .doc(code)
@@ -564,12 +519,14 @@ class _MainScaffoldState extends State<MainScaffold> {
         );
   }
 
+  // Updates group data in globals when Firestore changes
   void _updateGroupData(String code, Map<String, dynamic>? groupData) {
     if (groupData != null) {
       setState(() {
         final name = groupData['name']?.toString() ?? 'Unknown Group';
         final group = Group(name: name, code: code);
 
+        // Update existing or add new group
         final existingIndex = globals.groups.indexWhere((g) => g.code == code);
         if (existingIndex != -1) {
           globals.groups[existingIndex] = group;
@@ -580,6 +537,7 @@ class _MainScaffoldState extends State<MainScaffold> {
 
       print('Updated group: $code');
     } else {
+      // Group was deleted
       setState(() {
         globals.groups.removeWhere((g) => g.code == code);
       });
@@ -587,18 +545,19 @@ class _MainScaffoldState extends State<MainScaffold> {
     }
   }
 
+  // Updates announcements for a specific group
   void _updateGroupAnnouncements(String code, QuerySnapshot snapshot) {
     setState(() {
       // Remove old announcements for this group
       globals.announcements.removeWhere((a) => a.code == code);
 
-      // Find the group name
+      // Get group name
       final group = globals.groups.firstWhere(
         (g) => g.code == code,
         orElse: () => Group(name: 'Unknown Group', code: code),
       );
 
-      // Add new announcements
+      // Add fresh announcements from Firestore
       for (var doc in snapshot.docs) {
         final data = doc.data() as Map<String, dynamic>;
         final timestamp = data['date'] as Timestamp?;
@@ -615,19 +574,20 @@ class _MainScaffoldState extends State<MainScaffold> {
         globals.announcements.add(announcement);
       }
 
-      // Sort by date (most recent first)
+      // Sort by most recent first
       globals.announcements.sort((a, b) => b.date.compareTo(a.date));
     });
 
     print('Updated ${snapshot.docs.length} announcements for group $code');
   }
 
+  // Updates calendar events for a specific group
   void _updateGroupCalendar(String code, QuerySnapshot snapshot) {
     setState(() {
-      // Remove old calendar events for this group
+      // Remove old events for this group
       globals.calendar.removeWhere((c) => c.code == code);
 
-      // Add new calendar events
+      // Add fresh events from Firestore
       for (var doc in snapshot.docs) {
         final data = doc.data() as Map<String, dynamic>;
         final timestamp = data['date'] as Timestamp?;
@@ -642,19 +602,20 @@ class _MainScaffoldState extends State<MainScaffold> {
         globals.calendar.add(calendarEvent);
       }
 
-      // Sort by date (most recent first)
+      // Sort by most recent first
       globals.calendar.sort((a, b) => b.date.compareTo(a.date));
     });
 
     print('Updated ${snapshot.docs.length} calendar events for group $code');
   }
 
+  // Updates resources for a specific group
   void _updateGroupResources(String code, QuerySnapshot snapshot) {
     setState(() {
       // Remove old resources for this group
       globals.resources.removeWhere((r) => r.code == code);
 
-      // Add new resources
+      // Add fresh resources from Firestore
       for (var doc in snapshot.docs) {
         final data = doc.data() as Map<String, dynamic>;
 
@@ -672,25 +633,31 @@ class _MainScaffoldState extends State<MainScaffold> {
     print('Updated ${snapshot.docs.length} resources for group $code');
   }
 
+  // Cancels all Firestore listeners and clears data
   void stopListeningToUserData() {
+    // Cancel main subscription
     _userSubs?.cancel();
     _userSubs = null;
 
+    // Cancel all group listeners
     for (var sub in _groupListeners.values) {
       sub.cancel();
     }
     _groupListeners.clear();
 
+    // Cancel all announcement listeners
     for (var sub in _announcementListeners.values) {
       sub.cancel();
     }
     _announcementListeners.clear();
 
+    // Cancel all calendar listeners
     for (var sub in _calendarListeners.values) {
       sub.cancel();
     }
     _calendarListeners.clear();
 
+    // Cancel all resource listeners
     for (var sub in _resourcesListeners.values) {
       sub.cancel();
     }
@@ -702,5 +669,58 @@ class _MainScaffoldState extends State<MainScaffold> {
     globals.calendar.clear();
     globals.resources.clear();
     globals.events.clear();
+  }
+}
+
+// Loading screen shown during authentication and data fetching
+class LoadingScreen extends StatelessWidget {
+  const LoadingScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF0A2E7F), // FBLA Navy
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Logo container
+            Container(
+              height: 120,
+              width: 120,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: const Padding(
+                padding: EdgeInsets.all(20.0),
+                child: Image(
+                  image: AssetImage('assets/Lynq_Logo.png'),
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+            // Loading spinner
+            const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(
+                Color(0xFFF4AB19), // FBLA Gold
+              ),
+              strokeWidth: 3,
+            ),
+            const SizedBox(height: 24),
+            // Loading text
+            const Text(
+              'Loading LYNQ...',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
