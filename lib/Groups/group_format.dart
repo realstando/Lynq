@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:coding_prog/Groups/group.dart';
+import 'package:coding_prog/globals.dart' as globals;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -43,7 +45,6 @@ class GroupFormat extends StatelessWidget {
           },
           child: Padding(
             padding: EdgeInsets.all(16),
-            // Horizontal layout: [Logo] [Group Info] [Copy Button]
             child: Row(
               children: [
                 // Left section: Lynq logo in branded container
@@ -51,28 +52,27 @@ class GroupFormat extends StatelessWidget {
                   height: 48,
                   width: 48,
                   decoration: BoxDecoration(
-                    color: fblaBlue, // Solid blue background
+                    color: fblaBlue,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Padding(
-                    padding: EdgeInsets.all(10.0), // Inner padding for logo
+                    padding: EdgeInsets.all(10.0),
                     child: Image(
                       image: AssetImage('assets/Lynq_Logo.png'),
-                      fit: BoxFit
-                          .contain, // Scale logo to fit without distortion
-                      color: Colors.white, // Tint logo white for contrast
+                      fit: BoxFit.contain,
+                      color: Colors.white,
                     ),
                   ),
                 ),
 
-                SizedBox(width: 16), // Space between logo and text
+                SizedBox(width: 16),
+                
                 // Center section: Group name and join code
                 Expanded(
-                  // Expanded allows this section to take remaining horizontal space
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Group name - primary text
+                      // Group name
                       Text(
                         group.name,
                         style: TextStyle(
@@ -81,18 +81,16 @@ class GroupFormat extends StatelessWidget {
                           color: fblaBlue,
                         ),
                       ),
-                      SizedBox(height: 4), // Space between name and code
-                      // Join code row with icon and label
+                      SizedBox(height: 4),
+                      // Join code row
                       Row(
                         children: [
-                          // Key icon to indicate this is an access code
                           Icon(
                             Icons.key,
                             size: 14,
                             color: Colors.grey[600],
                           ),
                           SizedBox(width: 4),
-                          // "Code:" label
                           Text(
                             'Code: ',
                             style: TextStyle(
@@ -100,15 +98,13 @@ class GroupFormat extends StatelessWidget {
                               color: Colors.grey[600],
                             ),
                           ),
-                          // Actual join code - emphasized styling
                           Text(
                             group.code,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                               color: fblaBlue,
-                              letterSpacing:
-                                  1.5, // Wide spacing for readability
+                              letterSpacing: 1.5,
                             ),
                           ),
                         ],
@@ -117,16 +113,122 @@ class GroupFormat extends StatelessWidget {
                   ),
                 ),
 
-                // Right section: Copy button for quick code sharing
-                IconButton(
-                  onPressed: () {
-                    // Copy join code to clipboard
-                    Clipboard.setData(ClipboardData(text: group.code));
+                // Right section: Copy and Leave buttons
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Copy button
+                    IconButton(
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: group.code));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                Icon(
+                                  Icons.check_circle,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                SizedBox(width: 12),
+                                Text('Code copied: ${group.code}'),
+                              ],
+                            ),
+                            backgroundColor: Colors.green,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                      icon: Icon(
+                        Icons.copy,
+                        color: fblaGold,
+                        size: 22,
+                      ),
+                      tooltip: 'Copy join code',
+                    ),
+                    
+                    // Leave button
+                    IconButton(
+                      onPressed: ()=> onRemove(context, group),
+                      icon: Icon(
+                        Icons.exit_to_app,
+                        color: Colors.red[400],
+                        size: 22,
+                      ),
+                      tooltip: 'Leave group',
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
-                    // Show confirmation snackbar with success styling
+  void onRemove(BuildContext context, Group group) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.orange,
+                size: 28,
+              ),
+              SizedBox(width: 12),
+              Text(
+                'Leave Group?',
+                style: TextStyle(
+                  color: fblaBlue,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            'Are you sure you want to leave "${group.name}"?',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                try {
+                  // Delete group from user's groups subcollection
+                  await FirebaseFirestore.instance
+                      .collection(globals.currentUserRole)
+                      .doc(globals.currentUID)
+                      .collection('groups')
+                      .doc(group.code)
+                      .delete();
+
+                  Navigator.pop(dialogContext);
+
+                  // Show success message
+                  if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        // Success message with checkmark icon
                         content: Row(
                           children: [
                             Icon(
@@ -135,31 +237,60 @@ class GroupFormat extends StatelessWidget {
                               size: 20,
                             ),
                             SizedBox(width: 12),
-                            Text('Code copied: ${group.code}'),
+                            Text('Left ${group.name}'),
                           ],
                         ),
-                        backgroundColor: Colors.green, // Green for success
-                        behavior: SnackBarBehavior.floating, // Floating style
+                        backgroundColor: Colors.green,
+                        behavior: SnackBarBehavior.floating,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        duration: Duration(seconds: 2), // Auto-dismiss after 2s
                       ),
                     );
-                  },
-                  // Copy icon in FBLA gold for visibility and branding
-                  icon: Icon(
-                    Icons.copy,
-                    color: fblaGold,
-                    size: 22,
-                  ),
-                  tooltip: 'Copy join code', // Accessibility label
+                  }
+                } catch (e) {
+                  Navigator.pop(dialogContext);
+                  
+                  // Show error message
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Row(
+                          children: [
+                            Icon(
+                              Icons.error,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            SizedBox(width: 12),
+                            Text('Failed to leave group'),
+                          ],
+                        ),
+                        backgroundColor: Colors.red,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
-              ],
+              ),
+              child: Text(
+                'Leave',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
-          ),
-        ),
-      ),
+          ],
+        );
+      },
     );
   }
 }
